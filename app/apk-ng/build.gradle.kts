@@ -48,6 +48,9 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.compose.material3)
 
+    // Miuix UI library
+    implementation("top.yukonga.miuix.kmp:miuix:0.8.4")
+
     // Navigation3
     implementation(libs.navigation3.runtime)
     implementation(libs.navigationevent.compose)

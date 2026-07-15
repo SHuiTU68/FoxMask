@@ -101,3 +101,12 @@ fun SmallTitle(text: String) {
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
     )
 }
+
+@Composable
+fun AdaptiveSmallTitle(text: String) {
+    if (com.topjohnwu.magisk.ui.ThemeState.uiStyle == 1) {
+        top.yukonga.miuix.kmp.basic.SmallTitle(text = text)
+    } else {
+        SmallTitle(text = text)
+    }
+}

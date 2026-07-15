@@ -13,9 +13,13 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.topjohnwu.magisk.core.Config
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.theme.darkColorScheme as miuixDarkColorScheme
+import top.yukonga.miuix.kmp.theme.lightColorScheme as miuixLightColorScheme
 
 object ThemeState {
     var colorMode by mutableIntStateOf(Config.colorMode)
+    var uiStyle by mutableIntStateOf(Config.uiStyle)
 }
 
 @Composable
@@ -25,6 +29,7 @@ fun MagiskTheme(
     val isDark = isSystemInDarkTheme()
     val mode = ThemeState.colorMode
     val context = LocalContext.current
+    val useMiuix = ThemeState.uiStyle == 1
 
     val isDarkTheme = when (mode) {
         1 -> false
@@ -44,8 +49,20 @@ fun MagiskTheme(
         else -> lightColorScheme()
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        content = content
-    )
+    val materialContent: @Composable () -> Unit = {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            content = content
+        )
+    }
+
+    if (useMiuix) {
+        MiuixTheme(
+            colors = if (isDarkTheme) miuixDarkColorScheme() else miuixLightColorScheme()
+        ) {
+            materialContent()
+        }
+    } else {
+        materialContent()
+    }
 }

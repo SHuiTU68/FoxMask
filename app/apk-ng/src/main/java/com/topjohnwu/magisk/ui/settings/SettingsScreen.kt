@@ -43,6 +43,7 @@ import com.topjohnwu.magisk.ui.ThemeState
 import com.topjohnwu.magisk.ui.component.SettingsArrow
 import com.topjohnwu.magisk.ui.component.SettingsDropdown
 import com.topjohnwu.magisk.ui.component.SettingsSwitch
+import com.topjohnwu.magisk.ui.component.AdaptiveSmallTitle
 import com.topjohnwu.magisk.ui.component.SmallTitle
 import com.topjohnwu.magisk.core.R as CoreR
 
@@ -88,7 +89,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 private fun CustomizationSection(viewModel: SettingsViewModel) {
     val context = LocalContext.current
 
-    SmallTitle(text = stringResource(CoreR.string.settings_customization))
+    AdaptiveSmallTitle(text = stringResource(CoreR.string.settings_customization))
     Card(modifier = Modifier.fillMaxWidth()) {
         if (LocaleSetting.useLocaleManager) {
             val locale = LocaleSetting.instance.appLocale
@@ -134,6 +135,25 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
             }
         )
 
+        // UI Style
+        val uiStyleEntries = remember {
+            listOf(
+                stringResource(CoreR.string.settings_ui_style_original),
+                stringResource(CoreR.string.settings_ui_style_miuix)
+            )
+        }
+        var uiStyle by remember { mutableIntStateOf(Config.uiStyle) }
+        SettingsDropdown(
+            title = stringResource(CoreR.string.settings_ui_style_title),
+            items = uiStyleEntries,
+            selectedIndex = uiStyle,
+            onSelectedIndexChange = { index ->
+                uiStyle = index
+                Config.uiStyle = index
+                ThemeState.uiStyle = index
+            }
+        )
+
         if (isRunningAsStub && ShortcutManagerCompat.isRequestPinShortcutSupported(context)) {
             SettingsArrow(
                 title = stringResource(CoreR.string.add_shortcut_title),
@@ -151,7 +171,7 @@ private fun AppSettingsSection() {
     val context = LocalContext.current
     val resources = LocalResources.current
 
-    SmallTitle(text = stringResource(CoreR.string.home_app_title))
+    AdaptiveSmallTitle(text = stringResource(CoreR.string.home_app_title))
     Card(modifier = Modifier.fillMaxWidth()) {
         // Update Channel
         val updateChannelEntries = remember {
@@ -245,7 +265,7 @@ private fun AppSettingsSection() {
 
 @Composable
 private fun MagiskSection(viewModel: SettingsViewModel) {
-    SmallTitle(text = stringResource(CoreR.string.magisk))
+    AdaptiveSmallTitle(text = stringResource(CoreR.string.magisk))
     Card(modifier = Modifier.fillMaxWidth()) {
         // Systemless Hosts
         SettingsArrow(
@@ -313,7 +333,7 @@ private fun SuperuserSection(viewModel: SettingsViewModel) {
     val context = LocalContext.current
     val resources = LocalResources.current
 
-    SmallTitle(text = stringResource(CoreR.string.superuser))
+    AdaptiveSmallTitle(text = stringResource(CoreR.string.superuser))
     Card(modifier = Modifier.fillMaxWidth()) {
         // Tapjack (SDK < S)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
