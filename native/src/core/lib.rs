@@ -85,6 +85,7 @@ pub mod ffi {
         SuMntNs,
         DenylistConfig,
         ZygiskConfig,
+        MountModules,
         BootloopCount,
         SuManager,
     }
@@ -219,6 +220,7 @@ pub mod ffi {
         type MagiskD;
         fn sdk_int(&self) -> i32;
         fn zygisk_enabled(&self) -> bool;
+        fn mount_modules_enabled(&self) -> bool;
         fn get_db_setting(&self, key: DbEntryKey) -> i32;
         #[cxx_name = "set_db_setting"]
         fn set_db_setting_for_cxx(&self, key: DbEntryKey, value: i32) -> bool;

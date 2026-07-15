@@ -50,6 +50,7 @@ object Info {
     var isVendorBoot = false
         private set
     @JvmField val isZygiskEnabled = System.getenv("ZYGISK_ENABLED") == "1"
+    @JvmField val isMountModulesEnabled = System.getenv("MOUNT_MODULES_ENABLED") == "1"
     @JvmStatic val isFDE get() = crypto == "block"
     @JvmStatic var ramdisk = false
         private set

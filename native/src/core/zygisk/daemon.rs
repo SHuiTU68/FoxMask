@@ -262,4 +262,8 @@ impl MagiskD {
     pub fn zygisk_enabled(&self) -> bool {
         self.zygisk_enabled.load(Ordering::Acquire)
     }
+
+    pub fn mount_modules_enabled(&self) -> bool {
+        self.mount_modules_enabled.load(Ordering::Relaxed)
+    }
 }

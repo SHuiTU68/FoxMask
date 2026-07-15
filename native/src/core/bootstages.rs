@@ -153,8 +153,16 @@ impl MagiskD {
             self.get_db_setting(DbEntryKey::ZygiskConfig) != 0,
             Ordering::Release,
         );
+        self.mount_modules_enabled.store(
+            self.get_db_setting(DbEntryKey::MountModules) != 0,
+            Ordering::Release,
+        );
         initialize_denylist();
-        self.handle_modules();
+        if self.mount_modules_enabled.load(Ordering::Relaxed) {
+            self.handle_modules();
+        } else {
+            info!("* Mount modules disabled, skipping module mount pipeline");
+        }
         clean_mounts();
 
         false

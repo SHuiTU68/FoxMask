@@ -53,7 +53,7 @@ run_setup() {
   # Install the test app
   adb install -r -g out/test.apk
 
-  local app='com.topjohnwu.magisk.test/com.topjohnwu.magisk.test.AppTestRunner'
+  local app='com.foxmask.app.test/com.topjohnwu.magisk.test.AppTestRunner'
 
   # Run setup through the test app
   am_instrument '.Environment#setupEnvironment' $app
@@ -68,10 +68,10 @@ print_apks() {
 }
 
 run_tests() {
-  local pkg='com.topjohnwu.magisk.test'
-  local self="$pkg/$pkg.TestRunner"
-  local app="$pkg/$pkg.AppTestRunner"
-  local stub="repackaged.$pkg/$pkg.AppTestRunner"
+  local pkg='com.foxmask.app.test'
+  local self="$pkg/com.topjohnwu.magisk.test.TestRunner"
+  local app="$pkg/com.topjohnwu.magisk.test.AppTestRunner"
+  local stub="repackaged.$pkg/com.topjohnwu.magisk.test.AppTestRunner"
 
   # Run app tests
   am_instrument '.MagiskAppTest,.AdditionalTest' $app

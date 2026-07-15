@@ -58,10 +58,11 @@ class SettingsViewModel : BaseViewModel(), BaseSettingsItem.Handler {
         }
 
         // Magisk
-        if (Info.env.isActive) {
+        if (Info.envIsActive) {
             list.addAll(listOf(
                 Magisk,
-                SystemlessHosts
+                SystemlessHosts,
+                SystemlessMount
             ))
             if (Const.Version.atLeast_24_0()) {
                 list.addAll(listOf(Zygisk, DenyList, DenyListConfig))
@@ -112,6 +113,7 @@ class SettingsViewModel : BaseViewModel(), BaseSettingsItem.Handler {
             is Hide -> viewModelScope.launch { AppMigration.hide(view.activity, item.value) }
             Restore -> viewModelScope.launch { AppMigration.restore(view.activity) }
             Zygisk -> if (Zygisk.mismatch) SnackbarEvent(R.string.reboot_apply_change).publish()
+            SystemlessMount -> if (SystemlessMount.mismatch) SnackbarEvent(R.string.reboot_apply_change).publish()
             else -> Unit
         }
     }

@@ -27,6 +27,8 @@ static void set_script_env() {
     setenv("PATH", new_path, 1);
     if (MagiskD::Get().zygisk_enabled())
         setenv("ZYGISK_ENABLED", "1", 1);
+    if (MagiskD::Get().mount_modules_enabled())
+        setenv("MOUNT_MODULES_ENABLED", "1", 1);
 };
 
 void exec_script(Utf8CStr script) {

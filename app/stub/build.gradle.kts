@@ -17,7 +17,7 @@ android {
     val url = base + "v${Config.version}/Magisk-v${Config.version}.apk"
 
     defaultConfig {
-        applicationId = "com.topjohnwu.magisk"
+        applicationId = "com.foxmask.app"
         versionCode = 1
         versionName = "1.0"
         buildConfigField("String", "APK_URL", "\"$url\"")

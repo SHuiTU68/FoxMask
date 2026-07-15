@@ -98,6 +98,7 @@ impl DbEntryKey {
             DbEntryKey::SuMntNs => "mnt_ns",
             DbEntryKey::DenylistConfig => "denylist",
             DbEntryKey::ZygiskConfig => "zygisk",
+            DbEntryKey::MountModules => "mount_modules",
             DbEntryKey::BootloopCount => "bootloop",
             DbEntryKey::SuManager => "requester",
             _ => "",
@@ -253,6 +254,7 @@ impl MagiskD {
             DbEntryKey::SuMntNs => MntNsMode::default().repr,
             DbEntryKey::DenylistConfig => 0,
             DbEntryKey::ZygiskConfig => self.is_emulator as i32,
+            DbEntryKey::MountModules => 1,
             DbEntryKey::BootloopCount => 0,
             _ => -1,
         };

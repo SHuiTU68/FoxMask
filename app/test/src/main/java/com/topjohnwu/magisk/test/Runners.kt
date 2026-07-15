@@ -10,7 +10,7 @@ open class TestRunner : AndroidJUnitRunner() {
         arguments.getString("class")?.let {
             val classArg = it.split(",").joinToString(separator = ",") { clz ->
                 if (clz.startsWith(".")) {
-                    "com.topjohnwu.magisk.test$clz"
+                    "com.foxmask.app.test$clz"
                 } else {
                     clz
                 }
