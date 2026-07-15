@@ -136,11 +136,10 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
         )
 
         // UI Style
+        val uiStyleOriginal = stringResource(CoreR.string.settings_ui_style_original)
+        val uiStyleMiuix = stringResource(CoreR.string.settings_ui_style_miuix)
         val uiStyleEntries = remember {
-            listOf(
-                stringResource(CoreR.string.settings_ui_style_original),
-                stringResource(CoreR.string.settings_ui_style_miuix)
-            )
+            listOf(uiStyleOriginal, uiStyleMiuix)
         }
         var uiStyle by remember { mutableIntStateOf(Config.uiStyle) }
         SettingsDropdown(
