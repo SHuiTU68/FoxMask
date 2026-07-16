@@ -438,8 +438,8 @@ fn get_path_env() -> String {
         .unwrap_or_default()
 }
 
-fn inject_magisk_bins(system: &mut FsNode, is_emulator: bool) {
-    fn inject(children: &mut FsNodeMap) {
+fn inject_magisk_bins(system: &mut FsNode, is_emulator: bool, skip_su: bool) {
+    fn inject(children: &mut FsNodeMap, skip_su: bool) {
         let mut path = cstr::buf::default().join_path(get_magisk_tmp());
 
         // Inject binaries
@@ -463,7 +463,11 @@ fn inject_magisk_bins(system: &mut FsNode, is_emulator: bool) {
         );
 
         // Inject applet symlinks
-        children.insert("su".to_string(), FsNode::MagiskLink);
+        // SuList 模式下跳过 su 注入：su 仅存在于 ${MAGISKTMP}/su，
+        // 不暴露到 /system/bin 等系统 PATH 目录，应用难以通过扫描 PATH 发现 su
+        if !skip_su {
+            children.insert("su".to_string(), FsNode::MagiskLink);
+        }
         children.insert("resetprop".to_string(), FsNode::MagiskLink);
         children.insert("supolicy".to_string(), FsNode::MagiskLink);
     }
@@ -551,7 +555,7 @@ fn inject_magisk_bins(system: &mut FsNode, is_emulator: bool) {
         }
 
         // Found a suitable path, done
-        inject(curr);
+        inject(curr, skip_su);
         return;
     }
 
@@ -560,7 +564,7 @@ fn inject_magisk_bins(system: &mut FsNode, is_emulator: bool) {
         .children()
         .map(|c| c.entry("bin".to_string()).or_insert_with(FsNode::new_dir));
     if let Some(FsNode::Directory { children }) = node {
-        inject(children)
+        inject(children, skip_su)
     }
 }
 
@@ -884,7 +888,7 @@ impl MagiskD {
         // step, treating Magisk just like a special "module".
 
         if get_magisk_tmp() != "/sbin" || get_path_env().split(":").all(|s| s != "/sbin") {
-            inject_magisk_bins(&mut system, self.is_emulator);
+            inject_magisk_bins(&mut system, self.is_emulator, self.sulist_enabled.load(Ordering::Acquire));
         }
 
         // Handle zygisk

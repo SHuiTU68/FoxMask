@@ -153,6 +153,10 @@ impl MagiskD {
             self.get_db_setting(DbEntryKey::ZygiskConfig) != 0,
             Ordering::Release,
         );
+        self.sulist_enabled.store(
+            self.get_db_setting(DbEntryKey::SuListConfig) != 0,
+            Ordering::Release,
+        );
         initialize_denylist();
         clean_mounts();
 

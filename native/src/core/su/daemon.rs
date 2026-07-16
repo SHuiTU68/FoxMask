@@ -246,6 +246,12 @@ impl MagiskD {
                 return Ok(Arc::new(SuInfo::allow(uid)));
             }
 
+            // SuList 白名单模式：只有显式 Allow 策略的 uid 才能拿 root，
+            // 其余静默 Deny（不弹 INTERACTIVE 授权框），避免被探测
+            if cfg.sulist && access.policy != SuPolicy::Allow {
+                return Ok(Arc::new(SuInfo::deny(uid)));
+            }
+
             // Check su access settings
             match cfg.root_access {
                 RootAccess::Disabled => {

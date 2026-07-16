@@ -87,6 +87,7 @@ pub mod ffi {
         ZygiskConfig,
         BootloopCount,
         SuManager,
+        SuListConfig,
     }
 
     #[repr(i32)]
@@ -123,6 +124,7 @@ pub mod ffi {
         ProcessOnDenyList = 0x00000002,
         DenyListEnforced = 0x40000000,
         ProcessIsMagiskApp = 0x80000000,
+        SuListEnforced = 0x20000000,
     }
 
     #[derive(Decodable)]
@@ -219,6 +221,7 @@ pub mod ffi {
         type MagiskD;
         fn sdk_int(&self) -> i32;
         fn zygisk_enabled(&self) -> bool;
+        fn sulist_enabled(&self) -> bool;
         fn get_db_setting(&self, key: DbEntryKey) -> i32;
         #[cxx_name = "set_db_setting"]
         fn set_db_setting_for_cxx(&self, key: DbEntryKey, value: i32) -> bool;

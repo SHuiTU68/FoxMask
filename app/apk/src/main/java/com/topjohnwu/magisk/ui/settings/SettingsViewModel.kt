@@ -112,6 +112,7 @@ class SettingsViewModel : BaseViewModel(), BaseSettingsItem.Handler {
             is Hide -> viewModelScope.launch { AppMigration.hide(view.activity, item.value) }
             Restore -> viewModelScope.launch { AppMigration.restore(view.activity) }
             Zygisk -> if (Zygisk.mismatch) SnackbarEvent(R.string.reboot_apply_change).publish()
+            SuList -> if (SuList.mismatch) SnackbarEvent(R.string.reboot_apply_change).publish()
             else -> Unit
         }
     }

@@ -402,8 +402,17 @@ void ZygiskContext::app_specialize_pre() {
 
     rust::Vec<int> module_fds;
     owned_fd fd = get_module_info(args.app->uid, module_fds);
-    if ((info_flags & UNMOUNT_MASK) == UNMOUNT_MASK) {
-        ZLOGI("[%s] is on the denylist\n", process);
+    bool deny_unmount = (info_flags & UNMOUNT_MASK) == UNMOUNT_MASK;
+    // SuList 白名单模式：非白名单 app（无 GrantedRoot 且非 MagiskApp）
+    // 隐藏全部 magisk 痕迹，等同于反转 DenyList 语义
+    bool sulist_unmount = (info_flags & +ZygiskStateFlags::SuListEnforced)
+        && !(info_flags & +ZygiskStateFlags::ProcessGrantedRoot)
+        && !(info_flags & +ZygiskStateFlags::ProcessIsMagiskApp);
+    if (deny_unmount || sulist_unmount) {
+        if (deny_unmount)
+            ZLOGI("[%s] is on the denylist\n", process);
+        else
+            ZLOGI("[%s] is not on the sulist\n", process);
         flags |= DO_REVERT_UNMOUNT;
     } else if (fd >= 0) {
         run_modules_pre(module_fds);

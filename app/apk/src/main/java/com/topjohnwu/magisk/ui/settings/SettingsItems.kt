@@ -218,6 +218,20 @@ object Zygisk : BaseSettingsItem.Toggle() {
     val mismatch get() = value != Info.isZygiskEnabled
 }
 
+object SuList : BaseSettingsItem.Toggle() {
+    override val title = CoreR.string.settings_sulist_title.asText()
+    override val description get() =
+        if (mismatch) CoreR.string.reboot_apply_change.asText()
+        else CoreR.string.settings_sulist_summary.asText()
+    override var value
+        get() = Config.suList
+        set(value) {
+            Config.suList = value
+            notifyPropertyChanged(BR.description)
+        }
+    val mismatch get() = value != Info.isSuListEnabled
+}
+
 object DenyList : BaseSettingsItem.Toggle() {
     override val title = CoreR.string.settings_denylist_title.asText()
     override val description get() = CoreR.string.settings_denylist_summary.asText()

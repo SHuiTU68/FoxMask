@@ -1,5 +1,5 @@
 use crate::consts::MODULEROOT;
-use crate::daemon::{MagiskD, to_user_id};
+use crate::daemon::{AID_APP_START, MagiskD, to_user_id};
 use crate::ffi::{ZygiskRequest, ZygiskStateFlags, get_magisk_tmp, update_deny_flags};
 use crate::resetprop::{get_prop, set_prop};
 use crate::socket::{IpcRead, UnixSocketExt};
@@ -19,9 +19,15 @@ const NBPROP: &Utf8CStr = cstr!("ro.dalvik.vm.native.bridge");
 const ZYGISKLDR: &str = "libzygisk.so";
 const UNMOUNT_MASK: u32 =
     ZygiskStateFlags::ProcessOnDenyList.repr | ZygiskStateFlags::DenyListEnforced.repr;
+const SULIST_MASK: u32 = ZygiskStateFlags::SuListEnforced.repr;
 
 pub fn zygisk_should_load_module(flags: u32) -> bool {
-    flags & UNMOUNT_MASK != UNMOUNT_MASK && flags & ZygiskStateFlags::ProcessIsMagiskApp.repr == 0
+    // SuList 模式下，非白名单 app（无 GrantedRoot）不加载模块
+    let sulist_hide = flags & SULIST_MASK != 0
+        && flags & ZygiskStateFlags::ProcessGrantedRoot.repr == 0;
+    flags & UNMOUNT_MASK != UNMOUNT_MASK
+        && !sulist_hide
+        && flags & ZygiskStateFlags::ProcessIsMagiskApp.repr == 0
 }
 
 #[allow(unused_variables)]
@@ -200,6 +206,10 @@ impl MagiskD {
         if self.uid_granted_root(uid) {
             flags |= ZygiskStateFlags::ProcessGrantedRoot.repr
         }
+        // SuList 模式：仅对普通 app（uid >= AID_APP_START）生效，避免影响系统进程
+        if self.sulist_enabled() && uid >= AID_APP_START {
+            flags |= ZygiskStateFlags::SuListEnforced.repr
+        }
 
         // First send flags
         client.write_pod(&flags)?;
@@ -261,5 +271,9 @@ impl MagiskD {
 impl MagiskD {
     pub fn zygisk_enabled(&self) -> bool {
         self.zygisk_enabled.load(Ordering::Acquire)
+    }
+
+    pub fn sulist_enabled(&self) -> bool {
+        self.sulist_enabled.load(Ordering::Acquire)
     }
 }

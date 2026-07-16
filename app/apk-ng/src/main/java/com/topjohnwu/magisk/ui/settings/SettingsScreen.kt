@@ -290,6 +290,22 @@ private fun MagiskSection(viewModel: SettingsViewModel) {
                 }
             )
 
+            // SuList 白名单模式
+            var suList by remember { mutableStateOf(Config.suList) }
+            SettingsSwitch(
+                title = stringResource(CoreR.string.settings_sulist_title),
+                summary = stringResource(
+                    if (suList != Info.isSuListEnabled) CoreR.string.reboot_apply_change
+                    else CoreR.string.settings_sulist_summary
+                ),
+                checked = suList,
+                onCheckedChange = {
+                    suList = it
+                    Config.suList = it
+                    viewModel.notifySuListChange()
+                }
+            )
+
             // DenyList
             val denyListEnabled by viewModel.denyListEnabled.collectAsState()
             SettingsSwitch(

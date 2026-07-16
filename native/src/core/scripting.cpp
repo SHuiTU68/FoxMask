@@ -27,6 +27,8 @@ static void set_script_env() {
     setenv("PATH", new_path, 1);
     if (MagiskD::Get().zygisk_enabled())
         setenv("ZYGISK_ENABLED", "1", 1);
+    if (MagiskD::Get().sulist_enabled())
+        setenv("SULIST_ENABLED", "1", 1);
 };
 
 void exec_script(Utf8CStr script) {
