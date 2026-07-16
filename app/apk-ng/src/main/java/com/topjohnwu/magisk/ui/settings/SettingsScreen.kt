@@ -50,6 +50,7 @@ import com.topjohnwu.magisk.ui.component.SettingsSlider
 import com.topjohnwu.magisk.ui.component.SettingsSwitch
 import com.topjohnwu.magisk.ui.component.AdaptiveSmallTitle
 import com.topjohnwu.magisk.ui.component.SmallTitle
+import com.topjohnwu.magisk.ui.theme.MonetPresetPalette
 import com.topjohnwu.magisk.core.R as CoreR
 
 /// 从 Context 递归解包出 Activity（LocalContext 返回的可能是 ContextWrapper）
@@ -147,26 +148,40 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
                 colorMode = index
                 Config.colorMode = index
                 ThemeState.colorMode = index
-            }
-        )
-
-        // Color Theme — 颜色主题（与 UI Style 正交，覆盖默认色调）
-        val colorThemeEntries = remember {
-            resources.getStringArray(CoreR.array.color_theme).toList()
-        }
-        var colorTheme by remember { mutableIntStateOf(Config.colorTheme) }
-        SettingsDropdown(
-            title = stringResource(CoreR.string.settings_color_theme),
-            items = colorThemeEntries,
-            selectedIndex = colorTheme,
-            onSelectedIndexChange = { index ->
-                colorTheme = index
-                Config.colorTheme = index
-                ThemeState.colorTheme = index
-                // 颜色主题切换改变 colorScheme，recreate 确保主题彻底生效
+                // 主题切换改变整个 MiuixTheme/ThemeController，recreate 确保彻底生效
                 context.findActivity()?.recreate()
             }
         )
+
+        // Key Color — Monet 种子色（仅 Monet 模式显示）
+        // colorMode 3/4/5 为 Monet 模式，可选择预设种子色生成整套配色。
+        // keyColor=0 表示使用系统壁纸动态色。
+        if (colorMode in 3..5) {
+            val keyColorDefault = stringResource(CoreR.string.settings_key_color_default)
+            val keyColorEntries = remember(keyColorDefault) {
+                listOf(keyColorDefault) + MonetPresetPalette.presetColorNames
+            }
+            val keyColorValues = remember {
+                listOf(0) + MonetPresetPalette.presetKeyColors
+            }
+            var keyColorIdx by remember {
+                mutableIntStateOf(
+                    keyColorValues.indexOf(Config.keyColor).takeIf { it >= 0 } ?: 0
+                )
+            }
+            SettingsDropdown(
+                title = stringResource(CoreR.string.settings_key_color),
+                items = keyColorEntries,
+                selectedIndex = keyColorIdx,
+                onSelectedIndexChange = { index ->
+                    keyColorIdx = index
+                    val kc = keyColorValues[index]
+                    Config.keyColor = kc
+                    ThemeState.keyColor = kc
+                    context.findActivity()?.recreate()
+                }
+            )
+        }
 
         // UI Style
         val uiStyleOriginal = stringResource(CoreR.string.settings_ui_style_original)

@@ -48,8 +48,14 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.compose.material3)
 
-    // Miuix UI library
-    implementation("top.yukonga.miuix.kmp:miuix:0.8.4")
+    // Miuix UI library (0.9.3 拆分模块)
+    implementation(libs.miuix.ui)
+    implementation(libs.miuix.preference)
+    implementation(libs.miuix.icons)
+    implementation(libs.miuix.blur)
+
+    // Splash screen
+    implementation(libs.core.splashscreen)
 
     // Navigation3
     implementation(libs.navigation3.runtime)

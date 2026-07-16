@@ -47,6 +47,7 @@ object Config : PreferenceConfig, DBConfig {
         const val BLUR_EFFECT = "blur_effect"
         const val BLUR_INTENSITY = "blur_intensity"
         const val COLOR_THEME = "color_theme"
+        const val KEY_COLOR = "key_color"
         const val DOWNLOAD_DIR = "download_dir"
         const val SAFETY = "safety_notice"
         const val THEME_ORDINAL = "theme_ordinal"
@@ -123,6 +124,7 @@ object Config : PreferenceConfig, DBConfig {
     var blurEffect by preference(Key.BLUR_EFFECT, true)
     var blurIntensity by preference(Key.BLUR_INTENSITY, 24)
     var colorTheme by preference(Key.COLOR_THEME, 0)
+    var keyColor by preference(Key.KEY_COLOR, 0)
 
     private var checkUpdatePrefs by preference(Key.CHECK_UPDATES, true)
     private var localePrefs by preference(Key.LOCALE, "")

@@ -231,6 +231,9 @@
     <string name="color_mode_monet_system">Monet (System)</string>
     <string name="color_mode_monet_light">Monet (Light)</string>
     <string name="color_mode_monet_dark">Monet (Dark)</string>
+    <string name="settings_key_color">Key color</string>
+    <string name="settings_key_color_summary">Seed color for Monet dynamic theme (System = wallpaper color)</string>
+    <string name="settings_key_color_default">System (wallpaper)</string>
     <string name="setting_add_shortcut_summary">Add a pretty shortcut to the home screen in case the name and icon are difficult to recognize after hiding the app</string>
     <string name="settings_doh_title">DNS over HTTPS</string>
     <string name="settings_doh_description">Workaround DNS poisoning in some nations</string>
