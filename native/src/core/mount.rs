@@ -1,10 +1,11 @@
-use crate::consts::{MODULEMNT, MODULEROOT, PREINITDEV, PREINITMIRR, WORKERDIR};
+use crate::consts::{MODULEMNT, MODULEROOT, MIRRORDIR, PREINITDEV, PREINITMIRR, WORKERDIR};
 use crate::ffi::{get_magisk_tmp, resolve_preinit_dir, switch_mnt_ns};
 use crate::resetprop::get_prop;
 use base::{
     FsPathBuilder, LibcReturn, LoggedResult, MountInfo, ResultExt, Utf8CStr, Utf8CStrBuf, cstr,
     debug, info, libc, parse_mount_info, warn,
 };
+pub use base::overlay_mount;
 use libc::{c_uint, dev_t, major};
 use nix::mount::MsFlags;
 use nix::sys::stat::{Mode, SFlag, mknod};
@@ -64,6 +65,35 @@ pub fn setup_preinit_dir() {
     warn!("mount: preinit dir not found");
 }
 
+/// 检测内核是否支持 OverlayFS
+pub fn overlay_supported() -> bool {
+    use std::io::BufRead;
+    if let Ok(f) = std::fs::File::open("/proc/filesystems") {
+        for line in std::io::BufReader::new(f).lines().flatten() {
+            if line.split_whitespace().any(|s| s == "overlay") {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// 为分区创建镜像 bind mount（OverlayFS lowerdir 需要，避免 target==lowerdir 循环）
+/// 把 /<sub> bind mount 到 $MAGISK_TMP/.magisk/mirror/<sub>
+pub fn setup_mirror(sub: &str) -> LoggedResult<()> {
+    let mut real_str = format!("/{sub}");
+    let real_path = Utf8CStr::from_string(&mut real_str);
+    let mirror = cstr::buf::default()
+        .join_path(get_magisk_tmp())
+        .join_path(MIRRORDIR)
+        .join_path(sub);
+    mirror.mkdirs(0o755)?;
+    if real_path.bind_mount_to(&mirror, true).is_err() {
+        warn!("mirror: failed to mirror {} -> {}", real_path, mirror);
+    }
+    Ok(())
+}
+
 pub fn setup_module_mount() {
     // Bind remount module root to clear nosuid
     let module_mnt = cstr::buf::default()
@@ -90,6 +120,15 @@ pub fn clean_mounts() {
     let _ = || -> LoggedResult<()> {
         worker_dir.set_mount_private(true)?;
         worker_dir.unmount()?;
+        Ok(())
+    }();
+    buf.clear();
+
+    // 清理 OverlayFS 用的 mirror 目录
+    let mirror_dir = buf.append_path(magisk_tmp).append_path(MIRRORDIR);
+    let _ = || -> LoggedResult<()> {
+        mirror_dir.set_mount_private(true)?;
+        mirror_dir.unmount()?;
         Ok(())
     }();
 }
@@ -238,9 +277,26 @@ pub fn revert_unmount(pid: i32) {
 
     let mut targets = Vec::new();
 
-    // Unmount Magisk tmpfs and mounts from module files
+    // 计算 magisk 内部目录前缀，用于识别 mirror/worker 等 magisk 自有挂载点
+    let magisk_tmp = get_magisk_tmp();
+    let mirror_prefix = format!("{}/{}/", magisk_tmp, MIRRORDIR);
+
+    // Unmount Magisk tmpfs, mounts from module files, and OverlayFS mounts
     for info in parse_mount_info("self") {
         if info.source == "magisk" || info.root.starts_with("/adb/modules") {
+            targets.push(info.target.clone());
+        }
+        // 识别 mirror bind mount：target 位于 $MAGISK_TMP/.magisk/mirror/ 下
+        // mirror 的 source 是底层分区（如 /dev/block/...），无法通过 source 区分
+        if info.target.starts_with(mirror_prefix.as_str()) {
+            targets.push(info.target.clone());
+        }
+        // 识别 OverlayFS 挂载：fs_type == "overlay" 且 fs_option 含 magisk 路径
+        // OverlayFS 的 source 是 "overlay"，需通过 fs_option 中的 lowerdir/upperdir 判断
+        if info.fs_type == "overlay"
+            && (info.fs_option.contains(".magisk/worker")
+                || info.fs_option.contains(".magisk/mirror"))
+        {
             targets.push(info.target);
         }
     }

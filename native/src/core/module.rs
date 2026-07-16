@@ -1,4 +1,4 @@
-use crate::consts::{MODULEMNT, MODULEROOT, MODULEUPGRADE, WORKERDIR};
+use crate::consts::{MODULEMNT, MODULEROOT, MODULEUPGRADE, MIRRORDIR, WORKERDIR};
 use crate::daemon::MagiskD;
 use crate::ffi::{ModuleInfo, exec_module_scripts, exec_script, get_magisk_tmp};
 use crate::mount::setup_module_mount;
@@ -159,15 +159,22 @@ impl ModulePaths<'_> {
 struct MountPaths<'a> {
     real: PathTracker<'a>,
     worker: PathTracker<'a>,
+    mirror: PathTracker<'a>,
 }
 
 impl MountPaths<'_> {
-    fn new<'a>(real: &'a mut dyn Utf8CStrBuf, worker: &'a mut dyn Utf8CStrBuf) -> MountPaths<'a> {
+    fn new<'a>(
+        real: &'a mut dyn Utf8CStrBuf,
+        worker: &'a mut dyn Utf8CStrBuf,
+        mirror: &'a mut dyn Utf8CStrBuf,
+    ) -> MountPaths<'a> {
         real.append_path("/");
         worker.append_path(get_magisk_tmp()).append_path(WORKERDIR);
+        mirror.append_path(get_magisk_tmp()).append_path(MIRRORDIR);
         MountPaths {
             real: PathTracker::from(real),
             worker: PathTracker::from(worker),
+            mirror: PathTracker::from(mirror),
         }
     }
 
@@ -175,6 +182,7 @@ impl MountPaths<'_> {
         MountPaths {
             real: self.real.append(name),
             worker: self.worker.append(name),
+            mirror: self.mirror.append(name),
         }
     }
 
@@ -182,6 +190,7 @@ impl MountPaths<'_> {
         MountPaths {
             real: self.real.reborrow(),
             worker: self.worker.reborrow(),
+            mirror: self.mirror.reborrow(),
         }
     }
 
@@ -193,6 +202,11 @@ impl MountPaths<'_> {
     // Returns "$MAGISK_TMP/.magisk/worker/system/bin"
     fn worker(&self) -> &Utf8CStr {
         self.worker.path
+    }
+
+    // Returns "$MAGISK_TMP/.magisk/mirror/system/bin"
+    fn mirror(&self) -> &Utf8CStr {
+        self.mirror.path
     }
 }
 
@@ -316,7 +330,28 @@ impl FsNode {
                     self.commit_tmpfs(path.reborrow())?;
                     // Transitioning from non-tmpfs to tmpfs, we need to actually mount the
                     // worker dir to dest after all children are committed.
-                    bind_mount("move", path.worker(), path.real(), true);
+                    //
+                    // 改进：优先用 OverlayFS 替代 bind mount
+                    // lowerdir = worker(上层,含模块修改) : mirror(下层,原始文件)
+                    // 单次 overlay mount 替代递归 bind mount，挂载点更干净，denylist 卸载更简单
+                    // 内核不支持 overlay 或挂载失败时回退到原 bind mount
+                    let worker_str = path.worker().to_string();
+                    let mirror_str = path.mirror().to_string();
+                    let real = path.real();
+                    if crate::mount::overlay_supported()
+                        && crate::mount::overlay_mount(
+                            real,
+                            &[worker_str.as_str(), mirror_str.as_str()],
+                            None,
+                            None,
+                            true,
+                        )
+                        .is_ok()
+                    {
+                        debug!("overlay: mounted {} via overlayfs", real);
+                    } else {
+                        bind_mount("move", path.worker(), path.real(), true);
+                    }
                 } else {
                     for (name, node) in children {
                         let path = path.append(name);
@@ -950,7 +985,7 @@ impl MagiskD {
         roots.insert("system", system);
 
         drop(paths);
-        let mut paths = MountPaths::new(&mut buf1, &mut buf2);
+        let mut paths = MountPaths::new(&mut buf1, &mut buf2, &mut buf3);
 
         for (dir, mut root) in roots {
             // Step 4: Convert virtual filesystem tree into concrete operations
@@ -961,6 +996,9 @@ impl MagiskD {
             // tmpfs worker directory, and real sub-nodes need to be mirrored inside it.
 
             let paths = paths.append(dir);
+            // 为分区创建 mirror bind mount（OverlayFS lowerdir 需要）
+            // mirror 是 real 分区的递归 bind，overlay 用它作 lowerdir 避免循环
+            crate::mount::setup_mirror(dir).log_ok();
             root.commit(paths, true).log_ok();
         }
     }

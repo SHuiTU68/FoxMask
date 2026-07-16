@@ -22,6 +22,7 @@ mod files;
 mod logging;
 mod misc;
 mod mount;
+pub use mount::overlay_mount;
 mod result;
 mod xwrap;
 

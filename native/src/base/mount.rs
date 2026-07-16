@@ -82,3 +82,38 @@ impl Utf8CStr {
         .check_os_err("set_mount_private", Some(self), None)
     }
 }
+
+/// 挂载 OverlayFS
+/// lowerdirs 按顺序：前面的覆盖后面的（上层在前）
+/// upperdir/workdir 为 None 时为只读 overlay（仅 lowerdir 合并）
+pub fn overlay_mount(
+    target: &Utf8CStr,
+    lowerdirs: &[&str],
+    upperdir: Option<&str>,
+    workdir: Option<&str>,
+    ro: bool,
+) -> Result<(), nix::Error> {
+    // OverlayFS data 格式: "lowerdir=l1:l2,upperdir=u,workdir=w"
+    let mut data = String::from("lowerdir=");
+    data.push_str(&lowerdirs.join(":"));
+    if let Some(u) = upperdir {
+        data.push_str(",upperdir=");
+        data.push_str(u);
+    }
+    if let Some(w) = workdir {
+        data.push_str(",workdir=");
+        data.push_str(w);
+    }
+    let mut flags = MsFlags::empty();
+    if ro {
+        flags |= MsFlags::MS_RDONLY;
+    }
+    let data_str: &str = data.as_str();
+    mount(
+        Some("overlay"),
+        target,
+        Some("overlay"),
+        flags,
+        Some(data_str),
+    )
+}
