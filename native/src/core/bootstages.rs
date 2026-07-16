@@ -157,6 +157,16 @@ impl MagiskD {
             self.get_db_setting(DbEntryKey::SuListConfig) != 0,
             Ordering::Release,
         );
+        self.mount_modules_enabled.store(
+            self.get_db_setting(DbEntryKey::MountModules) != 0,
+            Ordering::Release,
+        );
+        // 可选挂载：开启时执行模块挂载，关闭时跳过（仅保留 su/zygisk/sulist 等核心功能）
+        if self.mount_modules_enabled.load(Ordering::Acquire) {
+            self.handle_modules();
+        } else {
+            info!("* Module mount disabled, skipping handle_modules");
+        }
         initialize_denylist();
         clean_mounts();
 

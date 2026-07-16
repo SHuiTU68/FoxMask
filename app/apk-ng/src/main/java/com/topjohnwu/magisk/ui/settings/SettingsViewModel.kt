@@ -24,6 +24,7 @@ class SettingsViewModel : BaseViewModel() {
 
     val zygiskMismatch get() = Config.zygisk != Info.isZygiskEnabled
     val suListMismatch get() = Config.suList != Info.isSuListEnabled
+    val mountModulesMismatch get() = Config.mountModules != Info.isMountModulesEnabled
 
     var authenticate: (onSuccess: () -> Unit) -> Unit = { it() }
 
@@ -62,5 +63,9 @@ class SettingsViewModel : BaseViewModel() {
 
     fun notifySuListChange() {
         if (suListMismatch) showSnackbar(R.string.reboot_apply_change)
+    }
+
+    fun notifyMountModulesChange() {
+        if (mountModulesMismatch) showSnackbar(R.string.reboot_apply_change)
     }
 }

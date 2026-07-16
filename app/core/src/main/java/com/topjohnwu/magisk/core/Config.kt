@@ -24,6 +24,7 @@ object Config : PreferenceConfig, DBConfig {
         const val SU_BIOMETRIC = "su_biometric"
         const val ZYGISK = "zygisk"
         const val SU_LIST = "sulist"
+        const val MOUNT_MODULES = "mount_modules"
         const val BOOTLOOP = "bootloop"
         const val SU_MANAGER = "requester"
         const val KEYSTORE = "keystore"
@@ -139,6 +140,7 @@ object Config : PreferenceConfig, DBConfig {
 
     var zygisk by dbSettings(Key.ZYGISK, Info.isEmulator)
     var suList by dbSettings(Key.SU_LIST, false)
+    var mountModules by dbSettings(Key.MOUNT_MODULES, true)
     var suManager by dbStrings(Key.SU_MANAGER, "", true)
     var keyStoreRaw by dbStrings(Key.KEYSTORE, "", true)
 

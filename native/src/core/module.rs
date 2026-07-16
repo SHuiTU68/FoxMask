@@ -702,6 +702,22 @@ pub fn remove_modules() {
     cstr!(MODULEROOT).remove_all().log_ok();
 }
 
+// 改进挂载方式：读取模块的 module.prop 中的 priority 字段
+// priority 越大优先级越高，挂载时按 priority 升序处理（后处理的覆盖先处理的）
+// 解析失败或无此字段则默认 0
+fn read_module_priority(name: &str) -> i32 {
+    let path = format!("{MODULEROOT}/{name}/module.prop");
+    std::fs::read_to_string(&path)
+        .ok()
+        .and_then(|content| {
+            content
+                .lines()
+                .find_map(|line| line.strip_prefix("priority=").map(str::trim))
+                .and_then(|v| v.parse::<i32>().ok())
+        })
+        .unwrap_or(0)
+}
+
 fn collect_modules(zygisk_enabled: bool, open_zygisk: bool) -> Vec<ModuleInfo> {
     let mut modules = Vec::new();
 
@@ -853,8 +869,19 @@ impl MagiskD {
         //
         // In this step, there is zero logic applied during tree construction; we simply collect and
         // record the union of all module filesystem trees under each of their /system directory.
+        //
+        // 改进挂载方式：按 module.prop 的 priority 字段升序处理（priority 高的后处理=覆盖低的）
+        // 相同 priority 按模块名排序，保证挂载顺序的确定性（不依赖文件系统遍历顺序）
+        let mut sorted: Vec<(&ModuleInfo, i32)> = module_list
+            .iter()
+            .map(|m| (m, read_module_priority(&m.name)))
+            .collect();
+        sorted.sort_by(|a, b| a.1.cmp(&b.1).then_with(|| a.0.name.cmp(&b.0.name)));
 
-        for info in module_list {
+        for (info, priority) in sorted {
+            if priority != 0 {
+                info!("{}: mounting with priority {}", &info.name, priority);
+            }
             let mut paths = paths.set_module(&info.name);
 
             // Read props

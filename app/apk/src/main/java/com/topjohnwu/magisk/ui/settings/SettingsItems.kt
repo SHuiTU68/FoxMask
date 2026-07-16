@@ -232,6 +232,20 @@ object SuList : BaseSettingsItem.Toggle() {
     val mismatch get() = value != Info.isSuListEnabled
 }
 
+object MountModules : BaseSettingsItem.Toggle() {
+    override val title = CoreR.string.settings_mount_modules_title.asText()
+    override val description get() =
+        if (mismatch) CoreR.string.reboot_apply_change.asText()
+        else CoreR.string.settings_mount_modules_summary.asText()
+    override var value
+        get() = Config.mountModules
+        set(value) {
+            Config.mountModules = value
+            notifyPropertyChanged(BR.description)
+        }
+    val mismatch get() = value != Info.isMountModulesEnabled
+}
+
 object DenyList : BaseSettingsItem.Toggle() {
     override val title = CoreR.string.settings_denylist_title.asText()
     override val description get() = CoreR.string.settings_denylist_summary.asText()

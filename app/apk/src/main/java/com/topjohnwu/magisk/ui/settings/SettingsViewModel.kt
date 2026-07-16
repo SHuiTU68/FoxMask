@@ -64,7 +64,7 @@ class SettingsViewModel : BaseViewModel(), BaseSettingsItem.Handler {
                 SystemlessHosts
             ))
             if (Const.Version.atLeast_24_0()) {
-                list.addAll(listOf(Zygisk, DenyList, DenyListConfig))
+                list.addAll(listOf(Zygisk, SuList, MountModules, DenyList, DenyListConfig))
             }
         }
 
@@ -113,6 +113,7 @@ class SettingsViewModel : BaseViewModel(), BaseSettingsItem.Handler {
             Restore -> viewModelScope.launch { AppMigration.restore(view.activity) }
             Zygisk -> if (Zygisk.mismatch) SnackbarEvent(R.string.reboot_apply_change).publish()
             SuList -> if (SuList.mismatch) SnackbarEvent(R.string.reboot_apply_change).publish()
+            MountModules -> if (MountModules.mismatch) SnackbarEvent(R.string.reboot_apply_change).publish()
             else -> Unit
         }
     }

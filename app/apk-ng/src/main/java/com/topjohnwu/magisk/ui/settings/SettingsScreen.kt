@@ -306,6 +306,22 @@ private fun MagiskSection(viewModel: SettingsViewModel) {
                 }
             )
 
+            // 可选模块挂载
+            var mountModules by remember { mutableStateOf(Config.mountModules) }
+            SettingsSwitch(
+                title = stringResource(CoreR.string.settings_mount_modules_title),
+                summary = stringResource(
+                    if (mountModules != Info.isMountModulesEnabled) CoreR.string.reboot_apply_change
+                    else CoreR.string.settings_mount_modules_summary
+                ),
+                checked = mountModules,
+                onCheckedChange = {
+                    mountModules = it
+                    Config.mountModules = it
+                    viewModel.notifyMountModulesChange()
+                }
+            )
+
             // DenyList
             val denyListEnabled by viewModel.denyListEnabled.collectAsState()
             SettingsSwitch(

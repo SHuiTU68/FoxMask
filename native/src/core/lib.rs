@@ -88,6 +88,7 @@ pub mod ffi {
         BootloopCount,
         SuManager,
         SuListConfig,
+        MountModules,
     }
 
     #[repr(i32)]
@@ -222,6 +223,7 @@ pub mod ffi {
         fn sdk_int(&self) -> i32;
         fn zygisk_enabled(&self) -> bool;
         fn sulist_enabled(&self) -> bool;
+        fn mount_modules_enabled(&self) -> bool;
         fn get_db_setting(&self, key: DbEntryKey) -> i32;
         #[cxx_name = "set_db_setting"]
         fn set_db_setting_for_cxx(&self, key: DbEntryKey, value: i32) -> bool;
