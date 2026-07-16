@@ -49,7 +49,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ${{ github.sha }}-symbols
-          path: app/apk/build/outputs
+          path: app/apk-ng/build/outputs
           compression-level: 9
 
   test-build:
