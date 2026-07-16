@@ -93,59 +93,52 @@ private val MiuixDarkColors = darkColorScheme(
     outlineVariant = Color(0xFF43474E)
 )
 
-/// Magisk 原始主题颜色（Piplup 主题，蓝色 #4EAFF5）
-/// 还原旧版 View/XML 时代 Magisk 自带的蓝色主题观感，
-/// 让"原始 UI"模式不再退回到 Material3 默认紫色。
+/// Magisk 原始主题颜色 — 直接取自上游 app/apk 模块的 Piplup 主题
+/// （app/apk/src/main/res/values/themes_md2.xml 及 values-night/themes_md2.xml）
+/// 上游 apk-ng 本身没有自定义颜色（默认 M3 紫），真正的 Magisk 原始蓝色
+/// 主题只存在于 apk 模块的 XML 资源里。这里把 Piplup 主题的颜色值映射到
+/// Material3 ColorScheme，作为第一套（Original）主题。
+///
+/// 上游 XML 颜色映射：
+///   colorPrimary      -> primary
+///   colorOnPrimary    -> onPrimary
+///   colorSecondary    -> secondary
+///   colorOnSecondary  -> onSecondary
+///   colorSurface      -> surface / background
+///   colorSurfaceVariant -> surfaceVariant
+///   colorOnSurface    -> onSurface / onBackground
+///   colorOnSurfaceVariant -> onSurfaceVariant
+///   colorError        -> error
+///   colorOnError      -> onError
+/// 上游未定义的 M3 字段（primaryContainer/tertiary/outline 等）保留 M3 默认值。
 private val MagiskOriginalLightColors = lightColorScheme(
     primary = Color(0xFF4EAFF5),
-    onPrimary = Color(0xFFFFFFFF),
-    primaryContainer = Color(0xFFC9E7FB),
-    onPrimaryContainer = Color(0xFF001E36),
+    onPrimary = Color(0xFFF9F9F9),
     secondary = Color(0xFF3E78AF),
-    onSecondary = Color(0xFFFFFFFF),
-    secondaryContainer = Color(0xFFD3E3FF),
-    onSecondaryContainer = Color(0xFF0A1F33),
-    tertiary = Color(0xFF4A93B8),
-    onTertiary = Color(0xFFFFFFFF),
-    tertiaryContainer = Color(0xFFCDE8F8),
-    onTertiaryContainer = Color(0xFF001E2C),
+    onSecondary = Color(0xFFF9F9F9),
     background = Color(0xFFF9F9F9),
-    onBackground = Color(0xFF1A1C1E),
     surface = Color(0xFFF9F9F9),
+    surfaceVariant = Color(0xFFEEEEEE),
     onSurface = Color(0xFF444444),
-    surfaceVariant = Color(0xFFE0E2EC),
-    onSurfaceVariant = Color(0xFF44474E),
-    surfaceTint = Color(0xFF4EAFF5),
-    outline = Color(0xFF747680),
-    outlineVariant = Color(0xFFC4C6D0),
-    error = Color(0xFFB3261E),
-    onError = Color(0xFFFFFFFF)
+    onBackground = Color(0xFF444444),
+    onSurfaceVariant = Color(0xFF444444),
+    error = Color(0xFFCC0047),
+    onError = Color(0xFFF9F9F9),
 )
 
 private val MagiskOriginalDarkColors = darkColorScheme(
     primary = Color(0xFF4EAFF5),
-    onPrimary = Color(0xFF003258),
-    primaryContainer = Color(0xFF1E4F75),
-    onPrimaryContainer = Color(0xFFC9E7FB),
-    secondary = Color(0xFFA6C8E8),
-    onSecondary = Color(0xFF103049),
-    secondaryContainer = Color(0xFF284761),
-    onSecondaryContainer = Color(0xFFC6DBF3),
-    tertiary = Color(0xFFA1D0E5),
-    onTertiary = Color(0xFF013543),
-    tertiaryContainer = Color(0xFF224B5B),
-    onTertiaryContainer = Color(0xFFBDEAFB),
+    onPrimary = Color(0xFFF9F9F9),
+    secondary = Color(0xFF3E78AF),
+    onSecondary = Color(0xFFF9F9F9),
     background = Color(0xFF0D0D0D),
-    onBackground = Color(0xFFE2E2E6),
     surface = Color(0xFF0D0D0D),
+    surfaceVariant = Color(0xFF171717),
     onSurface = Color(0xFFD8D8D8),
-    surfaceVariant = Color(0xFF43474E),
-    onSurfaceVariant = Color(0xFFC4C6CF),
-    surfaceTint = Color(0xFF4EAFF5),
-    outline = Color(0xFF8E9099),
-    outlineVariant = Color(0xFF44474E),
+    onBackground = Color(0xFFD8D8D8),
+    onSurfaceVariant = Color(0xFFBABABA),
     error = Color(0xFFEF8282),
-    onError = Color(0xFF4E0808)
+    onError = Color(0xFF0D0D0D),
 )
 
 @Composable
