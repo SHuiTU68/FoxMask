@@ -4,6 +4,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.drawBehind
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -163,9 +164,13 @@ fun MainScreen(initialTab: Int = Tab.HOME.ordinal) {
 /// 悬浮底栏：圆角胶囊形，带 iOS 风格毛玻璃背景（开启 blur 时），
 /// 参考 KernelSU-Next 的 miuix 主题样式。
 ///
-/// 实现要点：blur 必须只作用于背景层，不能作用于整个容器，
-/// 否则图标和文字也会被模糊掉导致底栏内容不可见。
-/// 因此用 Box 拆成两层：背景层（blur + 渐变）+ 内容层（Row + NavItems）。
+/// 实现要点：
+/// 1. blur 只作用于背景层，不能作用于整个容器，否则图标文字也会被模糊。
+/// 2. Modifier.blur() 模糊的是该 composable 的渲染输出。修饰符顺序很关键：
+///    必须先 drawBehind 画填充色（产生像素），再 blur 模糊这些像素。
+///    之前 blur 在 background 之前，模糊的是空 Box，导致 blur 无效且中间
+///    出现透明带（即"空长条" bug）。现在用 drawBehind + blur 保证 blur
+///    作用于实际填充色，模糊度通过 LocalBlurIntensity 可调。
 @Composable
 private fun FloatingNavigationBar(
     pagerState: PagerState,
@@ -178,6 +183,14 @@ private fun FloatingNavigationBar(
     val useBlur = LocalBlurEnabled.current
     val blurRadius = LocalBlurIntensity.current.dp
 
+    // 毛玻璃背景色：半透明 surface 色模拟 frosted glass
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val glassColor = if (isDark) {
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.55f)
+    } else {
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
+    }
+
     Box(
         modifier = modifier
             .padding(bottom = navBarInset + 12.dp, start = 24.dp, end = 24.dp)
@@ -186,24 +199,22 @@ private fun FloatingNavigationBar(
             .fillMaxWidth()
             .height(64.dp)
     ) {
-        // 背景层：blur 只作用于这里，不影响前景内容
+        // 背景层：drawBehind 先画填充色，blur 再模糊这些像素。
+        // 顺序不能反，否则 blur 模糊的是空内容，出现透明带。
         Box(
             modifier = Modifier
                 .matchParentSize()
                 .then(
-                    if (useBlur) {
-                        // iOS 毛玻璃：blur 自身渲染 + 半透明背景模拟玻璃质感
-                        // 模糊半径用户可调（LocalBlurIntensity）
+                    if (useBlur && blurRadius > 0.dp) {
                         Modifier
+                            .drawBehind { drawRect(glassColor) }
                             .blur(blurRadius)
-                            .glassmorphismBackground()
                     } else {
-                        // 不支持/未开启 blur：回退到纯色
                         Modifier.background(MaterialTheme.colorScheme.surfaceContainer)
                     }
                 )
         )
-        // 内容层：图标和文字清晰可见
+        // 内容层：图标和文字清晰可见（不受 blur 影响）
         Row(
             modifier = Modifier
                 .matchParentSize()
@@ -223,20 +234,6 @@ private fun FloatingNavigationBar(
             }
         }
     }
-}
-
-/// 毛玻璃背景：半透明 surface 色模拟 frosted glass 视觉
-/// 注意：不能用多色 linearGradient，否则会在中间形成颜色不同的横条。
-/// 用单一半透明色保证背景均匀，blur 本身提供玻璃质感。
-@Composable
-private fun Modifier.glassmorphismBackground(): Modifier {
-    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
-    val baseColor = if (isDark) {
-        MaterialTheme.colorScheme.surface.copy(alpha = 0.55f)
-    } else {
-        MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
-    }
-    return this.background(baseColor)
 }
 
 @Composable
