@@ -23,7 +23,6 @@ class SettingsViewModel : BaseViewModel() {
     val denyListEnabled: StateFlow<Boolean> = _denyListEnabled.asStateFlow()
 
     val zygiskMismatch get() = Config.zygisk != Info.isZygiskEnabled
-    val mountModulesMismatch get() = Config.mountModules != Info.isMountModulesEnabled
 
     var authenticate: (onSuccess: () -> Unit) -> Unit = { it() }
 
@@ -58,9 +57,5 @@ class SettingsViewModel : BaseViewModel() {
 
     fun notifyZygiskChange() {
         if (zygiskMismatch) showSnackbar(R.string.reboot_apply_change)
-    }
-
-    fun notifyMountModulesChange() {
-        if (mountModulesMismatch) showSnackbar(R.string.reboot_apply_change)
     }
 }

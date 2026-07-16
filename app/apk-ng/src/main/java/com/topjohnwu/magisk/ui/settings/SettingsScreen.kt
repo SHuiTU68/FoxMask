@@ -273,22 +273,6 @@ private fun MagiskSection(viewModel: SettingsViewModel) {
             onClick = { viewModel.createHosts() }
         )
 
-        // Systemless Modules Toggle
-        var mountModules by remember { mutableStateOf(Config.mountModules) }
-        SettingsSwitch(
-            title = stringResource(CoreR.string.settings_mount_modules_title),
-            summary = stringResource(
-                if (mountModules != Info.isMountModulesEnabled) CoreR.string.reboot_apply_change
-                else CoreR.string.settings_mount_modules_summary
-            ),
-            checked = mountModules,
-            onCheckedChange = {
-                mountModules = it
-                Config.mountModules = it
-                viewModel.notifyMountModulesChange()
-            }
-        )
-
         if (Const.Version.atLeast_24_0()) {
             // Zygisk
             var zygisk by remember { mutableStateOf(Config.zygisk) }

@@ -172,9 +172,6 @@
     <string name="settings_update_custom">Custom</string>
     <string name="settings_update_custom_msg">Insert a custom channel URL</string>
     <string name="settings_zygisk_summary">Run parts of FoxMask in the Zygote daemon</string>
-    <string name="settings_mount_modules_title">Systemless Modules</string>
-    <string name="settings_mount_modules_summary">Mount systemless modules over system partitions on boot</string>
-    <string name="settings_mount_modules_warning">Disabling this does NOT disable root (su). All modules will be inactive until re-enabled. Requires reboot to take effect.</string>
     <string name="settings_denylist_title">Enforce DenyList</string>
     <string name="settings_denylist_summary">Processes on the denylist will have all FoxMask modifications reverted</string>
     <string name="settings_denylist_config_title">Configure DenyList</string>

@@ -60,7 +60,6 @@ pub struct MagiskD {
     pub boot_stage_lock: Mutex<BootState>,
     pub module_list: OnceLock<Vec<ModuleInfo>>,
     pub zygisk_enabled: AtomicBool,
-    pub mount_modules_enabled: AtomicBool,
     pub zygisk: Mutex<ZygiskState>,
     pub cached_su_info: AtomicArc<SuInfo>,
     pub sdk_int: i32,
