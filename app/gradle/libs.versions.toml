@@ -82,10 +82,11 @@ navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref =
 navigationevent-compose = { module = "androidx.navigationevent:navigationevent-compose", version.ref = "navigationevent" }
 
 # Miuix (MIUI 风格 Compose 组件库，0.9.3 拆分模块)
+# 注: 不引入 miuix-blur-android，因其 minSdk=33 与本工程 minSdk=23 冲突；
+# 本工程毛玻璃走 androidx.compose.ui.draw.Modifier.blur，不依赖 miuix-blur。
 miuix-ui = { module = "top.yukonga.miuix.kmp:miuix-ui-android", version.ref = "miuix" }
 miuix-preference = { module = "top.yukonga.miuix.kmp:miuix-preference-android", version.ref = "miuix" }
 miuix-icons = { module = "top.yukonga.miuix.kmp:miuix-icons-android", version.ref = "miuix" }
-miuix-blur = { module = "top.yukonga.miuix.kmp:miuix-blur-android", version.ref = "miuix" }
 
 # For build-logic
 android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "android" }
