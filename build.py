@@ -333,13 +333,13 @@ def build_apk(module: str):
 
 def build_app():
     header("* Building the Magisk app")
-    apk = build_apk(":apk")
+    apk = build_apk(":apk-ng")
 
     build_type = "release" if args.release else "debug"
 
-    # Rename apk-variant.apk to app-variant.apk
+    # Rename apk-ng-variant.apk to app-variant.apk
     source = apk
-    target = apk.parent / apk.name.replace("apk-", "app-")
+    target = apk.parent / apk.name.replace("apk-ng-", "app-")
     mv(source, target)
     header(f"Output: {target}")
 
@@ -419,7 +419,6 @@ def cleanup():
 def build_all():
     build_native()
     build_app()
-    build_app_ng()
     build_test()
 
 

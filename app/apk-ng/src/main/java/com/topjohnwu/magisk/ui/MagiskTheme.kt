@@ -8,9 +8,12 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.topjohnwu.magisk.core.Config
@@ -21,7 +24,25 @@ import top.yukonga.miuix.kmp.theme.lightColorScheme as miuixLightColorScheme
 object ThemeState {
     var colorMode by mutableIntStateOf(Config.colorMode)
     var uiStyle by mutableIntStateOf(Config.uiStyle)
+    var floatingNav by mutableStateOf(Config.floatingNav)
+    var blurEffect by mutableStateOf(Config.blurEffect)
 }
+
+/// 毛玻璃效果开关与可用性检测
+object BlurState {
+    /// 设备是否支持真正的实时高斯模糊（Android 12+ 才有 RenderEffect/Modifier.blur 硬件加速）
+    val supported: Boolean
+        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+
+    /// 当前是否启用毛玻璃（同时满足用户开关和系统支持）
+    val enabled: Boolean
+        get() = supported && ThemeState.blurEffect
+}
+
+/// 通过 CompositionLocal 向下层组件暴露毛玻璃开关与悬浮底栏开关，
+/// 避免到处直接读 ThemeState，也便于在 Preview 中覆盖。
+val LocalBlurEnabled = staticCompositionLocalOf { false }
+val LocalFloatingNav = staticCompositionLocalOf { true }
 
 // MIUI 风格颜色方案 — 让 MIUI 主题视觉上明显区别于原始主题
 private val MiuixLightColors = lightColorScheme(
@@ -80,6 +101,8 @@ fun MagiskTheme(
     val mode = ThemeState.colorMode
     val context = LocalContext.current
     val useMiuix = ThemeState.uiStyle == 1
+    val useBlur = BlurState.enabled
+    val useFloatingNav = ThemeState.floatingNav
 
     val isDarkTheme = when (mode) {
         1 -> false
@@ -102,21 +125,27 @@ fun MagiskTheme(
         else -> lightColorScheme()
     }
 
-    if (useMiuix) {
-        // MIUI 模式：MiuixTheme 提供 miuix 组件上下文，MaterialTheme 用 miuix 颜色
-        MiuixTheme(
-            colors = if (isDarkTheme) miuixDarkColorScheme() else miuixLightColorScheme()
+    val wrapped = @Composable {
+        CompositionLocalProvider(
+            LocalBlurEnabled provides useBlur,
+            LocalFloatingNav provides useFloatingNav,
         ) {
             MaterialTheme(
                 colorScheme = colorScheme,
                 content = content
             )
         }
+    }
+
+    if (useMiuix) {
+        // MIUI 模式：MiuixTheme 提供 miuix 组件上下文，MaterialTheme 用 miuix 颜色
+        MiuixTheme(
+            colors = if (isDarkTheme) miuixDarkColorScheme() else miuixLightColorScheme()
+        ) {
+            wrapped()
+        }
     } else {
         // 原始模式：纯标准 Material3，零 miuix 影响
-        MaterialTheme(
-            colorScheme = colorScheme,
-            content = content
-        )
+        wrapped()
     }
 }

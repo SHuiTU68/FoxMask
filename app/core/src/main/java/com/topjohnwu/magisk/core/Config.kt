@@ -43,6 +43,8 @@ object Config : PreferenceConfig, DBConfig {
         const val DARK_THEME = "dark_theme_extended"
         const val COLOR_MODE = "color_mode"
         const val UI_STYLE = "ui_style"
+        const val FLOATING_NAV = "floating_nav"
+        const val BLUR_EFFECT = "blur_effect"
         const val DOWNLOAD_DIR = "download_dir"
         const val SAFETY = "safety_notice"
         const val THEME_ORDINAL = "theme_ordinal"
@@ -115,6 +117,8 @@ object Config : PreferenceConfig, DBConfig {
     var themeOrdinal by preference(Key.THEME_ORDINAL, 0)
     var colorMode by preference(Key.COLOR_MODE, 0)
     var uiStyle by preference(Key.UI_STYLE, 0)
+    var floatingNav by preference(Key.FLOATING_NAV, true)
+    var blurEffect by preference(Key.BLUR_EFFECT, true)
 
     private var checkUpdatePrefs by preference(Key.CHECK_UPDATES, true)
     private var localePrefs by preference(Key.LOCALE, "")

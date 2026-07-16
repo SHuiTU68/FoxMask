@@ -42,6 +42,7 @@ import com.topjohnwu.magisk.core.Info
 import com.topjohnwu.magisk.core.isRunningAsStub
 import com.topjohnwu.magisk.core.utils.LocaleSetting
 import com.topjohnwu.magisk.core.utils.MediaStoreUtils
+import com.topjohnwu.magisk.ui.BlurState
 import com.topjohnwu.magisk.ui.ThemeState
 import com.topjohnwu.magisk.ui.component.SettingsArrow
 import com.topjohnwu.magisk.ui.component.SettingsDropdown
@@ -166,6 +167,40 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
                 // UI Style 切换会改变 Compose 树结构（添加/移除 MiuixTheme 包裹），
                 // 单纯的 recompose 可能导致内部子树被复用而无法完全切换。
                 // recreate Activity 确保整个 Compose 树从零重建，主题彻底生效。
+                context.findActivity()?.recreate()
+            }
+        )
+
+        // Floating bottom bar — 悬浮底栏开关（圆角胶囊形，悬浮于内容之上）
+        var floatingNav by remember { mutableStateOf(Config.floatingNav) }
+        SettingsSwitch(
+            title = stringResource(CoreR.string.settings_floating_nav_title),
+            summary = stringResource(CoreR.string.settings_floating_nav_summary),
+            checked = floatingNav,
+            onCheckedChange = {
+                floatingNav = it
+                Config.floatingNav = it
+                ThemeState.floatingNav = it
+            }
+        )
+
+        // iOS-style blur — 毛玻璃开关（仅 Android 12+ 生效，低版本自动回退）
+        val blurSupported = BlurState.supported
+        var blurEffect by remember { mutableStateOf(Config.blurEffect) }
+        SettingsSwitch(
+            title = stringResource(CoreR.string.settings_blur_effect_title),
+            summary = if (blurSupported) {
+                stringResource(CoreR.string.settings_blur_effect_summary)
+            } else {
+                "${stringResource(CoreR.string.settings_blur_effect_summary)} (Android 12+)"
+            },
+            checked = blurEffect && blurSupported,
+            enabled = blurSupported,
+            onCheckedChange = {
+                blurEffect = it
+                Config.blurEffect = it
+                ThemeState.blurEffect = it
+                // 毛玻璃开关影响 Compose 修饰符链结构，recreate 确保底栏背景彻底重建
                 context.findActivity()?.recreate()
             }
         )

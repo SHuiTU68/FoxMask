@@ -24,6 +24,9 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,8 +35,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.activity.compose.LocalActivity
 import androidx.compose.ui.res.stringResource
@@ -84,6 +90,8 @@ fun MainScreen(initialTab: Int = Tab.HOME.ordinal) {
     }
     val initialPage = visibleTabs.indexOf(Tab.entries[initialTab]).coerceAtLeast(0)
     val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { visibleTabs.size })
+
+    val useFloatingNav = LocalFloatingNav.current
 
     Box(modifier = Modifier.fillMaxSize()) {
         HorizontalPager(
@@ -137,14 +145,24 @@ fun MainScreen(initialTab: Int = Tab.HOME.ordinal) {
             }
         }
 
-        FloatingNavigationBar(
-            pagerState = pagerState,
-            visibleTabs = visibleTabs,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
+        if (useFloatingNav) {
+            FloatingNavigationBar(
+                pagerState = pagerState,
+                visibleTabs = visibleTabs,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
+        } else {
+            StandardNavigationBar(
+                pagerState = pagerState,
+                visibleTabs = visibleTabs,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
+        }
     }
 }
 
+/// 悬浮底栏：圆角胶囊形，带 iOS 风格毛玻璃背景（开启 blur 时），
+/// 参考 KernelSU-Next 的 miuix 主题样式。
 @Composable
 private fun FloatingNavigationBar(
     pagerState: PagerState,
@@ -154,13 +172,27 @@ private fun FloatingNavigationBar(
     val scope = rememberCoroutineScope()
     val shape = RoundedCornerShape(28.dp)
     val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val useBlur = LocalBlurEnabled.current
 
     Row(
         modifier = modifier
             .padding(bottom = navBarInset + 12.dp, start = 24.dp, end = 24.dp)
-            .shadow(elevation = 6.dp, shape = shape)
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .then(
+                if (useBlur) {
+                    // iOS 毛玻璃：先 blur 自身渲染，再叠加半透明渐变模拟玻璃质感
+                    Modifier
+                        .shadow(elevation = 6.dp, shape = shape)
+                        .clip(shape)
+                        .blur(24.dp)
+                        .glassmorphismBackground()
+                } else {
+                    // 不支持/未开启 blur：回退到纯色 + 阴影
+                    Modifier
+                        .shadow(elevation = 6.dp, shape = shape)
+                        .clip(shape)
+                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                }
+            )
             .fillMaxWidth()
             .height(64.dp)
             .padding(horizontal = 4.dp),
@@ -178,6 +210,23 @@ private fun FloatingNavigationBar(
             )
         }
     }
+}
+
+/// 毛玻璃背景：半透明 surface 色 + 微弱渐变，模拟 iOS frosted glass 视觉
+@Composable
+private fun Modifier.glassmorphismBackground(): Modifier {
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val baseColor = if (isDark) {
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.55f)
+    } else {
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
+    }
+    val accentColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.2f)
+    return this.background(
+        Brush.linearGradient(
+            colors = listOf(baseColor, accentColor, baseColor)
+        )
+    )
 }
 
 @Composable
@@ -224,4 +273,55 @@ private fun FloatingNavItem(
             color = contentColor,
         )
     }
+}
+
+/// 标准底栏：贴合屏幕底部、无圆角、无悬浮，与原始 Material3 风格一致。
+/// 开启 blur 时让系统 NavigationBar 自身的背景半透明，底层内容滚动可见。
+@Composable
+private fun StandardNavigationBar(
+    pagerState: PagerState,
+    visibleTabs: List<Tab>,
+    modifier: Modifier = Modifier
+) {
+    val scope = rememberCoroutineScope()
+    val useBlur = LocalBlurEnabled.current
+
+    NavigationBar(
+        modifier = modifier.fillMaxWidth(),
+        containerColor = if (useBlur) {
+            // 半透明背景，让下方内容透出模拟毛玻璃（NavigationBar 本身不直接 blur 内容）
+            MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+        } else {
+            MaterialTheme.colorScheme.surfaceContainer
+        }
+    ) {
+        visibleTabs.forEachIndexed { index, tab ->
+            NavigationBarItem(
+                selected = pagerState.currentPage == index,
+                onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
+                icon = {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(tab.iconRes),
+                        contentDescription = null
+                    )
+                },
+                label = { Text(stringResource(tab.titleRes)) },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIcon = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    indicatorColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            )
+        }
+    }
+}
+
+/// 工具：获取颜色亮度（0~1），用于判断深/浅色模式
+private fun Color.luminance(): Float {
+    val r = red
+    val g = green
+    val b = blue
+    return 0.299f * r + 0.587f * g + 0.114f * b
 }

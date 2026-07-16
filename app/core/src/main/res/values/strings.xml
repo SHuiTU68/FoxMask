@@ -214,6 +214,10 @@
     <string name="settings_ui_style_original">Original</string>
     <string name="settings_ui_style_miuix">MIUI</string>
     <string name="settings_color_mode">Color mode</string>
+    <string name="settings_floating_nav_title">Floating bottom bar</string>
+    <string name="settings_floating_nav_summary">Suspend the bottom navigation bar with rounded corners and margins</string>
+    <string name="settings_blur_effect_title">iOS-style blur</string>
+    <string name="settings_blur_effect_summary">Apply frosted glass blur to navigation bar and surfaces (Android 12+)</string>
     <string name="color_mode_system">System</string>
     <string name="color_mode_light">Light</string>
     <string name="color_mode_dark">Dark</string>
