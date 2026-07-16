@@ -163,6 +163,10 @@ fun MainScreen(initialTab: Int = Tab.HOME.ordinal) {
 
 /// 悬浮底栏：圆角胶囊形，带 iOS 风格毛玻璃背景（开启 blur 时），
 /// 参考 KernelSU-Next 的 miuix 主题样式。
+///
+/// 实现要点：blur 必须只作用于背景层，不能作用于整个容器，
+/// 否则图标和文字也会被模糊掉导致底栏内容不可见。
+/// 因此用 Box 拆成两层：背景层（blur + 渐变）+ 内容层（Row + NavItems）。
 @Composable
 private fun FloatingNavigationBar(
     pagerState: PagerState,
@@ -174,40 +178,48 @@ private fun FloatingNavigationBar(
     val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val useBlur = LocalBlurEnabled.current
 
-    Row(
+    Box(
         modifier = modifier
             .padding(bottom = navBarInset + 12.dp, start = 24.dp, end = 24.dp)
-            .then(
-                if (useBlur) {
-                    // iOS 毛玻璃：先 blur 自身渲染，再叠加半透明渐变模拟玻璃质感
-                    Modifier
-                        .shadow(elevation = 6.dp, shape = shape)
-                        .clip(shape)
-                        .blur(24.dp)
-                        .glassmorphismBackground()
-                } else {
-                    // 不支持/未开启 blur：回退到纯色 + 阴影
-                    Modifier
-                        .shadow(elevation = 6.dp, shape = shape)
-                        .clip(shape)
-                        .background(MaterialTheme.colorScheme.surfaceContainer)
-                }
-            )
+            .shadow(elevation = 6.dp, shape = shape)
+            .clip(shape)
             .fillMaxWidth()
             .height(64.dp)
-            .padding(horizontal = 4.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
     ) {
-        visibleTabs.forEachIndexed { index, tab ->
-            FloatingNavItem(
-                icon = ImageVector.vectorResource(tab.iconRes),
-                label = stringResource(tab.titleRes),
-                selected = pagerState.currentPage == index,
-                enabled = true,
-                onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                modifier = Modifier.weight(1f)
-            )
+        // 背景层：blur 只作用于这里，不影响前景内容
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .then(
+                    if (useBlur) {
+                        // iOS 毛玻璃：blur 自身渲染 + 半透明渐变模拟玻璃质感
+                        Modifier
+                            .blur(24.dp)
+                            .glassmorphismBackground()
+                    } else {
+                        // 不支持/未开启 blur：回退到纯色
+                        Modifier.background(MaterialTheme.colorScheme.surfaceContainer)
+                    }
+                )
+        )
+        // 内容层：图标和文字清晰可见
+        Row(
+            modifier = Modifier
+                .matchParentSize()
+                .padding(horizontal = 4.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            visibleTabs.forEachIndexed { index, tab ->
+                FloatingNavItem(
+                    icon = ImageVector.vectorResource(tab.iconRes),
+                    label = stringResource(tab.titleRes),
+                    selected = pagerState.currentPage == index,
+                    enabled = true,
+                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }
