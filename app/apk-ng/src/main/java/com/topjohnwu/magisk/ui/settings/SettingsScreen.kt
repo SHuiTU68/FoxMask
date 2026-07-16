@@ -171,39 +171,43 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
             }
         )
 
-        // Floating bottom bar — 悬浮底栏开关（圆角胶囊形，悬浮于内容之上）
-        var floatingNav by remember { mutableStateOf(Config.floatingNav) }
-        SettingsSwitch(
-            title = stringResource(CoreR.string.settings_floating_nav_title),
-            summary = stringResource(CoreR.string.settings_floating_nav_summary),
-            checked = floatingNav,
-            onCheckedChange = {
-                floatingNav = it
-                Config.floatingNav = it
-                ThemeState.floatingNav = it
-            }
-        )
+        // 悬浮底栏 & 毛玻璃是 MIUI 模式专属特性，Original 模式不显示这两个开关。
+        // Original 模式始终用标准 M3 底栏、无毛玻璃，保持 Magisk 原始观感。
+        if (ThemeState.uiStyle == 1) {
+            // Floating bottom bar — 悬浮底栏开关（圆角胶囊形，悬浮于内容之上）
+            var floatingNav by remember { mutableStateOf(Config.floatingNav) }
+            SettingsSwitch(
+                title = stringResource(CoreR.string.settings_floating_nav_title),
+                summary = stringResource(CoreR.string.settings_floating_nav_summary),
+                checked = floatingNav,
+                onCheckedChange = {
+                    floatingNav = it
+                    Config.floatingNav = it
+                    ThemeState.floatingNav = it
+                }
+            )
 
-        // iOS-style blur — 毛玻璃开关（仅 Android 12+ 生效，低版本自动回退）
-        val blurSupported = BlurState.supported
-        var blurEffect by remember { mutableStateOf(Config.blurEffect) }
-        SettingsSwitch(
-            title = stringResource(CoreR.string.settings_blur_effect_title),
-            summary = if (blurSupported) {
-                stringResource(CoreR.string.settings_blur_effect_summary)
-            } else {
-                "${stringResource(CoreR.string.settings_blur_effect_summary)} (Android 12+)"
-            },
-            checked = blurEffect && blurSupported,
-            enabled = blurSupported,
-            onCheckedChange = {
-                blurEffect = it
-                Config.blurEffect = it
-                ThemeState.blurEffect = it
-                // 毛玻璃开关影响 Compose 修饰符链结构，recreate 确保底栏背景彻底重建
-                context.findActivity()?.recreate()
-            }
-        )
+            // iOS-style blur — 毛玻璃开关（仅 Android 12+ 生效，低版本自动回退）
+            val blurSupported = BlurState.supported
+            var blurEffect by remember { mutableStateOf(Config.blurEffect) }
+            SettingsSwitch(
+                title = stringResource(CoreR.string.settings_blur_effect_title),
+                summary = if (blurSupported) {
+                    stringResource(CoreR.string.settings_blur_effect_summary)
+                } else {
+                    "${stringResource(CoreR.string.settings_blur_effect_summary)} (Android 12+)"
+                },
+                checked = blurEffect && blurSupported,
+                enabled = blurSupported,
+                onCheckedChange = {
+                    blurEffect = it
+                    Config.blurEffect = it
+                    ThemeState.blurEffect = it
+                    // 毛玻璃开关影响 Compose 修饰符链结构，recreate 确保底栏背景彻底重建
+                    context.findActivity()?.recreate()
+                }
+            )
+        }
 
         if (isRunningAsStub && ShortcutManagerCompat.isRequestPinShortcutSupported(context)) {
             SettingsArrow(

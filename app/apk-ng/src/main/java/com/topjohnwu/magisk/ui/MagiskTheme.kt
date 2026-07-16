@@ -156,8 +156,10 @@ fun MagiskTheme(
     val mode = ThemeState.colorMode
     val context = LocalContext.current
     val useMiuix = ThemeState.uiStyle == 1
-    val useBlur = BlurState.enabled
-    val useFloatingNav = ThemeState.floatingNav
+    // 悬浮底栏和毛玻璃是 MIUI 模式专属特性，
+    // Original 模式始终用标准 M3 底栏、无毛玻璃，保持 Magisk 原始观感。
+    val useBlur = BlurState.enabled && useMiuix
+    val useFloatingNav = ThemeState.floatingNav && useMiuix
 
     val isDarkTheme = when (mode) {
         1 -> false
