@@ -307,9 +307,8 @@ private fun StandardNavigationBar(
                 },
                 label = { Text(stringResource(tab.titleRes)) },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIcon = MaterialTheme.colorScheme.primary,
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
                     selectedTextColor = MaterialTheme.colorScheme.primary,
-                    indicatorColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
                     unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
