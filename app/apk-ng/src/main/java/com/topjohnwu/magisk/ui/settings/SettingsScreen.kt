@@ -1,5 +1,8 @@
 package com.topjohnwu.magisk.ui.settings
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.Build
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -46,6 +49,16 @@ import com.topjohnwu.magisk.ui.component.SettingsSwitch
 import com.topjohnwu.magisk.ui.component.AdaptiveSmallTitle
 import com.topjohnwu.magisk.ui.component.SmallTitle
 import com.topjohnwu.magisk.core.R as CoreR
+
+/// 从 Context 递归解包出 Activity（LocalContext 返回的可能是 ContextWrapper）
+private fun Context.findActivity(): Activity? {
+    var ctx: Context? = this
+    while (ctx is ContextWrapper) {
+        if (ctx is Activity) return ctx
+        ctx = ctx.baseContext
+    }
+    return null
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -150,6 +163,10 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
                 uiStyle = index
                 Config.uiStyle = index
                 ThemeState.uiStyle = index
+                // UI Style 切换会改变 Compose 树结构（添加/移除 MiuixTheme 包裹），
+                // 单纯的 recompose 可能导致内部子树被复用而无法完全切换。
+                // recreate Activity 确保整个 Compose 树从零重建，主题彻底生效。
+                context.findActivity()?.recreate()
             }
         )
 
