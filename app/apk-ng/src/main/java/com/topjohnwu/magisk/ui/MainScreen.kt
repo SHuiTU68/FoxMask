@@ -38,7 +38,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.activity.compose.LocalActivity
@@ -177,6 +176,7 @@ private fun FloatingNavigationBar(
     val shape = RoundedCornerShape(28.dp)
     val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val useBlur = LocalBlurEnabled.current
+    val blurRadius = LocalBlurIntensity.current.dp
 
     Box(
         modifier = modifier
@@ -192,9 +192,10 @@ private fun FloatingNavigationBar(
                 .matchParentSize()
                 .then(
                     if (useBlur) {
-                        // iOS 毛玻璃：blur 自身渲染 + 半透明渐变模拟玻璃质感
+                        // iOS 毛玻璃：blur 自身渲染 + 半透明背景模拟玻璃质感
+                        // 模糊半径用户可调（LocalBlurIntensity）
                         Modifier
-                            .blur(24.dp)
+                            .blur(blurRadius)
                             .glassmorphismBackground()
                     } else {
                         // 不支持/未开启 blur：回退到纯色
@@ -224,7 +225,9 @@ private fun FloatingNavigationBar(
     }
 }
 
-/// 毛玻璃背景：半透明 surface 色 + 微弱渐变，模拟 iOS frosted glass 视觉
+/// 毛玻璃背景：半透明 surface 色模拟 frosted glass 视觉
+/// 注意：不能用多色 linearGradient，否则会在中间形成颜色不同的横条。
+/// 用单一半透明色保证背景均匀，blur 本身提供玻璃质感。
 @Composable
 private fun Modifier.glassmorphismBackground(): Modifier {
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
@@ -233,12 +236,7 @@ private fun Modifier.glassmorphismBackground(): Modifier {
     } else {
         MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
     }
-    val accentColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.2f)
-    return this.background(
-        Brush.linearGradient(
-            colors = listOf(baseColor, accentColor, baseColor)
-        )
-    )
+    return this.background(baseColor)
 }
 
 @Composable

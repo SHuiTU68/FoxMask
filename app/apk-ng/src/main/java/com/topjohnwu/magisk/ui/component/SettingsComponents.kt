@@ -138,3 +138,36 @@ fun AdaptiveSmallTitle(text: String) {
         SmallTitle(text = text)
     }
 }
+
+/// 设置项中的滑块组件（用于调节毛玻璃模糊度等数值参数）
+@Composable
+fun SettingsSlider(
+    title: String,
+    summary: String? = null,
+    value: Float,
+    valueRange: ClosedFloatingPointRange<Float>,
+    enabled: Boolean = true,
+    onValueChange: (Float) -> Unit
+) {
+    androidx.compose.foundation.layout.Column(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge
+        )
+        if (summary != null) {
+            Text(
+                text = summary,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        androidx.compose.material3.Slider(
+            value = value,
+            onValueChange = onValueChange,
+            valueRange = valueRange,
+            enabled = enabled,
+        )
+    }
+}

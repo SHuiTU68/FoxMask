@@ -46,6 +46,7 @@ import com.topjohnwu.magisk.ui.ThemeState
 import com.topjohnwu.magisk.ui.component.SettingsArrow
 import com.topjohnwu.magisk.ui.component.SettingsDropdown
 import com.topjohnwu.magisk.ui.component.SettingsSectionCard
+import com.topjohnwu.magisk.ui.component.SettingsSlider
 import com.topjohnwu.magisk.ui.component.SettingsSwitch
 import com.topjohnwu.magisk.ui.component.AdaptiveSmallTitle
 import com.topjohnwu.magisk.ui.component.SmallTitle
@@ -149,6 +150,24 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
             }
         )
 
+        // Color Theme — 颜色主题（与 UI Style 正交，覆盖默认色调）
+        val colorThemeEntries = remember {
+            resources.getStringArray(CoreR.array.color_theme).toList()
+        }
+        var colorTheme by remember { mutableIntStateOf(Config.colorTheme) }
+        SettingsDropdown(
+            title = stringResource(CoreR.string.settings_color_theme),
+            items = colorThemeEntries,
+            selectedIndex = colorTheme,
+            onSelectedIndexChange = { index ->
+                colorTheme = index
+                Config.colorTheme = index
+                ThemeState.colorTheme = index
+                // 颜色主题切换改变 colorScheme，recreate 确保主题彻底生效
+                context.findActivity()?.recreate()
+            }
+        )
+
         // UI Style
         val uiStyleOriginal = stringResource(CoreR.string.settings_ui_style_original)
         val uiStyleMiuix = stringResource(CoreR.string.settings_ui_style_miuix)
@@ -205,6 +224,22 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
                     ThemeState.blurEffect = it
                     // 毛玻璃开关影响 Compose 修饰符链结构，recreate 确保底栏背景彻底重建
                     context.findActivity()?.recreate()
+                }
+            )
+
+            // Blur intensity — 毛玻璃模糊度滑块（仅 blur 开启时可用）
+            var blurIntensity by remember { mutableIntStateOf(Config.blurIntensity) }
+            SettingsSlider(
+                title = stringResource(CoreR.string.settings_blur_intensity_title),
+                summary = "${blurIntensity}dp",
+                value = blurIntensity.toFloat(),
+                valueRange = 4f..64f,
+                enabled = blurEffect && blurSupported,
+                onValueChange = {
+                    val intVal = it.toInt()
+                    blurIntensity = intVal
+                    Config.blurIntensity = intVal
+                    ThemeState.blurIntensity = intVal
                 }
             )
         }

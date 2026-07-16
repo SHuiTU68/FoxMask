@@ -29,6 +29,8 @@ object ThemeState {
     var uiStyle by mutableIntStateOf(Config.uiStyle)
     var floatingNav by mutableStateOf(Config.floatingNav)
     var blurEffect by mutableStateOf(Config.blurEffect)
+    var blurIntensity by mutableIntStateOf(Config.blurIntensity)
+    var colorTheme by mutableIntStateOf(Config.colorTheme)
 }
 
 /// 毛玻璃效果开关与可用性检测
@@ -46,6 +48,8 @@ object BlurState {
 /// 避免到处直接读 ThemeState，也便于在 Preview 中覆盖。
 val LocalBlurEnabled = staticCompositionLocalOf { false }
 val LocalFloatingNav = staticCompositionLocalOf { true }
+/// 毛玻璃模糊半径（dp），用户可调，仅在 LocalBlurEnabled=true 时生效。
+val LocalBlurIntensity = staticCompositionLocalOf { 24 }
 
 /// 是否使用 Magisk 原始 md2 主题样式（Original 模式下为 true）。
 /// 下层组件据此切换卡片圆角/阴影/背景色等 md2 视觉特征。
@@ -160,6 +164,146 @@ private val MagiskOriginalDarkColors = darkColorScheme(
     onError = Color(0xFF0D0D0D),
 )
 
+/// 颜色主题（Color Theme）—— 与 UI Style 正交的色调覆盖。
+/// colorTheme == 0 时不覆盖，使用各 UI Style 的默认色。
+/// 樱花色刻意降低饱和度，避免过于鲜艳：
+///   用 #E8A0B8（淡樱粉）而非 #FF69B4（亮粉），配合中性背景。
+
+/// 樱花色 — 柔和淡粉，不鲜艳
+private val SakuraLightColors = lightColorScheme(
+    primary = Color(0xFFE8A0B8),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFFAD8E2),
+    onPrimaryContainer = Color(0xFF3E1A24),
+    secondary = Color(0xFFC4849A),
+    onSecondary = Color(0xFFFFFFFF),
+    tertiary = Color(0xFFB89A8E),
+    onTertiary = Color(0xFFFFFFFF),
+    background = Color(0xFFFDF8F9),
+    onBackground = Color(0xFF221A1C),
+    surface = Color(0xFFFDF8F9),
+    onSurface = Color(0xFF221A1C),
+    surfaceVariant = Color(0xFFF3E8EA),
+    onSurfaceVariant = Color(0xFF524347),
+    surfaceTint = Color(0xFFE8A0B8),
+    outline = Color(0xFF847276),
+    outlineVariant = Color(0xFFD6C2C5),
+    error = Color(0xFFB3261E),
+    onError = Color(0xFFFFFFFF),
+)
+
+private val SakuraDarkColors = darkColorScheme(
+    primary = Color(0xFFE8A0B8),
+    onPrimary = Color(0xFF4A1A28),
+    primaryContainer = Color(0xFF6B3548),
+    onPrimaryContainer = Color(0xFFFAD8E2),
+    secondary = Color(0xFFD8A8B8),
+    onSecondary = Color(0xFF3E1A24),
+    tertiary = Color(0xFFD4B5A8),
+    onTertiary = Color(0xFF3A261E),
+    background = Color(0xFF140D0F),
+    onBackground = Color(0xFFE8DCDE),
+    surface = Color(0xFF140D0F),
+    onSurface = Color(0xFFE8DCDE),
+    surfaceVariant = Color(0xFF4A3A3E),
+    onSurfaceVariant = Color(0xFFD6C2C5),
+    surfaceTint = Color(0xFFE8A0B8),
+    outline = Color(0xFF9E8C90),
+    outlineVariant = Color(0xFF4A3A3E),
+    error = Color(0xFFEF8282),
+    onError = Color(0xFF4E0808),
+)
+
+/// 翠绿色
+private val EmeraldLightColors = lightColorScheme(
+    primary = Color(0xFF2E9E6E),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFC4EDD6),
+    onPrimaryContainer = Color(0xFF002114),
+    secondary = Color(0xFF4F6354),
+    onSecondary = Color(0xFFFFFFFF),
+    tertiary = Color(0xFF3B6470),
+    onTertiary = Color(0xFFFFFFFF),
+    background = Color(0xFFF6FBF6),
+    onBackground = Color(0xFF171D18),
+    surface = Color(0xFFF6FBF6),
+    onSurface = Color(0xFF171D18),
+    surfaceVariant = Color(0xFFDCE5DC),
+    onSurfaceVariant = Color(0xFF424942),
+    surfaceTint = Color(0xFF2E9E6E),
+    outline = Color(0xFF727972),
+    outlineVariant = Color(0xFFC2C9C2),
+    error = Color(0xFFB3261E),
+    onError = Color(0xFFFFFFFF),
+)
+
+private val EmeraldDarkColors = darkColorScheme(
+    primary = Color(0xFF7AD6A4),
+    onPrimary = Color(0xFF003823),
+    primaryContainer = Color(0xFF1B5E3F),
+    onPrimaryContainer = Color(0xFFC4EDD6),
+    secondary = Color(0xFFB4CCB0),
+    onSecondary = Color(0xFF1F2A22),
+    tertiary = Color(0xFFA2CEDA),
+    onTertiary = Color(0xFF013540),
+    background = Color(0xFF0E1510),
+    onBackground = Color(0xFFE0E8E0),
+    surface = Color(0xFF0E1510),
+    onSurface = Color(0xFFE0E8E0),
+    surfaceVariant = Color(0xFF424942),
+    onSurfaceVariant = Color(0xFFC2C9C2),
+    surfaceTint = Color(0xFF7AD6A4),
+    outline = Color(0xFF8C938C),
+    outlineVariant = Color(0xFF424942),
+    error = Color(0xFFEF8282),
+    onError = Color(0xFF4E0808),
+)
+
+/// 金黄色
+private val GoldLightColors = lightColorScheme(
+    primary = Color(0xFFD4A028),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFFCE4A6),
+    onPrimaryContainer = Color(0xFF2A1C00),
+    secondary = Color(0xFF6B5D40),
+    onSecondary = Color(0xFFFFFFFF),
+    tertiary = Color(0xFF4B645D),
+    onTertiary = Color(0xFFFFFFFF),
+    background = Color(0xFFFCFAF5),
+    onBackground = Color(0xFF1D1B16),
+    surface = Color(0xFFFCFAF5),
+    onSurface = Color(0xFF1D1B16),
+    surfaceVariant = Color(0xFFEDE2D0),
+    onSurfaceVariant = Color(0xFF4D4639),
+    surfaceTint = Color(0xFFD4A028),
+    outline = Color(0xFF7F7667),
+    outlineVariant = Color(0xFFD0C7B5),
+    error = Color(0xFFB3261E),
+    onError = Color(0xFFFFFFFF),
+)
+
+private val GoldDarkColors = darkColorScheme(
+    primary = Color(0xFFE8C26A),
+    onPrimary = Color(0xFF402D00),
+    primaryContainer = Color(0xFF5D4400),
+    onPrimaryContainer = Color(0xFFFCE4A6),
+    secondary = Color(0xFFD4C2A0),
+    onSecondary = Color(0xFF383020),
+    tertiary = Color(0xFFB2CCC2),
+    onTertiary = Color(0xFF1E352E),
+    background = Color(0xFF15120A),
+    onBackground = Color(0xFFE8E2D5),
+    surface = Color(0xFF15120A),
+    onSurface = Color(0xFFE8E2D5),
+    surfaceVariant = Color(0xFF4D4639),
+    onSurfaceVariant = Color(0xFFD0C7B5),
+    surfaceTint = Color(0xFFE8C26A),
+    outline = Color(0xFF99907F),
+    outlineVariant = Color(0xFF4D4639),
+    error = Color(0xFFEF8282),
+    onError = Color(0xFF4E0808),
+)
+
 @Composable
 fun MagiskTheme(
     content: @Composable () -> Unit
@@ -186,9 +330,18 @@ fun MagiskTheme(
 
     val useDynamicColor = mode in listOf(3, 4, 5) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
-    // 原始模式用 Magisk 自带蓝色主题（Piplup #4EAFF5），
-    // MIUI 模式用 miuix 风格颜色，动态色由系统取色。
+    // 颜色主题（colorTheme）—— 与 UI Style 正交的色调覆盖。
+    // 0=默认（跟随 UI Style），1=樱花，2=翠绿，3=金黄。
+    // colorTheme != 0 时覆盖默认色与动态色，保证用户选择的色调生效。
+    val colorTheme = ThemeState.colorTheme
+
     val colorScheme = when {
+        colorTheme == 1 && isDarkTheme -> SakuraDarkColors
+        colorTheme == 1 && !isDarkTheme -> SakuraLightColors
+        colorTheme == 2 && isDarkTheme -> EmeraldDarkColors
+        colorTheme == 2 && !isDarkTheme -> EmeraldLightColors
+        colorTheme == 3 && isDarkTheme -> GoldDarkColors
+        colorTheme == 3 && !isDarkTheme -> GoldLightColors
         useMiuix && isDarkTheme -> MiuixDarkColors
         useMiuix && !isDarkTheme -> MiuixLightColors
         useDynamicColor && isDarkTheme -> dynamicDarkColorScheme(context)
@@ -214,6 +367,7 @@ fun MagiskTheme(
             LocalBlurEnabled provides useBlur,
             LocalFloatingNav provides useFloatingNav,
             LocalMd2Style provides useMd2Style,
+            LocalBlurIntensity provides ThemeState.blurIntensity,
         ) {
             MaterialTheme(
                 colorScheme = colorScheme,

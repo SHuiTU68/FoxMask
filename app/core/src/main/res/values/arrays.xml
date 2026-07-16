@@ -76,4 +76,11 @@
         <item>@string/color_mode_monet_light</item>
         <item>@string/color_mode_monet_dark</item>
     </string-array>
+
+    <string-array name="color_theme">
+        <item>@string/color_theme_default</item>
+        <item>@string/color_theme_sakura</item>
+        <item>@string/color_theme_emerald</item>
+        <item>@string/color_theme_gold</item>
+    </string-array>
 </resources>

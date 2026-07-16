@@ -218,6 +218,13 @@
     <string name="settings_floating_nav_summary">Suspend the bottom navigation bar with rounded corners and margins</string>
     <string name="settings_blur_effect_title">iOS-style blur</string>
     <string name="settings_blur_effect_summary">Apply frosted glass blur to navigation bar and surfaces (Android 12+)</string>
+    <string name="settings_blur_intensity_title">Blur intensity</string>
+    <string name="settings_blur_intensity_summary">Adjust the blur radius for the frosted glass effect</string>
+    <string name="settings_color_theme">Color theme</string>
+    <string name="color_theme_default">Default</string>
+    <string name="color_theme_sakura">Sakura</string>
+    <string name="color_theme_emerald">Emerald</string>
+    <string name="color_theme_gold">Gold</string>
     <string name="color_mode_system">System</string>
     <string name="color_mode_light">Light</string>
     <string name="color_mode_dark">Dark</string>
