@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -46,6 +45,7 @@ import com.topjohnwu.magisk.ui.BlurState
 import com.topjohnwu.magisk.ui.ThemeState
 import com.topjohnwu.magisk.ui.component.SettingsArrow
 import com.topjohnwu.magisk.ui.component.SettingsDropdown
+import com.topjohnwu.magisk.ui.component.SettingsSectionCard
 import com.topjohnwu.magisk.ui.component.SettingsSwitch
 import com.topjohnwu.magisk.ui.component.AdaptiveSmallTitle
 import com.topjohnwu.magisk.ui.component.SmallTitle
@@ -104,7 +104,7 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
     val context = LocalContext.current
 
     AdaptiveSmallTitle(text = stringResource(CoreR.string.settings_customization))
-    Card(modifier = Modifier.fillMaxWidth()) {
+    SettingsSectionCard(modifier = Modifier.fillMaxWidth()) {
         if (LocaleSetting.useLocaleManager) {
             val locale = LocaleSetting.instance.appLocale
             val summary = locale?.getDisplayName(locale) ?: stringResource(CoreR.string.system_default)
@@ -227,7 +227,7 @@ private fun AppSettingsSection() {
     val resources = LocalResources.current
 
     AdaptiveSmallTitle(text = stringResource(CoreR.string.home_app_title))
-    Card(modifier = Modifier.fillMaxWidth()) {
+    SettingsSectionCard(modifier = Modifier.fillMaxWidth()) {
         // Update Channel
         val updateChannelEntries = remember {
             resources.getStringArray(CoreR.array.update_channel).toList()
@@ -321,7 +321,7 @@ private fun AppSettingsSection() {
 @Composable
 private fun MagiskSection(viewModel: SettingsViewModel) {
     AdaptiveSmallTitle(text = stringResource(CoreR.string.magisk))
-    Card(modifier = Modifier.fillMaxWidth()) {
+    SettingsSectionCard(modifier = Modifier.fillMaxWidth()) {
         // Systemless Hosts
         SettingsArrow(
             title = stringResource(CoreR.string.settings_hosts_title),
@@ -405,7 +405,7 @@ private fun SuperuserSection(viewModel: SettingsViewModel) {
     val resources = LocalResources.current
 
     AdaptiveSmallTitle(text = stringResource(CoreR.string.superuser))
-    Card(modifier = Modifier.fillMaxWidth()) {
+    SettingsSectionCard(modifier = Modifier.fillMaxWidth()) {
         // Tapjack (SDK < S)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             var tapjack by remember { mutableStateOf(Config.suTapjack) }

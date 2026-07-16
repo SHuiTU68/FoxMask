@@ -2,7 +2,9 @@ package com.topjohnwu.magisk.ui
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -16,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import com.topjohnwu.magisk.core.Config
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.darkColorScheme as miuixDarkColorScheme
@@ -43,6 +46,22 @@ object BlurState {
 /// 避免到处直接读 ThemeState，也便于在 Preview 中覆盖。
 val LocalBlurEnabled = staticCompositionLocalOf { false }
 val LocalFloatingNav = staticCompositionLocalOf { true }
+
+/// 是否使用 Magisk 原始 md2 主题样式（Original 模式下为 true）。
+/// 下层组件据此切换卡片圆角/阴影/背景色等 md2 视觉特征。
+val LocalMd2Style = staticCompositionLocalOf { false }
+
+/// Magisk 原始 md2 主题的视觉常量。
+/// 直接取自上游 app/apk 模块的 styles_md2_impl.xml / dimens.xml：
+///   - WidgetFoundation.Card: cardCornerRadius=@dimen/l_50(8dp), cardElevation=0dp,
+///     cardBackgroundColor=?colorSurfaceVariant
+///   - WidgetFoundation.Card.Primary: cardBackgroundColor=?colorPrimary
+///   - 首页 Magisk 卡标题: textColor=?colorPrimary
+/// 这些常量仅在 Original 模式下被组件引用。
+object MagiskMd2 {
+    val cardCornerRadius = 8.dp
+    val cardElevation = 0.dp
+}
 
 // MIUI 风格颜色方案 — 让 MIUI 主题视觉上明显区别于原始主题
 private val MiuixLightColors = lightColorScheme(
@@ -153,6 +172,8 @@ fun MagiskTheme(
     // Original 模式始终用标准 M3 底栏、无毛玻璃，保持 Magisk 原始观感。
     val useBlur = BlurState.enabled && useMiuix
     val useFloatingNav = ThemeState.floatingNav && useMiuix
+    // Original 模式启用 md2 样式（上游 app/apk 的 WidgetFoundation.Card 风格）
+    val useMd2Style = !useMiuix
 
     val isDarkTheme = when (mode) {
         1 -> false
@@ -176,13 +197,27 @@ fun MagiskTheme(
         else -> MagiskOriginalLightColors
     }
 
+    // Original 模式用 md2 的 8dp 圆角 Shapes（对应上游 @dimen/l_50），
+    // MIUI 模式用 M3 默认 Shapes。
+    val shapes = if (useMd2Style) {
+        Shapes(
+            small = RoundedCornerShape(MagiskMd2.cardCornerRadius),
+            medium = RoundedCornerShape(MagiskMd2.cardCornerRadius),
+            large = RoundedCornerShape(MagiskMd2.cardCornerRadius),
+        )
+    } else {
+        Shapes()
+    }
+
     val wrapped = @Composable {
         CompositionLocalProvider(
             LocalBlurEnabled provides useBlur,
             LocalFloatingNav provides useFloatingNav,
+            LocalMd2Style provides useMd2Style,
         ) {
             MaterialTheme(
                 colorScheme = colorScheme,
+                shapes = shapes,
                 content = content
             )
         }
