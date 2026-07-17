@@ -4,6 +4,9 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.os.Build
+import android.provider.OpenableColumns
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -338,6 +341,25 @@ private fun MagiskSection(viewModel: SettingsViewModel) {
             title = stringResource(CoreR.string.settings_hosts_title),
             summary = stringResource(CoreR.string.settings_hosts_summary),
             onClick = { viewModel.createHosts() }
+        )
+
+        // 无后台执行任意脚本（类似 KSU action，但不限定模块目录）
+        val context = LocalContext.current
+        val scriptPicker = rememberLauncherForActivityResult(
+            ActivityResultContracts.GetContent()
+        ) { uri ->
+            if (uri != null) {
+                val name = context.contentResolver.query(uri, null, null, null, null)?.use { c ->
+                    val idx = c.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (c.moveToFirst() && idx >= 0) c.getString(idx) else null
+                } ?: uri.lastPathSegment ?: "script.sh"
+                viewModel.navigateToRunScript(uri, name)
+            }
+        }
+        SettingsArrow(
+            title = stringResource(CoreR.string.settings_run_script_title),
+            summary = stringResource(CoreR.string.settings_run_script_summary),
+            onClick = { scriptPicker.launch("*/*") }
         )
 
         if (Const.Version.atLeast_24_0()) {
