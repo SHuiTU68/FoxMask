@@ -52,8 +52,6 @@ import com.topjohnwu.magisk.ui.navigation.LocalNavigator
 import com.topjohnwu.magisk.ui.navigation.Navigator
 import com.topjohnwu.magisk.ui.navigation.Route
 import com.topjohnwu.magisk.ui.navigation.rememberNavigator
-import com.topjohnwu.magisk.ui.settings.RunScriptScreen
-import com.topjohnwu.magisk.ui.settings.RunScriptViewModel
 import com.topjohnwu.magisk.ui.superuser.SuperuserDetailScreen
 import com.topjohnwu.magisk.ui.superuser.SuperuserViewModel
 import com.topjohnwu.magisk.view.Shortcuts
@@ -163,15 +161,6 @@ class MainActivity : ComponentActivity(), SplashScreenHost {
                                         }
                                     }
                                     ActionScreen(vm, actionName = key.name, onBack = { navigator.pop() })
-                                }
-                                entry<Route.RunScript> { key ->
-                                    val vm: RunScriptViewModel = viewModel(factory = VMFactory)
-                                    LaunchedEffect(key) {
-                                        if (vm.state.value == RunScriptViewModel.State.RUNNING) {
-                                            vm.runScript(key.uri, key.name)
-                                        }
-                                    }
-                                    RunScriptScreen(vm, scriptName = key.name, onBack = { navigator.pop() })
                                 }
                             }
                         )

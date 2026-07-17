@@ -183,8 +183,6 @@
     <string name="settings_hosts_title">Systemless hosts</string>
     <string name="settings_hosts_summary">Systemless hosts support for ad blocking apps</string>
     <string name="settings_hosts_toast">Added systemless hosts module</string>
-    <string name="settings_run_script_title">Run script</string>
-    <string name="settings_run_script_summary">Execute any shell script as root without a background process</string>
     <string name="settings_app_name_hint">New name</string>
     <string name="settings_app_name_helper">App will be repackaged with this name</string>
     <string name="settings_app_name_error">Invalid format</string>

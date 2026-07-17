@@ -32,11 +32,6 @@ class SettingsViewModel : BaseViewModel() {
         navigateTo(Route.DenyList)
     }
 
-    /// 跳转到"执行任意脚本"页面（无后台执行）
-    fun navigateToRunScript(uri: android.net.Uri, name: String) {
-        navigateTo(Route.RunScript(uri.toString(), name))
-    }
-
     fun requestAddShortcut() {
         Shortcuts.addHomeIcon(AppContext)
     }

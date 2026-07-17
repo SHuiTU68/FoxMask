@@ -31,11 +31,4 @@ sealed interface Route : NavKey, Parcelable {
         val id: String,
         val name: String,
     ) : Route
-
-    @Parcelize
-    @Serializable
-    data class RunScript(
-        val uri: String,
-        val name: String,
-    ) : Route
 }
