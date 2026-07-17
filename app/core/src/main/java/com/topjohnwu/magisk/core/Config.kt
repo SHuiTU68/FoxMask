@@ -52,6 +52,7 @@ object Config : PreferenceConfig, DBConfig {
         const val ASKED_HOME = "asked_home"
         const val DOH = "doh"
         const val RAND_NAME = "rand_name"
+        const val KP_SUPERKEY = "kpatch_superkey"
 
         val NO_MIGRATION = setOf(ASKED_HOME, SU_REQUEST_TIMEOUT,
             SU_AUTO_RESPONSE, SU_REAUTH, SU_TAPJACK)
@@ -165,6 +166,9 @@ object Config : PreferenceConfig, DBConfig {
     var suReAuth by preference(Key.SU_REAUTH, false)
     var suTapjack by preference(Key.SU_TAPJACK, true)
     var suRestrict by preference(Key.SU_RESTRICT, false)
+
+    /** KernelPatch superkey — 在修补 boot 时设置，运行时 KPM 管理需要使用 */
+    var kpatchSuperkey by preference(Key.KP_SUPERKEY, "")
 
     private const val SU_FINGERPRINT = "su_fingerprint"
     private const val UPDATE_CHANNEL = "update_channel"

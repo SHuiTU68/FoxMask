@@ -32,6 +32,11 @@ class SettingsViewModel : BaseViewModel() {
         navigateTo(Route.DenyList)
     }
 
+    /** 进入 KernelPatch / KPM 管理页面。 */
+    fun navigateToKpatch() {
+        navigateTo(Route.KPModule)
+    }
+
     fun requestAddShortcut() {
         Shortcuts.addHomeIcon(AppContext)
     }

@@ -16,3 +16,7 @@ native/out
 ramdisk.img
 app/core/src/debug
 app/core/src/release
+
+# Python
+__pycache__/
+*.pyc

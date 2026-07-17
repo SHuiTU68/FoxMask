@@ -89,6 +89,8 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 Spacer(Modifier.height(12.dp))
                 MagiskSection(viewModel)
             }
+            Spacer(Modifier.height(12.dp))
+            KernelPatchSection(viewModel)
             if (Info.showSuperUser) {
                 Spacer(Modifier.height(12.dp))
                 SuperuserSection(viewModel)
@@ -405,6 +407,20 @@ private fun MagiskSection(viewModel: SettingsViewModel) {
                 onClick = { viewModel.navigateToDenyList() }
             )
         }
+    }
+}
+
+// --- KernelPatch ---
+
+@Composable
+private fun KernelPatchSection(viewModel: SettingsViewModel) {
+    AdaptiveSmallTitle(text = stringResource(CoreR.string.settings_kpatch_title))
+    SettingsSectionCard(modifier = Modifier.fillMaxWidth()) {
+        SettingsArrow(
+            title = stringResource(CoreR.string.settings_kpatch_manage_title),
+            summary = stringResource(CoreR.string.settings_kpatch_manage_summary),
+            onClick = { viewModel.navigateToKpatch() },
+        )
     }
 }
 

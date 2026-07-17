@@ -30,6 +30,7 @@ mod bootstages;
 mod consts;
 mod daemon;
 mod db;
+mod kpcall;
 mod logging;
 mod magisk;
 mod module;
@@ -209,6 +210,7 @@ pub mod ffi {
         #[cxx_name = "connect_daemon"]
         fn connect_daemon_for_cxx(code: RequestCode, create: bool) -> i32;
         unsafe fn magisk_main(argc: i32, argv: *mut *mut c_char) -> i32;
+        unsafe fn kpcall_main(argc: i32, argv: *mut *mut c_char) -> i32;
     }
 
     // Default constructors

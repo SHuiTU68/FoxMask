@@ -46,6 +46,8 @@ import com.topjohnwu.magisk.ui.deny.DenyListViewModel
 import com.topjohnwu.magisk.ui.flash.FlashScreen
 import com.topjohnwu.magisk.ui.flash.FlashUtils
 import com.topjohnwu.magisk.ui.flash.FlashViewModel
+import com.topjohnwu.magisk.ui.kpatch.KpmScreen
+import com.topjohnwu.magisk.ui.kpatch.KpmViewModel
 import com.topjohnwu.magisk.ui.module.ActionScreen
 import com.topjohnwu.magisk.ui.module.ActionViewModel
 import com.topjohnwu.magisk.ui.webui.WebUIScreen
@@ -172,6 +174,10 @@ class MainActivity : ComponentActivity(), SplashScreenHost {
                                         moduleName = key.moduleName,
                                         onBack = { navigator.pop() },
                                     )
+                                }
+                                entry<Route.KPModule> {
+                                    val vm: KpmViewModel = viewModel(factory = VMFactory)
+                                    KpmScreen(vm, onBack = { navigator.pop() })
                                 }
                             }
                         )
