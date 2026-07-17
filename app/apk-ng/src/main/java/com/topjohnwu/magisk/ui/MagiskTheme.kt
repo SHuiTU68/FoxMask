@@ -162,9 +162,14 @@ private fun miuixColorsToM3(
 ): androidx.compose.material3.ColorScheme {
     val isDark = c.background.luminance() < 0.5f
 
-    // Monet 种子色混入比例：暗色少一点(避免过暗)、浅色多一点(让色调可见)。
+    // Monet 种子色混入比例。
+    // Material Kolor 生成的 surface 在浅色下是 tone 98(几乎纯白)、暗色下 tone 10(几乎纯黑)，
+    // 种子色被稀释到肉眼几乎不可见。需要把纯种子色按较高比例混入 surface 各级，
+    // 用户才能在底栏/主页/功能背景上看到自己选的颜色。
+    // 浅色比例更高(0.4)：tone 98 的底色太亮，需要更多种子色才能显色；
+    // 暗色比例稍低(0.25)：暗色底本身吸光，种子色更容易显现，太高会过暗偏色。
     // 用 seedColor != null 直接判断，保证 lerp() 拿到非空 Color（智能转换生效）。
-    val tintAmount = if (seedColor == null) 0f else if (isDark) 0.15f else 0.18f
+    val tintAmount = if (seedColor == null) 0f else if (isDark) 0.25f else 0.4f
     val surface = if (seedColor != null) lerp(c.surface, seedColor, tintAmount) else c.surface
     val surfaceContainer =
         if (seedColor != null) lerp(c.surfaceContainer, seedColor, tintAmount) else c.surfaceContainer
