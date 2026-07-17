@@ -21,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -228,6 +229,13 @@ fun HomeScreen(viewModel: HomeViewModel, installVm: InstallViewModel) {
                 state = viewModel.magiskState,
                 version = viewModel.magiskInstalledVersion,
             ) { showInstallSheet.value = true }
+
+            if (Info.isRooted) {
+                KpatchCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    version = viewModel.kpatchVersion,
+                )
+            }
 
             StatusCard()
 
@@ -441,6 +449,40 @@ private fun CoreCard(
                 InstallButton(
                     label = actionLabel,
                     onClick = onInstallClicked,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun KpatchCard(
+    modifier: Modifier = Modifier,
+    version: String?,
+) {
+    Md2Card(modifier = modifier) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = Icons.Default.Build,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.width(16.dp))
+            Column {
+                Text(
+                    text = stringResource(CoreR.string.settings_kpatch_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = version ?: stringResource(CoreR.string.home_kpatch_not_installed),
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             }
         }

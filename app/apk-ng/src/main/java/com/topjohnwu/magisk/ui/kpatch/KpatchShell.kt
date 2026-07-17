@@ -11,11 +11,21 @@ import java.io.File
  *
  * 负责从 assets 复制 kptools/kpimg 到本地目录并设置可执行权限，
  * 提供执行 kptools（boot 修补/KPM 嵌入）和 kpcall（运行时 KPM 管理）的接口。
+ *
+ * superkey 自选：上游 KernelPatch 已剥离强 superkey 校验，root 调用者可使用 "su" 作为 key。
+ * 所有接口接收的 superkey 为空时自动回退到 "su"。
  */
 object KpatchShell {
 
     private const val KP_VERSION = "0.13.1"
     private const val KP_DIR_NAME = "kpatch"
+
+    /** 默认 superkey（上游已剥离强校验，root 调用者使用 "su"） */
+    private const val DEFAULT_KEY = "su"
+
+    /** 取实际生效的 superkey：传入为空则回退到默认 "su" */
+    private fun effectiveKey(superkey: String): String =
+        superkey.ifEmpty { DEFAULT_KEY }
 
     /** kptools/kpimg 所在的本地目录路径 */
     private fun kpatchDir(context: Context): String =
@@ -58,23 +68,23 @@ object KpatchShell {
     /**
      * 检测 KernelPatch 是否已安装（内核已修补）。
      * 通过 kpcall hello 检测。
-     * @param superkey 修补时设置的 superkey
+     * @param superkey 修补时设置的 superkey，为空时使用默认 "su"
      * @return true 如果 kpatch 已安装且 key 有效
      */
     fun isKpatchInstalled(superkey: String): Boolean {
-        if (superkey.isEmpty()) return false
-        val result = Shell.cmd("magisk kpcall hello '$superkey'").exec()
+        val key = effectiveKey(superkey)
+        val result = Shell.cmd("magisk kpcall hello '$key'").exec()
         return result.isSuccess && result.out.any { it.contains("installed") }
     }
 
     /**
      * 获取 KernelPatch 版本。
-     * @param superkey 修补时设置的 superkey
+     * @param superkey 修补时设置的 superkey，为空时使用默认 "su"
      * @return 版本字符串（如 "0.13.1"），失败返回 null
      */
     fun getKpatchVersion(superkey: String): String? {
-        if (superkey.isEmpty()) return null
-        val result = Shell.cmd("magisk kpcall kp-version '$superkey'").exec()
+        val key = effectiveKey(superkey)
+        val result = Shell.cmd("magisk kpcall kp-version '$key'").exec()
         if (result.isSuccess && result.out.isNotEmpty()) {
             return result.out[0].trim()
         }
@@ -85,7 +95,7 @@ object KpatchShell {
      * 修补 boot 镜像，嵌入 KernelPatch。
      * @param context 上下文
      * @param bootImgPath 原始 boot.img 路径
-     * @param superkey 修补时设置的 superkey
+     * @param superkey 修补时设置的 superkey，为空时使用默认 "su"
      * @param outputPath 修补后输出路径
      * @return 修补是否成功
      */
@@ -98,9 +108,10 @@ object KpatchShell {
         if (!ensureBinaries(context)) return false
         val kptools = kptoolsPath(context)
         val kpimg = kpimgPath(context)
+        val key = effectiveKey(superkey)
 
         val result = Shell.cmd(
-            "$kptools -p -i '$bootImgPath' -k '$kpimg' -s '$superkey' -o '$outputPath'"
+            "$kptools -p -i '$bootImgPath' -k '$kpimg' -s '$key' -o '$outputPath'"
         ).exec()
         return result.isSuccess && result.out.any { it.contains("patch done") }
     }
@@ -147,12 +158,12 @@ object KpatchShell {
 
     /**
      * 列出已加载的 KPM 模块。
-     * @param superkey superkey
+     * @param superkey superkey，为空时使用默认 "su"
      * @return 模块名称列表，失败返回空列表
      */
     fun listKpms(superkey: String): List<String> {
-        if (superkey.isEmpty()) return emptyList()
-        val result = Shell.cmd("magisk kpcall kpm-list '$superkey'").exec()
+        val key = effectiveKey(superkey)
+        val result = Shell.cmd("magisk kpcall kpm-list '$key'").exec()
         if (result.isSuccess) {
             return result.out
                 .filter { it.isNotBlank() }
@@ -165,13 +176,13 @@ object KpatchShell {
 
     /**
      * 获取 KPM 模块信息。
-     * @param superkey superkey
+     * @param superkey superkey，为空时使用默认 "su"
      * @param name 模块名称
      * @return 模块信息 JSON 字符串，失败返回 null
      */
     fun getKpmInfo(superkey: String, name: String): String? {
-        if (superkey.isEmpty()) return null
-        val result = Shell.cmd("magisk kpcall kpm-info '$superkey' '$name'").exec()
+        val key = effectiveKey(superkey)
+        val result = Shell.cmd("magisk kpcall kpm-info '$key' '$name'").exec()
         if (result.isSuccess && result.out.isNotEmpty()) {
             return result.out.joinToString("\n")
         }
@@ -180,43 +191,43 @@ object KpatchShell {
 
     /**
      * 加载 KPM 模块。
-     * @param superkey superkey
+     * @param superkey superkey，为空时使用默认 "su"
      * @param path .kpm 文件路径
      * @param args 模块参数（可选）
      * @return 加载是否成功
      */
     fun loadKpm(superkey: String, path: String, args: String = ""): Boolean {
-        if (superkey.isEmpty()) return false
+        val key = effectiveKey(superkey)
         val cmd = if (args.isEmpty()) {
-            "magisk kpcall kpm-load '$superkey' '$path'"
+            "magisk kpcall kpm-load '$key' '$path'"
         } else {
-            "magisk kpcall kpm-load '$superkey' '$path' '$args'"
+            "magisk kpcall kpm-load '$key' '$path' '$args'"
         }
         return Shell.cmd(cmd).exec().isSuccess
     }
 
     /**
      * 卸载 KPM 模块。
-     * @param superkey superkey
+     * @param superkey superkey，为空时使用默认 "su"
      * @param name 模块名称
      * @return 卸载是否成功
      */
     fun unloadKpm(superkey: String, name: String): Boolean {
-        if (superkey.isEmpty()) return false
-        return Shell.cmd("magisk kpcall kpm-unload '$superkey' '$name'").exec().isSuccess
+        val key = effectiveKey(superkey)
+        return Shell.cmd("magisk kpcall kpm-unload '$key' '$name'").exec().isSuccess
     }
 
     /**
      * 控制 KPM 模块。
-     * @param superkey superkey
+     * @param superkey superkey，为空时使用默认 "su"
      * @param name 模块名称
      * @param ctlArgs 控制参数
      * @return 控制结果字符串，失败返回 null
      */
     fun controlKpm(superkey: String, name: String, ctlArgs: String): String? {
-        if (superkey.isEmpty()) return null
+        val key = effectiveKey(superkey)
         val result = Shell.cmd(
-            "magisk kpcall kpm-control '$superkey' '$name' '$ctlArgs'"
+            "magisk kpcall kpm-control '$key' '$name' '$ctlArgs'"
         ).exec()
         if (result.isSuccess) {
             return result.out.joinToString("\n")

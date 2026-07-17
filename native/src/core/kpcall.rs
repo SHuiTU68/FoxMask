@@ -1,16 +1,20 @@
 // KernelPatch supercall 接口实现
 // 通过 syscall(45, ...) 调用 KernelPatch 的 supercall，实现 KPM 运行时管理。
-// 命令行用法: kpcall <command> <superkey> [args...]
-//   kpcall hello <key>                          — 检测 kpatch 是否已安装
-//   kpcall kp-version <key>                     — 获取 kpatch 版本
-//   kpcall k-version <key>                      — 获取内核版本
-//   kpcall kpm-nums <key>                       — 获取已加载 KPM 数量
-//   kpcall kpm-list <key>                       — 列出已加载 KPM 名称
-//   kpcall kpm-info <key> <name>                — 获取 KPM 详细信息
-//   kpcall kpm-load <key> <path> [args]         — 加载 KPM
-//   kpcall kpm-unload <key> <name>              — 卸载 KPM
-//   kpcall kpm-control <key> <name> <ctl_args>  — 控制 KPM
+// 命令行用法: kpcall <command> [superkey] [args...]
+//   kpcall hello [key]                          — 检测 kpatch 是否已安装
+//   kpcall kp-version [key]                     — 获取 kpatch 版本
+//   kpcall k-version [key]                      — 获取内核版本
+//   kpcall kpm-nums [key]                       — 获取已加载 KPM 数量
+//   kpcall kpm-list [key]                       — 列出已加载 KPM 名称
+//   kpcall kpm-info [key] <name>                — 获取 KPM 详细信息
+//   kpcall kpm-load [key] <path> [args]         — 加载 KPM
+//   kpcall kpm-unload [key] <name>              — 卸载 KPM
+//   kpcall kpm-control [key] <name> <ctl_args>  — 控制 KPM
+//
+// superkey 可选：上游 KernelPatch 已剥离强 superkey 校验，root 调用者可使用 "su" 作为 key。
+// 若未提供 key 参数，默认使用 "su"（要求调用者已被 su 授权）。
 
+use base::libc;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 
@@ -56,16 +60,35 @@ unsafe fn sc_call1(key: &str, cmd: i64, arg1: *const libc::c_void) -> i64 {
     libc::syscall(NR_SUPERCALL, key_c.as_ptr(), combined, arg1)
 }
 
-unsafe fn sc_call2(key: &str, cmd: i64, arg1: *const libc::c_void, arg2: *const libc::c_void) -> i64 {
+unsafe fn sc_call2(key: &str, cmd: i64, arg1: *const libc::c_void, arg2: usize) -> i64 {
     let key_c = CString::new(key).unwrap_or_default();
     let combined = ver_and_cmd(key, cmd);
     libc::syscall(NR_SUPERCALL, key_c.as_ptr(), combined, arg1, arg2)
 }
 
-unsafe fn sc_call3(key: &str, cmd: i64, arg1: *const libc::c_void, arg2: *const libc::c_void, arg3: *const libc::c_void) -> i64 {
+unsafe fn sc_call3(
+    key: &str,
+    cmd: i64,
+    arg1: *const libc::c_void,
+    arg2: *const libc::c_void,
+    arg3: usize,
+) -> i64 {
     let key_c = CString::new(key).unwrap_or_default();
     let combined = ver_and_cmd(key, cmd);
     libc::syscall(NR_SUPERCALL, key_c.as_ptr(), combined, arg1, arg2, arg3)
+}
+
+unsafe fn sc_call4(
+    key: &str,
+    cmd: i64,
+    arg1: *const libc::c_void,
+    arg2: *const libc::c_void,
+    arg3: *const libc::c_void,
+    arg4: usize,
+) -> i64 {
+    let key_c = CString::new(key).unwrap_or_default();
+    let combined = ver_and_cmd(key, cmd);
+    libc::syscall(NR_SUPERCALL, key_c.as_ptr(), combined, arg1, arg2, arg3, arg4)
 }
 
 /// 从 argv 获取参数字符串
@@ -81,17 +104,18 @@ unsafe fn get_arg(argv: *mut *mut c_char, index: i32) -> Option<String> {
 }
 
 fn print_usage() {
-    eprintln!("Usage: kpcall <command> <superkey> [args...]");
+    eprintln!("Usage: kpcall <command> [superkey] [args...]");
     eprintln!("Commands:");
-    eprintln!("  hello <key>                          Check if KernelPatch is installed");
-    eprintln!("  kp-version <key>                     Get KernelPatch version");
-    eprintln!("  k-version <key>                      Get kernel version");
-    eprintln!("  kpm-nums <key>                       Get number of loaded KPMs");
-    eprintln!("  kpm-list <key>                       List loaded KPM names");
-    eprintln!("  kpm-info <key> <name>                Get KPM information");
-    eprintln!("  kpm-load <key> <path> [args]         Load a KPM");
-    eprintln!("  kpm-unload <key> <name>              Unload a KPM");
-    eprintln!("  kpm-control <key> <name> <ctl_args>  Control a KPM");
+    eprintln!("  hello [key]                          Check if KernelPatch is installed");
+    eprintln!("  kp-version [key]                     Get KernelPatch version");
+    eprintln!("  k-version [key]                      Get kernel version");
+    eprintln!("  kpm-nums [key]                       Get number of loaded KPMs");
+    eprintln!("  kpm-list [key]                       List loaded KPM names");
+    eprintln!("  kpm-info [key] <name>                Get KPM information");
+    eprintln!("  kpm-load [key] <path> [args]         Load a KPM");
+    eprintln!("  kpm-unload [key] <name>              Unload a KPM");
+    eprintln!("  kpm-control [key] <name> <ctl_args>  Control a KPM");
+    eprintln!("superkey is optional, defaults to \"su\" for root callers");
 }
 
 /// kpcall 主入口，作为 magisk 的 applet
@@ -100,7 +124,7 @@ pub fn kpcall_main(argc: i32, argv: *mut *mut c_char) -> i32 {
 }
 
 unsafe fn kpcall_main_impl(argc: i32, argv: *mut *mut c_char) -> i32 {
-    if argc < 3 {
+    if argc < 2 {
         print_usage();
         return 1;
     }
@@ -112,18 +136,19 @@ unsafe fn kpcall_main_impl(argc: i32, argv: *mut *mut c_char) -> i32 {
             return 1;
         }
     };
-    let key = match get_arg(argv, 2) {
-        Some(k) => k,
-        None => {
-            eprintln!("kpcall: missing superkey");
-            return 1;
-        }
-    };
 
-    if key.is_empty() {
-        eprintln!("kpcall: superkey is empty");
-        return 1;
-    }
+    // superkey 可选：默认使用 "su"（root 调用者）
+    // 若第二个参数看起来像 superkey（非命令专用参数），则使用它
+    // 判断逻辑：hello/kp-version/k-version/kpm-nums 这些命令不需要额外参数，
+    // 第二个参数就是 superkey；kpm-info/kpm-unload 等需要 name 参数，第二个参数可能是 key 也可能是 name。
+    // 简化处理：所有命令统一接受 [key] 作为可选第二个参数，后续参数顺延。
+    let key = get_arg(argv, 2).filter(|s| !s.is_empty()).unwrap_or_else(|| "su".to_string());
+
+    // 根据命令确定后续参数的起始索引
+    // 若用户提供了 key（argv[2] 存在且非空），则后续参数从 index 3 开始
+    // 否则从 index 2 开始（key 被默认为 "su"）
+    let has_explicit_key = get_arg(argv, 2).map_or(false, |s| !s.is_empty());
+    let arg_offset = if has_explicit_key { 3 } else { 2 };
 
     match command.as_str() {
         "hello" => {
@@ -180,7 +205,7 @@ unsafe fn kpcall_main_impl(argc: i32, argv: *mut *mut c_char) -> i32 {
                 &key,
                 SUPERCALL_KPM_LIST,
                 buf.as_mut_ptr() as *const libc::c_void,
-                buf.len() as *const libc::c_void,
+                buf.len(),
             );
             if ret >= 0 {
                 let len = ret as usize;
@@ -196,7 +221,7 @@ unsafe fn kpcall_main_impl(argc: i32, argv: *mut *mut c_char) -> i32 {
         }
 
         "kpm-info" => {
-            let name = match get_arg(argv, 3) {
+            let name = match get_arg(argv, arg_offset) {
                 Some(n) => n,
                 None => {
                     eprintln!("kpcall kpm-info: missing module name");
@@ -210,7 +235,7 @@ unsafe fn kpcall_main_impl(argc: i32, argv: *mut *mut c_char) -> i32 {
                 SUPERCALL_KPM_INFO,
                 name_c.as_ptr() as *const libc::c_void,
                 buf.as_mut_ptr() as *const libc::c_void,
-                buf.len() as *const libc::c_void,
+                buf.len(),
             );
             if ret >= 0 {
                 let len = ret as usize;
@@ -226,22 +251,23 @@ unsafe fn kpcall_main_impl(argc: i32, argv: *mut *mut c_char) -> i32 {
         }
 
         "kpm-load" => {
-            let path = match get_arg(argv, 3) {
+            let path = match get_arg(argv, arg_offset) {
                 Some(p) => p,
                 None => {
                     eprintln!("kpcall kpm-load: missing module path");
                     return 1;
                 }
             };
-            let args = get_arg(argv, 4).unwrap_or_default();
+            let args = get_arg(argv, arg_offset + 1).unwrap_or_default();
             let path_c = CString::new(path).unwrap_or_default();
             let args_c = CString::new(args).unwrap_or_default();
+            // sc_kpm_load(path, args) — 两个指针参数
             let ret = sc_call3(
                 &key,
                 SUPERCALL_KPM_LOAD,
                 path_c.as_ptr() as *const libc::c_void,
                 args_c.as_ptr() as *const libc::c_void,
-                std::ptr::null(),
+                0,
             );
             if ret == 0 {
                 println!("KPM loaded successfully");
@@ -253,7 +279,7 @@ unsafe fn kpcall_main_impl(argc: i32, argv: *mut *mut c_char) -> i32 {
         }
 
         "kpm-unload" => {
-            let name = match get_arg(argv, 3) {
+            let name = match get_arg(argv, arg_offset) {
                 Some(n) => n,
                 None => {
                     eprintln!("kpcall kpm-unload: missing module name");
@@ -261,11 +287,12 @@ unsafe fn kpcall_main_impl(argc: i32, argv: *mut *mut c_char) -> i32 {
                 }
             };
             let name_c = CString::new(name).unwrap_or_default();
+            // sc_kpm_unload(name) — 一个指针参数 + 一个空指针占位
             let ret = sc_call2(
                 &key,
                 SUPERCALL_KPM_UNLOAD,
                 name_c.as_ptr() as *const libc::c_void,
-                std::ptr::null(),
+                0,
             );
             if ret == 0 {
                 println!("KPM unloaded successfully");
@@ -277,14 +304,14 @@ unsafe fn kpcall_main_impl(argc: i32, argv: *mut *mut c_char) -> i32 {
         }
 
         "kpm-control" => {
-            let name = match get_arg(argv, 3) {
+            let name = match get_arg(argv, arg_offset) {
                 Some(n) => n,
                 None => {
                     eprintln!("kpcall kpm-control: missing module name");
                     return 1;
                 }
             };
-            let ctl_args = match get_arg(argv, 4) {
+            let ctl_args = match get_arg(argv, arg_offset + 1) {
                 Some(a) => a,
                 None => {
                     eprintln!("kpcall kpm-control: missing control args");
@@ -294,33 +321,19 @@ unsafe fn kpcall_main_impl(argc: i32, argv: *mut *mut c_char) -> i32 {
             let name_c = CString::new(name).unwrap_or_default();
             let ctl_c = CString::new(ctl_args).unwrap_or_default();
             let mut buf = vec![0u8; 4096];
-            let ret = sc_call3(
+            // sc_kpm_control(name, ctl_args, buf, buf_len) — 3 个指针 + 1 个 size
+            let ret = sc_call4(
                 &key,
                 SUPERCALL_KPM_CONTROL,
                 name_c.as_ptr() as *const libc::c_void,
                 ctl_c.as_ptr() as *const libc::c_void,
                 buf.as_mut_ptr() as *const libc::c_void,
+                buf.len(),
             );
-            // buf_len 通过第 5 个参数传递，但 sc_call3 只支持 3 个参数
-            // 需要用 sc_call 的变体传递 4 个参数
-            // 这里重新调用，传入 buf_len
-            let ret = if ret == -14 /* -EFAULT */ {
-                // buf_len 未传递，重新带 buf_len 调用
-                libc::syscall(
-                    NR_SUPERCALL,
-                    CString::new(key.as_str()).unwrap_or_default().as_ptr(),
-                    ver_and_cmd(&key, SUPERCALL_KPM_CONTROL),
-                    name_c.as_ptr() as *const libc::c_void,
-                    ctl_c.as_ptr() as *const libc::c_void,
-                    buf.as_mut_ptr() as *const libc::c_void,
-                    buf.len() as i64,
-                )
-            } else {
-                ret
-            };
-            if ret == 0 {
-                let info = String::from_utf8_lossy(&buf);
-                if !info.is_empty() {
+            if ret >= 0 {
+                let len = ret as usize;
+                if len > 0 && len <= buf.len() {
+                    let info = String::from_utf8_lossy(&buf[..len]);
                     print!("{info}");
                 }
                 0

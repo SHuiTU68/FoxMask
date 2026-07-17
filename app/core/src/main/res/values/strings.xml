@@ -193,9 +193,10 @@
     <string name="settings_kpatch_status_not_installed">KernelPatch not installed</string>
     <string name="settings_kpatch_status_hint">Patch the boot image with kptools and flash it to enable KernelPatch support.</string>
     <string name="settings_kpatch_superkey_title">Superkey</string>
-    <string name="settings_kpatch_superkey_summary">The superkey set during boot patching. Required for runtime KPM management.</string>
+    <string name="settings_kpatch_superkey_summary">Optional. Upstream KernelPatch has stripped strong superkey validation, root callers can use \"su\" as the default key. Leave empty to use the default \"su\".</string>
     <string name="settings_kpatch_superkey_save">Save</string>
     <string name="settings_kpatch_superkey_required">Please set the superkey first</string>
+    <string name="settings_kpatch_superkey_placeholder">su (default)</string>
     <string name="settings_kpatch_actions_title">Actions</string>
     <string name="settings_kpatch_patch_boot">Patch Boot</string>
     <string name="settings_kpatch_embed_kpm">Embed KPM</string>
@@ -212,6 +213,7 @@
     <string name="settings_kpatch_kpm_control_result">Control result</string>
     <string name="settings_kpatch_kpm_load_ok">KPM loaded</string>
     <string name="settings_kpatch_kpm_unload_ok">KPM unloaded</string>
+    <string name="home_kpatch_not_installed">Not installed</string>
     <string name="settings_app_name_hint">New name</string>
     <string name="settings_app_name_helper">App will be repackaged with this name</string>
     <string name="settings_app_name_error">Invalid format</string>

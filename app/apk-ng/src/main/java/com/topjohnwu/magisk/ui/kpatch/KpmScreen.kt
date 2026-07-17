@@ -82,13 +82,9 @@ fun KpmScreen(
         if (superkeyInput.isEmpty()) superkeyInput = uiState.superkey
     }
 
-    // 修补 boot picker
+    // 修补 boot picker（superkey 可选，为空时使用默认 "su"）
     val bootPickerSimple = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
-        if (superkeyInput.isEmpty()) {
-            viewModel.showSnackbar(context.getString(CoreR.string.settings_kpatch_superkey_required))
-            return@rememberLauncherForActivityResult
-        }
         viewModel.patchBoot(uri, superkeyInput) { out ->
             if (out != null) {
                 viewModel.showSnackbar(context.getString(CoreR.string.settings_kpatch_patch_done, out))
@@ -432,12 +428,12 @@ private fun SuperkeyCard(
                 onValueChange = onValueChange,
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                placeholder = { Text(stringResource(CoreR.string.settings_kpatch_superkey_placeholder)) },
             )
             Spacer(Modifier.height(8.dp))
             Button(
                 onClick = onSave,
                 modifier = Modifier.fillMaxWidth(),
-                enabled = value.isNotEmpty(),
             ) {
                 Text(stringResource(CoreR.string.settings_kpatch_superkey_save))
             }

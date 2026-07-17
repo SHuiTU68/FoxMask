@@ -38,7 +38,8 @@ data class KpmItem(
  * - 嵌入 KPM 到 boot 镜像
  * - 修补 boot 镜像嵌入 kpatch
  *
- * superkey 来自 [Config.kpatchSuperkey]，由用户在设置中或修补时设置。
+ * superkey 自选：上游 KernelPatch 已剥离强 superkey 校验，root 调用者可使用 "su" 作为 key。
+ * [Config.kpatchSuperkey] 为空时，[KpatchShell] 自动回退到默认 "su"。
  */
 class KpmViewModel : BaseViewModel() {
 
@@ -57,14 +58,10 @@ class KpmViewModel : BaseViewModel() {
     private val _busy = MutableStateFlow(false)
     val busy: StateFlow<Boolean> = _busy.asStateFlow()
 
-    /** 由 KpmScreen 主动调用启动加载。 */
+    /** 由 KpmScreen 主动调用启动加载。superkey 可为空（自动回退 "su"）。 */
     fun startLoading() {
         val key = Config.kpatchSuperkey
         _uiState.update { it.copy(superkey = key) }
-        if (key.isEmpty()) {
-            _uiState.update { it.copy(loading = false, kpatchInstalled = false) }
-            return
-        }
         viewModelScope.launch(Dispatchers.IO) {
             val installed = KpatchShell.isKpatchInstalled(key)
             val version = if (installed) KpatchShell.getKpatchVersion(key) else null
@@ -80,13 +77,9 @@ class KpmViewModel : BaseViewModel() {
         }
     }
 
-    /** 下拉/重试刷新 KPM 列表。 */
+    /** 下拉/重试刷新 KPM 列表。superkey 为空时自动回退 "su"。 */
     fun refresh() {
         val key = _uiState.value.superkey
-        if (key.isEmpty()) {
-            startLoading()
-            return
-        }
         _uiState.update { it.copy(loading = true) }
         viewModelScope.launch(Dispatchers.IO) {
             val installed = KpatchShell.isKpatchInstalled(key)
@@ -110,7 +103,7 @@ class KpmViewModel : BaseViewModel() {
 
     /**
      * 保存 superkey 并重新检测 kpatch 状态。
-     * 通常在用户首次输入或更换 superkey 时调用。
+     * 传入空字符串表示清除自定义 key，回退到默认 "su"。
      */
     fun saveSuperkey(key: String) {
         Config.kpatchSuperkey = key
@@ -138,10 +131,6 @@ class KpmViewModel : BaseViewModel() {
     fun loadKpm(kpmUri: Uri, args: String) {
         if (_busy.value) return
         val key = _uiState.value.superkey
-        if (key.isEmpty()) {
-            _uiState.update { it.copy(message = "superkey is empty") }
-            return
-        }
         _busy.value = true
         viewModelScope.launch(Dispatchers.IO) {
             val ctx: Context = AppContext
@@ -167,10 +156,6 @@ class KpmViewModel : BaseViewModel() {
     fun unloadKpm(name: String) {
         if (_busy.value) return
         val key = _uiState.value.superkey
-        if (key.isEmpty()) {
-            _uiState.update { it.copy(message = "superkey is empty") }
-            return
-        }
         _busy.value = true
         viewModelScope.launch(Dispatchers.IO) {
             val ok = KpatchShell.unloadKpm(key, name)
@@ -191,10 +176,6 @@ class KpmViewModel : BaseViewModel() {
     fun controlKpm(name: String, ctlArgs: String) {
         if (_busy.value) return
         val key = _uiState.value.superkey
-        if (key.isEmpty()) {
-            _uiState.update { it.copy(message = "superkey is empty") }
-            return
-        }
         _busy.value = true
         viewModelScope.launch(Dispatchers.IO) {
             val result = KpatchShell.controlKpm(key, name, ctlArgs)

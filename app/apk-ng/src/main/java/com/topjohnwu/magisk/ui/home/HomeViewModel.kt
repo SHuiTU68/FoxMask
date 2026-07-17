@@ -12,11 +12,14 @@ import com.topjohnwu.magisk.core.Info
 import com.topjohnwu.magisk.core.ktx.await
 import com.topjohnwu.magisk.core.ktx.toast
 import com.topjohnwu.magisk.core.repository.NetworkService
+import com.topjohnwu.magisk.ui.kpatch.KpatchShell
 import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 import com.topjohnwu.magisk.core.R as CoreR
 
 class HomeViewModel(
@@ -36,6 +39,7 @@ class HomeViewModel(
         val showManagerInstall: Boolean = false,
         val showHideRestore: Boolean = false,
         val envFixCode: Int = 0,
+        val kpatchVersion: String? = null,
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -61,6 +65,9 @@ class HomeViewModel(
         get() = "${BuildConfig.APP_VERSION_NAME} (${BuildConfig.APP_VERSION_CODE})" +
             if (BuildConfig.DEBUG) " (D)" else ""
 
+    val kpatchVersion: String?
+        get() = _uiState.value.kpatchVersion
+
     companion object {
         private var checkedEnv = false
     }
@@ -79,6 +86,24 @@ class HomeViewModel(
             _uiState.update { it.copy(appState = State.INVALID, managerRemoteVersion = "") }
         }
         ensureEnv()
+        detectKpatch()
+    }
+
+    /**
+     * 检测 KernelPatch 是否已安装并获取版本。
+     * superkey 可选：为空时 KpatchShell 自动回退到默认 "su"。
+     * 仅在已 root 时检测，避免无 root 环境下的无效 shell 调用。
+     */
+    private suspend fun detectKpatch() {
+        if (!Info.isRooted) return
+        val key = Config.kpatchSuperkey
+        val installed = withContext(Dispatchers.IO) {
+            KpatchShell.isKpatchInstalled(key)
+        }
+        val version = if (installed) {
+            withContext(Dispatchers.IO) { KpatchShell.getKpatchVersion(key) }
+        } else null
+        _uiState.update { it.copy(kpatchVersion = version) }
     }
 
     private val networkObserver: (Boolean) -> Unit = { startLoading() }
