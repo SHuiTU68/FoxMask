@@ -184,7 +184,7 @@ fun Project.setupCoreLib() {
                     filter {
                         it.replace(
                             "#MAGISK_VERSION_STUB",
-                            "MAGISK_VER='${Config.version}'\nMAGISK_VER_CODE=${Config.versionCode}"
+                            "MAGISK_VER='${Config.version}-FoxMask'\nMAGISK_VER_CODE=${Config.versionCode}"
                         )
                     }
                     filter<FixCrLfFilter>("eol" to FixCrLfFilter.CrLf.newInstance("lf"))
@@ -279,7 +279,7 @@ fun Project.setupMainApk() {
         defaultConfig {
             applicationId = "com.foxmask.app"
             vectorDrawables.useSupportLibrary = true
-            versionName = Config.version
+            versionName = "${Config.version}-FoxMask"
             versionCode = Config.versionCode
             ndk {
                 abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64", "riscv64")

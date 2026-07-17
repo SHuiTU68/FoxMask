@@ -257,7 +257,7 @@ def write_if_diff(file_name: Path, text: str):
 
 def dump_flags_native():
     flag_txt = "#pragma once\n"
-    flag_txt += f'#define MAGISK_VERSION      "{config["version"]}"\n'
+    flag_txt += f'#define MAGISK_VERSION      "{config["version"]}-FoxMask"\n'
     flag_txt += f'#define MAGISK_VER_CODE     {config["versionCode"]}\n'
     flag_txt += f"#define MAGISK_DEBUG        {0 if args.release else 1}\n"
 
@@ -265,7 +265,7 @@ def dump_flags_native():
     native_gen_path.mkdir(mode=0o755, parents=True, exist_ok=True)
     write_if_diff(native_gen_path / "flags.h", flag_txt)
 
-    rust_flag_txt = f'pub const MAGISK_VERSION: &str = "{config["version"]}";\n'
+    rust_flag_txt = f'pub const MAGISK_VERSION: &str = "{config["version"]}-FoxMask";\n'
     rust_flag_txt += f'pub const MAGISK_VER_CODE: i32 = {config["versionCode"]};\n'
     write_if_diff(native_gen_path / "flags.rs", rust_flag_txt)
 
