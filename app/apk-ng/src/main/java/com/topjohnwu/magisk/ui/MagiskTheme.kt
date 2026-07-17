@@ -11,8 +11,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
 import com.topjohnwu.magisk.core.Config
+import com.topjohnwu.magisk.ui.theme.LocalIsMonetTheme
 import com.topjohnwu.magisk.ui.theme.WeaveMagiskTheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -86,9 +88,16 @@ fun MagiskTheme(
         ) {
             // MaterialTheme 用 MiuixTheme 当前的 colors 映射，保证 M3 组件颜色一致
             val miuixColors = MiuixTheme.colorScheme
-            // Original 模式希望顶栏/底栏/卡片颜色统一(纯黑或浅灰)，
-            // 与 MIUI 模式的"深灰底+纯黑卡片"分层风格区分。
-            val m3ColorScheme = miuixColorsToM3(miuixColors, isOriginal = useMd2Style)
+            // 仅在 Monet 模式且用户选了种子色时，把种子色作为 seedColor 传入，
+            // 用于在 surface 上叠加可见的色调（Material Kolor 默认 surface tone 太接近白/黑，
+            // 种子色在背景上几乎不可见）。
+            val isMonet = LocalIsMonetTheme.current
+            val seedColor = if (isMonet) keyColor else null
+            val m3ColorScheme = miuixColorsToM3(
+                miuixColors,
+                isOriginal = useMd2Style,
+                seedColor = seedColor
+            )
             MaterialTheme(
                 colorScheme = m3ColorScheme,
                 content = content
@@ -106,10 +115,15 @@ fun MagiskTheme(
     } else {
         // Original 模式：也用 WeaveMagiskTheme（colorMode 0=跟随系统，用 miuix 默认配色），
         // 但通过 LocalMd2Style 让组件切换为 md2 视觉风格。
-        // Original 模式不使用 keyColor/Monet，强制 colorMode 为系统/亮/暗之一。
+        // Original 模式不使用 keyColor/Monet，把 Monet 模式归并到对应的非 Monet 模式：
+        //   1(亮色)/4(Monet亮色) -> 1(亮色)
+        //   2(暗色)/5(Monet暗色) -> 2(暗色)
+        //   0(系统)/3(Monet系统) -> 0(系统)
+        // 否则用户在 Original 模式下切换 3/4/5 会被统一映射到 0(系统)，
+        // 系统是暗色时无论怎么切都是暗色主题。
         val originalMode = when (mode) {
-            1 -> 1
-            2 -> 2
+            1, 4 -> 1
+            2, 5 -> 2
             else -> 0
         }
         WeaveMagiskTheme(
@@ -127,24 +141,43 @@ fun MagiskTheme(
 ///   浅色: surface=0xFFF7F7F7, surfaceContainer=White, surfaceContainerHigh=0xFFE8E8E8
 ///   暗色: surface=Black, surfaceContainer=0xFF242424, surfaceContainerHighest=0xFF2D2D2D
 ///
+/// seedColor（Monet 种子色）:
+///   Material Kolor 生成的 surface tone 太接近白(98)/黑(10)，用户选的种子色
+///   (如橘子色)在背景上几乎不可见。当 seedColor != null 时，把种子色按一定比例
+///   混入 surface 各级，让用户选的颜色在底栏/主页/功能背景上能被肉眼看到。
+///
 /// MIUI 模式(isOriginal=false):
-///   - background = surfaceContainer: 顶栏(TopAppBar 透明透出 Scaffold 背景)与
-///     底栏(NavigationBar 用 surfaceContainer)颜色一致，避免黑色主题顶栏纯黑、
-///     底栏深灰的割裂。
+///   - background = surfaceContainer(暗色)/surfaceContainerHigh(浅色): 顶栏与底栏颜色一致。
 ///   - 浅色 surfaceContainer 用 surfaceContainerHigh(0xFFE8E8E8)替代纯白，降低亮度。
-///   - 卡片 surfaceVariant = c.surface（浅色0xFFF7F7F7/暗色Black），与背景形成
-///     分层：MIUI 风格的"深灰底+纯黑卡片"。
+///   - 卡片 surfaceVariant = surface，与背景形成分层：MIUI 风格的"深灰底+纯黑卡片"。
 ///
 /// Original 模式(isOriginal=true):
-///   - 顶栏/底栏/卡片统一用 c.surface（暗色纯黑/浅色0xFFF7F7F7），与主题一致，
-///     不做分层，保持 Magisk md2 原始的扁平统一观感。
+///   - 顶栏/底栏/卡片统一颜色，与主题一致，不做分层，保持 Magisk md2 原始的扁平统一观感。
+///   - 暗色用 surfaceContainer(0xFF242424 深灰)而非 surface(纯黑)，避免纯黑刺眼。
+///   - 浅色用 surface(0xFFF7F7F7 浅灰)。
 private fun miuixColorsToM3(
     c: top.yukonga.miuix.kmp.theme.Colors,
-    isOriginal: Boolean = false
+    isOriginal: Boolean = false,
+    seedColor: Color? = null
 ): androidx.compose.material3.ColorScheme {
     val isDark = c.background.luminance() < 0.5f
+
+    // Monet 种子色混入比例：暗色少一点(避免过暗)、浅色多一点(让色调可见)。
+    // 用 seedColor != null 直接判断，保证 lerp() 拿到非空 Color（智能转换生效）。
+    val tintAmount = if (seedColor == null) 0f else if (isDark) 0.15f else 0.18f
+    val surface = if (seedColor != null) lerp(c.surface, seedColor, tintAmount) else c.surface
+    val surfaceContainer =
+        if (seedColor != null) lerp(c.surfaceContainer, seedColor, tintAmount) else c.surfaceContainer
+    val surfaceContainerHigh =
+        if (seedColor != null) lerp(c.surfaceContainerHigh, seedColor, tintAmount) else c.surfaceContainerHigh
+    val surfaceContainerHighest =
+        if (seedColor != null) lerp(c.surfaceContainerHighest, seedColor, tintAmount) else c.surfaceContainerHighest
+
     if (isOriginal) {
-        // Original 模式：顶栏/底栏/卡片统一用 c.surface，与主题颜色一致
+        // Original 模式：顶栏/底栏/卡片统一颜色，与主题一致，不做分层。
+        // 暗色用 surfaceContainer(深灰)而非 surface(纯黑)，避免纯黑。
+        // 浅色用 surface(浅灰)。
+        val unified = if (isDark) surfaceContainer else surface
         return if (isDark) {
             darkColorScheme(
                 primary = c.primary,
@@ -159,11 +192,11 @@ private fun miuixColorsToM3(
                 onTertiary = c.onTertiaryContainer,
                 tertiaryContainer = c.tertiaryContainer,
                 onTertiaryContainer = c.onTertiaryContainer,
-                background = c.surface,
+                background = unified,
                 onBackground = c.onBackground,
-                surface = c.surface,
+                surface = unified,
                 onSurface = c.onSurface,
-                surfaceVariant = c.surface,
+                surfaceVariant = unified,
                 onSurfaceVariant = c.onSurfaceVariantSummary,
                 surfaceTint = c.primary,
                 outline = c.outline,
@@ -172,11 +205,11 @@ private fun miuixColorsToM3(
                 onError = c.onError,
                 errorContainer = c.errorContainer,
                 onErrorContainer = c.onErrorContainer,
-                surfaceContainer = c.surface,
-                surfaceContainerHigh = c.surface,
-                surfaceContainerHighest = c.surface,
-                surfaceContainerLow = c.surface,
-                surfaceContainerLowest = c.surface,
+                surfaceContainer = unified,
+                surfaceContainerHigh = unified,
+                surfaceContainerHighest = unified,
+                surfaceContainerLow = unified,
+                surfaceContainerLowest = unified,
             )
         } else {
             lightColorScheme(
@@ -192,11 +225,11 @@ private fun miuixColorsToM3(
                 onTertiary = c.onTertiaryContainer,
                 tertiaryContainer = c.tertiaryContainer,
                 onTertiaryContainer = c.onTertiaryContainer,
-                background = c.surface,
+                background = unified,
                 onBackground = c.onBackground,
-                surface = c.surface,
+                surface = unified,
                 onSurface = c.onSurface,
-                surfaceVariant = c.surface,
+                surfaceVariant = unified,
                 onSurfaceVariant = c.onSurfaceVariantSummary,
                 surfaceTint = c.primary,
                 outline = c.outline,
@@ -205,11 +238,11 @@ private fun miuixColorsToM3(
                 onError = c.onError,
                 errorContainer = c.errorContainer,
                 onErrorContainer = c.onErrorContainer,
-                surfaceContainer = c.surface,
-                surfaceContainerHigh = c.surface,
-                surfaceContainerHighest = c.surface,
-                surfaceContainerLow = c.surface,
-                surfaceContainerLowest = c.surface,
+                surfaceContainer = unified,
+                surfaceContainerHigh = unified,
+                surfaceContainerHighest = unified,
+                surfaceContainerLow = unified,
+                surfaceContainerLowest = unified,
             )
         }
     }
@@ -228,11 +261,11 @@ private fun miuixColorsToM3(
             onTertiary = c.onTertiaryContainer,
             tertiaryContainer = c.tertiaryContainer,
             onTertiaryContainer = c.onTertiaryContainer,
-            background = c.surfaceContainer,
+            background = surfaceContainer,
             onBackground = c.onBackground,
-            surface = c.surface,
+            surface = surface,
             onSurface = c.onSurface,
-            surfaceVariant = c.surface,
+            surfaceVariant = surface,
             onSurfaceVariant = c.onSurfaceVariantSummary,
             surfaceTint = c.primary,
             outline = c.outline,
@@ -241,11 +274,11 @@ private fun miuixColorsToM3(
             onError = c.onError,
             errorContainer = c.errorContainer,
             onErrorContainer = c.onErrorContainer,
-            surfaceContainer = c.surfaceContainer,
-            surfaceContainerHigh = c.surfaceContainerHigh,
-            surfaceContainerHighest = c.surfaceContainerHighest,
-            surfaceContainerLow = c.surface,
-            surfaceContainerLowest = c.surface,
+            surfaceContainer = surfaceContainer,
+            surfaceContainerHigh = surfaceContainerHigh,
+            surfaceContainerHighest = surfaceContainerHighest,
+            surfaceContainerLow = surface,
+            surfaceContainerLowest = surface,
         )
     } else {
         lightColorScheme(
@@ -261,11 +294,11 @@ private fun miuixColorsToM3(
             onTertiary = c.onTertiaryContainer,
             tertiaryContainer = c.tertiaryContainer,
             onTertiaryContainer = c.onTertiaryContainer,
-            background = c.surfaceContainerHigh,
+            background = surfaceContainerHigh,
             onBackground = c.onBackground,
-            surface = c.surface,
+            surface = surface,
             onSurface = c.onSurface,
-            surfaceVariant = c.surface,
+            surfaceVariant = surface,
             onSurfaceVariant = c.onSurfaceVariantSummary,
             surfaceTint = c.primary,
             outline = c.outline,
@@ -274,11 +307,11 @@ private fun miuixColorsToM3(
             onError = c.onError,
             errorContainer = c.errorContainer,
             onErrorContainer = c.onErrorContainer,
-            surfaceContainer = c.surfaceContainerHigh,
-            surfaceContainerHigh = c.surfaceContainerHigh,
-            surfaceContainerHighest = c.surfaceContainerHighest,
-            surfaceContainerLow = c.surface,
-            surfaceContainerLowest = c.surfaceContainer,
+            surfaceContainer = surfaceContainerHigh,
+            surfaceContainerHigh = surfaceContainerHigh,
+            surfaceContainerHighest = surfaceContainerHighest,
+            surfaceContainerLow = surface,
+            surfaceContainerLowest = surfaceContainer,
         )
     }
 }
