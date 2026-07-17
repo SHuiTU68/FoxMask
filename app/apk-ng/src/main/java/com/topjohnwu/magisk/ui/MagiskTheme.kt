@@ -1,7 +1,5 @@
 package com.topjohnwu.magisk.ui
 
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -22,29 +20,13 @@ object ThemeState {
     var colorMode by mutableIntStateOf(Config.colorMode)
     var uiStyle by mutableIntStateOf(Config.uiStyle)
     var floatingNav by mutableStateOf(Config.floatingNav)
-    var blurEffect by mutableStateOf(Config.blurEffect)
-    var blurIntensity by mutableIntStateOf(Config.blurIntensity)
     var colorTheme by mutableIntStateOf(Config.colorTheme)
     var keyColor by mutableIntStateOf(Config.keyColor)
 }
 
-/// 毛玻璃效果开关与可用性检测
-object BlurState {
-    /// 设备是否支持真正的实时高斯模糊（Android 12+ 才有 RenderEffect/Modifier.blur 硬件加速）
-    val supported: Boolean
-        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-
-    /// 当前是否启用毛玻璃（同时满足用户开关和系统支持）
-    val enabled: Boolean
-        get() = supported && ThemeState.blurEffect
-}
-
-/// 通过 CompositionLocal 向下层组件暴露毛玻璃开关与悬浮底栏开关，
+/// 通过 CompositionLocal 向下层组件暴露悬浮底栏开关，
 /// 避免到处直接读 ThemeState，也便于在 Preview 中覆盖。
-val LocalBlurEnabled = staticCompositionLocalOf { false }
 val LocalFloatingNav = staticCompositionLocalOf { true }
-/// 毛玻璃模糊半径（dp），用户可调，仅在 LocalBlurEnabled=true 时生效。
-val LocalBlurIntensity = staticCompositionLocalOf { 24 }
 
 /// 是否使用 Magisk 原始 md2 主题样式（Original 模式下为 true）。
 /// 下层组件据此切换卡片圆角/阴影/背景色等 md2 视觉特征。
@@ -87,9 +69,8 @@ fun MagiskTheme(
 ) {
     val mode = ThemeState.colorMode
     val useMiuix = ThemeState.uiStyle == 1
-    // 悬浮底栏和毛玻璃是 MIUI 模式专属特性，
-    // Original 模式始终用标准 M3 底栏、无毛玻璃，保持 Magisk 原始观感。
-    val useBlur = BlurState.enabled && useMiuix
+    // 悬浮底栏是 MIUI 模式专属特性，
+    // Original 模式始终用标准 M3 底栏，保持 Magisk 原始观感。
     val useFloatingNav = ThemeState.floatingNav && useMiuix
     // Original 模式启用 md2 样式（上游 app/apk 的 WidgetFoundation.Card 风格）
     val useMd2Style = !useMiuix
@@ -100,10 +81,8 @@ fun MagiskTheme(
 
     val wrapped = @Composable {
         CompositionLocalProvider(
-            LocalBlurEnabled provides useBlur,
             LocalFloatingNav provides useFloatingNav,
             LocalMd2Style provides useMd2Style,
-            LocalBlurIntensity provides ThemeState.blurIntensity,
         ) {
             // MaterialTheme 用 MiuixTheme 当前的 colors 映射，保证 M3 组件颜色一致
             val miuixColors = MiuixTheme.colorScheme
@@ -141,6 +120,12 @@ fun MagiskTheme(
 
 /// 把 miuix Colors 映射到 Material3 ColorScheme，
 /// 让 Material3 组件（MaterialTheme.colorScheme.xxx）与 MiuixTheme 颜色一致。
+///
+/// 注意 background 的处理：miuix 暗色模式的 background 为纯黑 (#000000)，
+/// 而 M3 的 Scaffold 默认容器色 = colorScheme.background，TopAppBar 未滚动时
+/// 透明、会透出 Scaffold 背景。若 background=纯黑，顶栏区域与灰色 surface 卡片
+/// 严重割裂（顶栏一片黑）。故这里把 M3 background 映射为 miuix surface，
+/// 使 Scaffold 背景与卡片底色协调，顶栏透明时也与之同色。
 private fun miuixColorsToM3(c: top.yukonga.miuix.kmp.theme.Colors): androidx.compose.material3.ColorScheme {
     val isDark = c.background.luminance() < 0.5f
     return if (isDark) {
@@ -157,7 +142,7 @@ private fun miuixColorsToM3(c: top.yukonga.miuix.kmp.theme.Colors): androidx.com
             onTertiary = c.onTertiaryContainer,
             tertiaryContainer = c.tertiaryContainer,
             onTertiaryContainer = c.onTertiaryContainer,
-            background = c.background,
+            background = c.surface,
             onBackground = c.onBackground,
             surface = c.surface,
             onSurface = c.onSurface,
@@ -190,7 +175,7 @@ private fun miuixColorsToM3(c: top.yukonga.miuix.kmp.theme.Colors): androidx.com
             onTertiary = c.onTertiaryContainer,
             tertiaryContainer = c.tertiaryContainer,
             onTertiaryContainer = c.onTertiaryContainer,
-            background = c.background,
+            background = c.surface,
             onBackground = c.onBackground,
             surface = c.surface,
             onSurface = c.onSurface,

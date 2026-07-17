@@ -10,8 +10,6 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.ThemeController
 
 /// 主题相关 CompositionLocal — 移植自 WeaveMask
-val LocalEnableBlur = staticCompositionLocalOf { false }
-val LocalEnableFloatingBottomBar = staticCompositionLocalOf { false }
 val LocalIsMonetTheme = staticCompositionLocalOf { false }
 
 /// WeaveMagisk 主题包装函数 — 移植自 WeaveMask (github.com/Seyud/WeaveMask)

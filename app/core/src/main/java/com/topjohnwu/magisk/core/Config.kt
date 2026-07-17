@@ -44,8 +44,6 @@ object Config : PreferenceConfig, DBConfig {
         const val COLOR_MODE = "color_mode"
         const val UI_STYLE = "ui_style"
         const val FLOATING_NAV = "floating_nav"
-        const val BLUR_EFFECT = "blur_effect"
-        const val BLUR_INTENSITY = "blur_intensity"
         const val COLOR_THEME = "color_theme"
         const val KEY_COLOR = "key_color"
         const val DOWNLOAD_DIR = "download_dir"
@@ -121,8 +119,6 @@ object Config : PreferenceConfig, DBConfig {
     var colorMode by preference(Key.COLOR_MODE, 0)
     var uiStyle by preference(Key.UI_STYLE, 0)
     var floatingNav by preference(Key.FLOATING_NAV, true)
-    var blurEffect by preference(Key.BLUR_EFFECT, true)
-    var blurIntensity by preference(Key.BLUR_INTENSITY, 24)
     var colorTheme by preference(Key.COLOR_THEME, 0)
     var keyColor by preference(Key.KEY_COLOR, 0)
 

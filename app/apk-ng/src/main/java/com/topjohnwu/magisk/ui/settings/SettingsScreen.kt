@@ -41,12 +41,10 @@ import com.topjohnwu.magisk.core.Info
 import com.topjohnwu.magisk.core.isRunningAsStub
 import com.topjohnwu.magisk.core.utils.LocaleSetting
 import com.topjohnwu.magisk.core.utils.MediaStoreUtils
-import com.topjohnwu.magisk.ui.BlurState
 import com.topjohnwu.magisk.ui.ThemeState
 import com.topjohnwu.magisk.ui.component.SettingsArrow
 import com.topjohnwu.magisk.ui.component.SettingsDropdown
 import com.topjohnwu.magisk.ui.component.SettingsSectionCard
-import com.topjohnwu.magisk.ui.component.SettingsSlider
 import com.topjohnwu.magisk.ui.component.SettingsSwitch
 import com.topjohnwu.magisk.ui.component.AdaptiveSmallTitle
 import com.topjohnwu.magisk.ui.component.SmallTitle
@@ -205,8 +203,8 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
             }
         )
 
-        // 悬浮底栏 & 毛玻璃是 MIUI 模式专属特性，Original 模式不显示这两个开关。
-        // Original 模式始终用标准 M3 底栏、无毛玻璃，保持 Magisk 原始观感。
+        // 悬浮底栏是 MIUI 模式专属特性，Original 模式不显示此开关。
+        // Original 模式始终用标准 M3 底栏，保持 Magisk 原始观感。
         if (ThemeState.uiStyle == 1) {
             // Floating bottom bar — 悬浮底栏开关（圆角胶囊形，悬浮于内容之上）
             var floatingNav by remember { mutableStateOf(Config.floatingNav) }
@@ -218,43 +216,6 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
                     floatingNav = it
                     Config.floatingNav = it
                     ThemeState.floatingNav = it
-                }
-            )
-
-            // iOS-style blur — 毛玻璃开关（仅 Android 12+ 生效，低版本自动回退）
-            val blurSupported = BlurState.supported
-            var blurEffect by remember { mutableStateOf(Config.blurEffect) }
-            SettingsSwitch(
-                title = stringResource(CoreR.string.settings_blur_effect_title),
-                summary = if (blurSupported) {
-                    stringResource(CoreR.string.settings_blur_effect_summary)
-                } else {
-                    "${stringResource(CoreR.string.settings_blur_effect_summary)} (Android 12+)"
-                },
-                checked = blurEffect && blurSupported,
-                enabled = blurSupported,
-                onCheckedChange = {
-                    blurEffect = it
-                    Config.blurEffect = it
-                    ThemeState.blurEffect = it
-                    // 毛玻璃开关影响 Compose 修饰符链结构，recreate 确保底栏背景彻底重建
-                    context.findActivity()?.recreate()
-                }
-            )
-
-            // Blur intensity — 毛玻璃模糊度滑块（仅 blur 开启时可用）
-            var blurIntensity by remember { mutableIntStateOf(Config.blurIntensity) }
-            SettingsSlider(
-                title = stringResource(CoreR.string.settings_blur_intensity_title),
-                summary = "${blurIntensity}dp",
-                value = blurIntensity.toFloat(),
-                valueRange = 4f..64f,
-                enabled = blurEffect && blurSupported,
-                onValueChange = {
-                    val intVal = it.toInt()
-                    blurIntensity = intVal
-                    Config.blurIntensity = intVal
-                    ThemeState.blurIntensity = intVal
                 }
             )
         }

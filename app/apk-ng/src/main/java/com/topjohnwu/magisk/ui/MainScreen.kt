@@ -37,8 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.activity.compose.LocalActivity
 import androidx.compose.ui.res.stringResource
@@ -165,14 +163,6 @@ fun MainScreen(initialTab: Int = Tab.HOME.ordinal) {
 /// 背景说明：
 /// 用完全不透明的 surfaceContainer 作为底栏背景，与 M3 标准底栏同色，
 /// 保证与主题 UI 颜色完全一致，不会出现色差或透出背后内容的"白条"。
-///
-/// 关于"毛玻璃模糊度"：
-/// Compose 的 Modifier.blur() 只能模糊当前 composable 自身渲染的像素，
-/// 无法模糊底栏背后的页面内容，因此无法实现真正的 iOS 毛玻璃。
-/// 任何半透明背景都会透出背后清晰内容（往往是白色卡片），形成白条
-/// 且与主题色不符。故改用不透明背景，模糊度滑块映射为背景色的明暗
-/// 微调（在 surfaceContainer 基础上混入主题 surfaceTint），让滑块有
-/// 可见的视觉变化，同时始终与主题协调。
 @Composable
 private fun FloatingNavigationBar(
     pagerState: PagerState,
@@ -182,20 +172,9 @@ private fun FloatingNavigationBar(
     val scope = rememberCoroutineScope()
     val shape = RoundedCornerShape(28.dp)
     val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val useBlur = LocalBlurEnabled.current
-    val blurIntensity = LocalBlurIntensity.current
 
     // 底栏背景色：基于 surfaceContainer（M3 标准底栏色，与主题一致）。
-    // 开启 blur 时，模糊度映射为向 surfaceTint（主题强调色）混入的比例，
-    // 模拟「磨砂强度」的视觉变化：模糊度越大，色调越偏向主题强调色。
-    // blurIntensity 4..64 → 混入比例 0..0.18
-    val baseColor = MaterialTheme.colorScheme.surfaceContainer
-    val navBgColor = if (useBlur) {
-        val tintRatio = ((blurIntensity - 4) * 0.003f).coerceIn(0f, 0.18f)
-        lerp(baseColor, MaterialTheme.colorScheme.surfaceTint, tintRatio)
-    } else {
-        baseColor
-    }
+    val navBgColor = MaterialTheme.colorScheme.surfaceContainer
 
     Box(
         modifier = modifier
@@ -275,7 +254,6 @@ private fun FloatingNavItem(
 }
 
 /// 标准底栏：贴合屏幕底部、无圆角、无悬浮，与原始 Material3 风格一致。
-/// 开启 blur 时让系统 NavigationBar 自身的背景半透明，底层内容滚动可见。
 @Composable
 private fun StandardNavigationBar(
     pagerState: PagerState,
@@ -283,16 +261,10 @@ private fun StandardNavigationBar(
     modifier: Modifier = Modifier
 ) {
     val scope = rememberCoroutineScope()
-    val useBlur = LocalBlurEnabled.current
 
     NavigationBar(
         modifier = modifier.fillMaxWidth(),
-        containerColor = if (useBlur) {
-            // 半透明背景，让下方内容透出模拟毛玻璃（NavigationBar 本身不直接 blur 内容）
-            MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
-        } else {
-            MaterialTheme.colorScheme.surfaceContainer
-        }
+        containerColor = MaterialTheme.colorScheme.surfaceContainer
     ) {
         visibleTabs.forEachIndexed { index, tab ->
             NavigationBarItem(
@@ -314,12 +286,4 @@ private fun StandardNavigationBar(
             )
         }
     }
-}
-
-/// 工具：获取颜色亮度（0~1），用于判断深/浅色模式
-private fun Color.luminance(): Float {
-    val r = red
-    val g = green
-    val b = blue
-    return 0.299f * r + 0.587f * g + 0.114f * b
 }
