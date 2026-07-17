@@ -173,7 +173,7 @@ impl MagiskD {
                     .zygisk
                     .lock()
                     .connect_zygiskd(client, self)
-                    .log_with_msg(|w| w.write_str("zygiskd startup error"))?,
+                    .log_with_msg(|w| w.write_str("companion startup error"))?,
                 ZygiskRequest::GetModDir => self.get_mod_dir(client)?,
                 _ => {}
             }

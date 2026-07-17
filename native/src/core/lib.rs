@@ -15,7 +15,7 @@ use daemon::{MagiskD, connect_daemon_for_cxx};
 use logging::{android_logging, zygisk_close_logd, zygisk_get_logd, zygisk_logging};
 use magisk::magisk_main;
 use mount::revert_unmount;
-use resetprop::{get_prop, resetprop_main};
+use resetprop::{get_prop, resetprop_main, set_prop};
 use selinux::{lgetfilecon, setfilecon};
 use socket::{recv_fd, recv_fds, send_fd};
 use std::fs::File;
@@ -203,6 +203,7 @@ pub mod ffi {
         fn setfilecon(path: Utf8CStrRef, con: Utf8CStrRef) -> bool;
 
         fn get_prop(name: Utf8CStrRef) -> String;
+        fn set_prop(name: Utf8CStrRef, val: Utf8CStrRef);
         unsafe fn resetprop_main(argc: i32, argv: *mut *mut c_char) -> i32;
 
         #[cxx_name = "connect_daemon"]
