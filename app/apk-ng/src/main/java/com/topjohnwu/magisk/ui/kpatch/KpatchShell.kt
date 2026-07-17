@@ -2,18 +2,24 @@ package com.topjohnwu.magisk.ui.kpatch
 
 import android.content.Context
 import com.topjohnwu.magisk.core.Const
-import com.topjohnwu.magisk.core.R as CoreR
+import com.topjohnwu.magisk.core.Info
 import com.topjohnwu.superuser.Shell
 import java.io.File
 
 /**
  * KernelPatch Shell 工具类。
  *
- * 负责从 assets 复制 kptools/kpimg 到本地目录并设置可执行权限，
- * 提供执行 kptools（boot 修补/KPM 嵌入）和 kpcall（运行时 KPM 管理）的接口。
+ * 负责提供执行 kptools（boot 修补/KPM 嵌入）和 kpcall（运行时 KPM 管理）的接口。
  *
  * superkey 已剥离：上游 KernelPatch 不再做强 superkey 校验，root 调用者
  * 固定使用 "su"（root-skey 模式），kptools -p 不传 -s，kpcall 也不传 key 参数。
+ *
+ * 二进制执行策略（对齐 Magisk 执行 magiskboot/busybox 的做法）：
+ * - kptools 作为 libkptools.so 打包进 jniLibs，安装后位于 nativeLibraryDir，
+ *   拥有 apk_data_file 上下文（多数设备可执行）。
+ * - 若设备 noDataExec（如 Samsung，/data 不可执行），则把 kptools 复制到
+ *   $MAGISKTMP（magisk tmpfs，root 上下文，必可执行）再执行。
+ * - kpimg 作为数据文件从 assets 复制到 tmpfs 工作目录。
  */
 object KpatchShell {
 
@@ -24,67 +30,67 @@ object KpatchShell {
     const val PACKED_KP_VERSION = "0.13.2"
 
     private const val KP_DIR_NAME = "kpatch"
+    private const val KPTOOLS_LIB_NAME = "libkptools.so"
 
-    /** kptools/kpimg 所在的本地目录路径 */
+    /** kpimg 本地存放目录（app data，仅作为数据文件，不需要可执行） */
     private fun kpatchDir(context: Context): String =
         "${context.filesDir.absolutePath}/$KP_DIR_NAME"
 
-    /** kptools 可执行文件路径 */
-    fun kptoolsPath(context: Context): String = "${kpatchDir(context)}/kptools"
-
-    /** kpimg 内核镜像路径 */
-    fun kpimgPath(context: Context): String = "${kpatchDir(context)}/kpimg"
+    /** kpimg 本地路径 */
+    private fun kpimgPath(context: Context): String = "${kpatchDir(context)}/kpimg"
 
     /**
-     * 从 assets 复制 kptools/kpimg 到本地目录并设置可执行权限。
-     * 幂等操作，已存在则跳过。
-     *
-     * 注意：本地目录 (app_data_file) 仅用于存放原始二进制，实际执行时
-     * 需要复制到 [Const.TMPDIR] (/dev/tmp，root 上下文) 才能执行——
-     * Android 10+ SELinux 在 enforcing 模式下禁止执行 app_data_file。
+     * 从 assets 复制 kpimg 到本地目录。幂等。
+     * kptools 不再放 assets，改走 jniLibs（libkptools.so）。
      */
     fun ensureBinaries(context: Context): Boolean {
         val dir = File(kpatchDir(context))
         if (!dir.exists()) dir.mkdirs()
-
-        val kptools = File(kptoolsPath(context))
         val kpimg = File(kpimgPath(context))
-
-        if (!kptools.exists() || kptools.length() == 0L) {
-            context.assets.open("kpatch/kptools").use { input ->
-                kptools.outputStream().use { output -> input.copyTo(output) }
-            }
-        }
-
         if (!kpimg.exists() || kpimg.length() == 0L) {
             context.assets.open("kpatch/kpimg").use { input ->
                 kpimg.outputStream().use { output -> input.copyTo(output) }
             }
         }
-
-        return kptools.exists() && kpimg.exists()
+        return kpimg.exists()
     }
 
     /**
-     * 在 [Const.TMPDIR] 下准备 kpatch 工作环境：
-     * - 复制 kptools / kpimg / 任意额外输入文件到 tmpfs
-     * - chmod +x kptools
+     * 取 kptools 可执行文件路径。
+     * - 多数设备：直接用 nativeLibraryDir/libkptools.so（apk_data_file 上下文）。
+     * - noDataExec 设备（/data 不可执行，如 Samsung）：复制到 $MAGISKTMP/kptools 再用。
+     * 返回值是 shell 表达式（可能含 $MAGISKTMP 变量），供拼接到命令行。
+     */
+    private fun kptoolsExec(context: Context): String {
+        val libPath = File(context.applicationInfo.nativeLibraryDir, KPTOOLS_LIB_NAME).absolutePath
+        return if (Info.noDataExec) {
+            // 复制到 $MAGISKTMP（root tmpfs，必可执行），用 shell 变量延迟展开
+            Shell.cmd(
+                "cp -af '$libPath' \"\$MAGISKTMP/kptools\"",
+                "chmod 755 \"\$MAGISKTMP/kptools\"",
+            ).exec()
+            "\"\$MAGISKTMP/kptools\""
+        } else {
+            "'$libPath'"
+        }
+    }
+
+    /**
+     * 在 [Const.TMPDIR] 下准备 kpatch 数据工作目录：
+     * - 复制 kpimg 和任意额外输入文件到 tmpfs
      * - 返回工作目录路径（已存在）
      *
-     * SELinux 拒绝从 app_data_file 执行二进制（表现为 shell code=126），
-     * 因此必须把所有要执行的文件搬到 root 上下文的 tmpfs。
+     * 工作目录用 tmpfs 是为了确保 root shell 能读取这些文件
+     * （app_data_file 在某些设备上 root 也可能读取受限）。
      */
     private fun prepareTmpWorkspace(context: Context, extraFiles: Map<String, String>): String {
         val tmp = Const.TMPDIR
         val workDir = "$tmp/kpatch_work"
-        val kptoolsSrc = kptoolsPath(context)
         val kpimgSrc = kpimgPath(context)
         val cmds = mutableListOf(
             "rm -rf '$workDir'",
             "mkdir -p '$workDir'",
-            "cp '$kptoolsSrc' '$workDir/kptools'",
             "cp '$kpimgSrc' '$workDir/kpimg'",
-            "chmod 755 '$workDir/kptools'",
         )
         // extraFiles: 目标文件名 → 源路径（app data 中的路径）
         extraFiles.forEach { (destName, srcPath) ->
@@ -141,10 +147,9 @@ object KpatchShell {
             return PatchResult(false, "ensureBinaries failed")
         }
 
-        // 工作目录用 /dev/tmp（tmpfs，root 上下文，可执行）。
-        // 直接在 app data 目录执行 kptools 会因 SELinux 拒绝（code=126）。
+        val kptools = kptoolsExec(context)
+        // 工作目录用 /dev/tmp（tmpfs，root 上下文），放 kpimg/boot.img 等数据文件
         val workDir = prepareTmpWorkspace(context, mapOf("boot.img" to bootImgPath))
-        val kptools = "$workDir/kptools"
         val kpimg = "$workDir/kpimg"
 
         // 依次执行 unpack → patch 裸内核 → repack（不传 -s，走 root-skey 模式）
@@ -152,13 +157,13 @@ object KpatchShell {
             "cd '$workDir'",
             "rm -f kernel kernel.ori new-boot.img",
             // 1. unpack：从 boot.img 抽取裸内核到当前目录 kernel
-            "'$kptools' unpack 'boot.img'",
+            "$kptools unpack 'boot.img'",
             // 2. 保留原始内核备份
             "mv kernel kernel.ori",
             // 3. patch 裸内核
-            "'$kptools' -p -i kernel.ori -k '$kpimg' -o kernel",
+            "$kptools -p -i kernel.ori -k '$kpimg' -o kernel",
             // 4. repack：用修补后的 kernel 重新打包成 new-boot.img
-            "'$kptools' repack 'boot.img'",
+            "$kptools repack 'boot.img'",
         )
         val result = Shell.cmd(*cmds).exec()
 
@@ -187,12 +192,11 @@ object KpatchShell {
      */
     fun isBootPatched(context: Context, bootImgPath: String): Boolean {
         if (!ensureBinaries(context)) return false
-        // 同样需要在 tmpfs 执行 kptools，避免 SELinux 拒绝
+        val kptools = kptoolsExec(context)
         val workDir = prepareTmpWorkspace(context, mapOf("boot.img" to bootImgPath))
-        val kptools = "$workDir/kptools"
         val result = Shell.cmd(
             "cd '$workDir'",
-            "'$kptools' -l -i 'boot.img'",
+            "$kptools -l -i 'boot.img'",
         ).exec()
         Shell.cmd("rm -rf '$workDir'").submit()
         return result.isSuccess && result.out.any { it.contains("patched=") }
@@ -221,22 +225,21 @@ object KpatchShell {
             return PatchResult(false, "ensureBinaries failed")
         }
 
-        // 同 patchBoot：用 /dev/tmp 避开 SELinux 对 app_data_file 的 exec 拒绝
+        val kptools = kptoolsExec(context)
         val workDir = prepareTmpWorkspace(
             context,
             mapOf("boot.img" to bootImgPath, "module.kpm" to kpmPath),
         )
-        val kptools = "$workDir/kptools"
         val kpm = "$workDir/module.kpm"
 
         val cmds = arrayOf(
             "cd '$workDir'",
             "rm -f kernel kernel.ori new-boot.img",
-            "'$kptools' unpack 'boot.img'",
+            "$kptools unpack 'boot.img'",
             "mv kernel kernel.ori",
             // -M 嵌入 KPM 模块，-T kpm 指定类型，-N 指定模块名
-            "'$kptools' -p -i kernel.ori -M '$kpm' -T kpm -N '$kpmName' -o kernel",
-            "'$kptools' repack 'boot.img'",
+            "$kptools -p -i kernel.ori -M '$kpm' -T kpm -N '$kpmName' -o kernel",
+            "$kptools repack 'boot.img'",
         )
         val result = Shell.cmd(*cmds).exec()
 
