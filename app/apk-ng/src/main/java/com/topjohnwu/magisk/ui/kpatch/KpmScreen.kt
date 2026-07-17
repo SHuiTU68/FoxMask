@@ -193,6 +193,8 @@ fun KpmScreen(
                         embedBootPicker.launch("*/*")
                     },
                     enabled = !busy,
+                    // 嵌入 KPM 需要：已修补 kpatch（已安装）或已有 boot 镜像（修补成功后）
+                    embedEnabled = !busy && (uiState.kpatchInstalled || uiState.hasBoot),
                 )
             }
 
@@ -409,6 +411,7 @@ private fun ActionsCard(
     onPatchBoot: () -> Unit,
     onEmbedKpm: () -> Unit,
     enabled: Boolean,
+    embedEnabled: Boolean,
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -432,7 +435,7 @@ private fun ActionsCard(
                 }
                 OutlinedButton(
                     onClick = onEmbedKpm,
-                    enabled = enabled,
+                    enabled = embedEnabled,
                     modifier = Modifier.weight(1f),
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null)

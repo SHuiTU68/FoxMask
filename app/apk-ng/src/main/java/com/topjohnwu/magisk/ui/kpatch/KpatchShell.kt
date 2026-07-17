@@ -3,9 +3,13 @@ package com.topjohnwu.magisk.ui.kpatch
 import android.content.Context
 import com.topjohnwu.magisk.core.Const
 import com.topjohnwu.magisk.core.Info
+import com.topjohnwu.magisk.core.utils.MediaStoreUtils.getFile
+import com.topjohnwu.magisk.core.utils.MediaStoreUtils.inputStream
+import com.topjohnwu.magisk.core.utils.MediaStoreUtils.outputStream
 import com.topjohnwu.superuser.CallbackList
 import com.topjohnwu.superuser.Shell
 import java.io.File
+import java.io.FileInputStream
 
 /**
  * KernelPatch Shell 工具类。
@@ -57,13 +61,16 @@ object KpatchShell {
     }
 
     /**
-     * 取 kptools 可执行文件路径。
-     * - 多数设备：直接用 nativeLibraryDir/libkptools.so（apk_data_file 上下文）。
-     * - noDataExec 设备（/data 不可执行，如 Samsung）：复制到 $MAGISKTMP/kptools 再用。
-     * 返回值是 shell 表达式（可能含 $MAGISKTMP 变量），供拼接到命令行。
+     * 取 kptools 可执行文件路径（shell 表达式，供拼接到命令行）。
+     * - 无 root：直接用 nativeLibraryDir/libkptools.so（apk_data_file 上下文，
+     *   APK 自带 native 库可执行，不依赖 root）。
+     * - 有 root 且 noDataExec（Samsung 等）：复制到 $MAGISKTMP（root tmpfs）再用。
+     * - 有 root 且可执行：直接用 nativeLibraryDir 路径。
      */
     private fun kptoolsExec(context: Context): String {
         val libPath = File(context.applicationInfo.nativeLibraryDir, KPTOOLS_LIB_NAME).absolutePath
+        // 无 root 时直接执行 nativeLibraryDir 下的二进制（不需要 MAGISKTMP）
+        if (!Info.isRooted) return "'$libPath'"
         return if (Info.noDataExec) {
             // 复制到 $MAGISKTMP（root tmpfs，必可执行），用 shell 变量延迟展开
             Shell.cmd(
@@ -77,27 +84,36 @@ object KpatchShell {
     }
 
     /**
-     * 在 [Const.TMPDIR] 下准备 kpatch 数据工作目录：
-     * - 复制 kpimg 和任意额外输入文件到 tmpfs
-     * - 返回工作目录路径（已存在）
+     * 准备 kpatch 数据工作目录，复制 kpimg 和额外输入文件进去。
+     * - 有 root：用 [Const.TMPDIR] (/dev/tmp，root tmpfs)，确保 root shell 可读写。
+     * - 无 root：用 app cacheDir（app 私有目录，app 自身可直接读写执行）。
      *
-     * 工作目录用 tmpfs 是为了确保 root shell 能读取这些文件
-     * （app_data_file 在某些设备上 root 也可能读取受限）。
+     * @return 工作目录绝对路径
      */
-    private fun prepareTmpWorkspace(context: Context, extraFiles: Map<String, String>): String {
-        val tmp = Const.TMPDIR
-        val workDir = "$tmp/kpatch_work"
-        val kpimgSrc = kpimgPath(context)
-        val cmds = mutableListOf(
-            "rm -rf '$workDir'",
-            "mkdir -p '$workDir'",
-            "cp '$kpimgSrc' '$workDir/kpimg'",
-        )
-        // extraFiles: 目标文件名 → 源路径（app data 中的路径）
-        extraFiles.forEach { (destName, srcPath) ->
-            cmds.add("cp '$srcPath' '$workDir/$destName'")
+    private fun prepareWorkspace(context: Context, extraFiles: Map<String, String>): String {
+        val workDir = if (Info.isRooted) {
+            // root 模式：用 /dev/tmp，通过 shell 命令复制
+            val wd = "${Const.TMPDIR}/kpatch_work"
+            val kpimgSrc = kpimgPath(context)
+            val cmds = mutableListOf(
+                "rm -rf '$wd'",
+                "mkdir -p '$wd'",
+                "cp '$kpimgSrc' '$wd/kpimg'",
+            )
+            extraFiles.forEach { (destName, srcPath) ->
+                cmds.add("cp '$srcPath' '$wd/$destName'")
+            }
+            Shell.cmd(*cmds.toTypedArray()).exec()
+            wd
+        } else {
+            // 无 root 模式：用 app cacheDir，直接用 Java IO 复制
+            val wd = File(context.cacheDir, "kpatch_work").apply { mkdirs() }
+            File(kpimgPath(context)).copyTo(File(wd, "kpimg"), overwrite = true)
+            extraFiles.forEach { (destName, srcPath) ->
+                File(srcPath).copyTo(File(wd, destName), overwrite = true)
+            }
+            wd.absolutePath
         }
-        Shell.cmd(*cmds.toTypedArray()).exec()
         return workDir
     }
 
@@ -134,16 +150,17 @@ object KpatchShell {
      * 注意：kptools -p 只接受裸内核（或 UNCOMPRESSED_IMG 头），不能直接处理 Android boot.img。
      * superkey 已剥离：不传 -s，固定走 root-skey 模式。
      *
+     * 离线操作，不需要 root：kptools 从 nativeLibraryDir 执行，工作目录用 app cacheDir，
+     * 输出通过 MediaStore 写到 /storage/emulated/0/Download/。
+     *
      * @param context 上下文
-     * @param bootImgPath 原始 boot.img 路径
-     * @param outputPath 修补后输出路径
+     * @param bootImgPath 原始 boot.img 路径（app cache 中的本地路径）
      * @param onLog 实时日志回调，每输出一行调用一次（用于 UI 可视化）
-     * @return 修补结果（含成功标志与日志，便于排查失败原因）
+     * @return 修补结果（success=true 时 log 字段是输出文件的 Uri 字符串）
      */
     fun patchBoot(
         context: Context,
         bootImgPath: String,
-        outputPath: String,
         onLog: (String) -> Unit = {},
     ): PatchResult {
         if (!ensureBinaries(context)) {
@@ -159,8 +176,7 @@ object KpatchShell {
         }
 
         val kptools = kptoolsExec(context)
-        // 工作目录用 /dev/tmp（tmpfs，root 上下文），放 kpimg/boot.img 等数据文件
-        val workDir = prepareTmpWorkspace(context, mapOf("boot.img" to bootImgPath))
+        val workDir = prepareWorkspace(context, mapOf("boot.img" to bootImgPath))
         val kpimg = "$workDir/kpimg"
 
         // 对齐 APatch boot_patch.sh 的输出风格：步骤标记 + 星号横线
@@ -185,29 +201,37 @@ object KpatchShell {
         )
         val result = Shell.newJob().add(*cmds).to(logCallback, logCallback).exec()
 
-        val sb = StringBuilder()
-        result.out.forEach { sb.appendLine(it) }
-        result.err.forEach { sb.appendLine("[err] $it") }
-        val log = sb.toString()
+        val newBootFile = File(workDir, "new-boot.img")
+        val patchOk = result.isSuccess && newBootFile.exists() && newBootFile.length() > 0
 
-        // 从 tmpfs 把 new-boot.img 拷回 outputPath（app data 或 cache 目录）
-        val fetch = Shell.cmd("cp '$workDir/new-boot.img' '$outputPath' && echo OK")
-            .to(logCallback, logCallback).exec()
-        val ok = result.isSuccess &&
-            fetch.out.any { it.contains("OK") } &&
-            File(outputPath).exists() &&
-            File(outputPath).length() > 0
-        if (ok) {
-            onLog("- Successfully Patched!")
-            onLog(" Output file is written to $outputPath")
-            onLog("****************************")
+        // 通过 MediaStore 把 new-boot.img 写到 Downloads 目录（无需 root）
+        var outUri: String? = null
+        if (patchOk) {
+            try {
+                val outFile = getFile("patched_boot.img")
+                outFile.uri.outputStream().use { out ->
+                    FileInputStream(newBootFile).use { input -> input.copyTo(out) }
+                }
+                outUri = outFile.uri.toString()
+                onLog("- Successfully Patched!")
+                onLog(" Output file is written to $outFile")
+                onLog("****************************")
+            } catch (e: Exception) {
+                onLog("- Failed to write output: ${e.message}")
+                onLog("****************************")
+            }
         } else {
             onLog("- Patch failed! (code=${result.code})")
             onLog("****************************")
         }
-        // 清理 tmpfs 工作目录
-        Shell.cmd("rm -rf '$workDir'").submit()
-        return if (ok) PatchResult(true, log) else PatchResult(false, "$log\nfetch output failed")
+
+        // 清理工作目录
+        if (Info.isRooted) {
+            Shell.cmd("rm -rf '$workDir'").submit()
+        } else {
+            File(workDir).deleteRecursively()
+        }
+        return if (outUri != null) PatchResult(true, outUri) else PatchResult(false, "patch failed")
     }
 
     /**
@@ -219,12 +243,16 @@ object KpatchShell {
     fun isBootPatched(context: Context, bootImgPath: String): Boolean {
         if (!ensureBinaries(context)) return false
         val kptools = kptoolsExec(context)
-        val workDir = prepareTmpWorkspace(context, mapOf("boot.img" to bootImgPath))
+        val workDir = prepareWorkspace(context, mapOf("boot.img" to bootImgPath))
         val result = Shell.cmd(
             "cd '$workDir'",
             "$kptools -l -i 'boot.img'",
         ).exec()
-        Shell.cmd("rm -rf '$workDir'").submit()
+        if (Info.isRooted) {
+            Shell.cmd("rm -rf '$workDir'").submit()
+        } else {
+            File(workDir).deleteRecursively()
+        }
         return result.isSuccess && result.out.any { it.contains("patched=") }
     }
 
@@ -232,21 +260,20 @@ object KpatchShell {
      * 嵌入 KPM 模块到已修补 kpatch 的 boot 镜像。
      *
      * 同样遵循 unpack → patch（-M 嵌入）→ repack 流程，因为 kptools -p 只接受裸内核。
+     * 离线操作，不需要 root；输出通过 MediaStore 写到 Downloads。
      *
      * @param context 上下文
-     * @param bootImgPath 已修补 kpatch 的 boot.img 路径
-     * @param kpmPath .kpm 文件路径
+     * @param bootImgPath 已修补 kpatch 的 boot.img 路径（app cache 中的本地路径）
+     * @param kpmPath .kpm 文件路径（app cache 中的本地路径）
      * @param kpmName 模块名称
-     * @param outputPath 输出路径
      * @param onLog 实时日志回调，每输出一行调用一次（用于 UI 可视化）
-     * @return 嵌入结果（含日志）
+     * @return 嵌入结果（success=true 时 log 字段是输出文件的 Uri 字符串）
      */
     fun embedKpm(
         context: Context,
         bootImgPath: String,
         kpmPath: String,
         kpmName: String,
-        outputPath: String,
         onLog: (String) -> Unit = {},
     ): PatchResult {
         if (!ensureBinaries(context)) {
@@ -262,7 +289,7 @@ object KpatchShell {
         }
 
         val kptools = kptoolsExec(context)
-        val workDir = prepareTmpWorkspace(
+        val workDir = prepareWorkspace(
             context,
             mapOf("boot.img" to bootImgPath, "module.kpm" to kpmPath),
         )
@@ -285,27 +312,37 @@ object KpatchShell {
         )
         val result = Shell.newJob().add(*cmds).to(logCallback, logCallback).exec()
 
-        val sb = StringBuilder()
-        result.out.forEach { sb.appendLine(it) }
-        result.err.forEach { sb.appendLine("[err] $it") }
-        val log = sb.toString()
+        val newBootFile = File(workDir, "new-boot.img")
+        val patchOk = result.isSuccess && newBootFile.exists() && newBootFile.length() > 0
 
-        val fetch = Shell.cmd("cp '$workDir/new-boot.img' '$outputPath' && echo OK")
-            .to(logCallback, logCallback).exec()
-        val ok = result.isSuccess &&
-            fetch.out.any { it.contains("OK") } &&
-            File(outputPath).exists() &&
-            File(outputPath).length() > 0
-        if (ok) {
-            onLog("- Successfully Embedded!")
-            onLog(" Output file is written to $outputPath")
-            onLog("****************************")
+        // 通过 MediaStore 把 new-boot.img 写到 Downloads 目录（无需 root）
+        var outUri: String? = null
+        if (patchOk) {
+            try {
+                val outFile = getFile("embedded_boot.img")
+                outFile.uri.outputStream().use { out ->
+                    FileInputStream(newBootFile).use { input -> input.copyTo(out) }
+                }
+                outUri = outFile.uri.toString()
+                onLog("- Successfully Embedded!")
+                onLog(" Output file is written to $outFile")
+                onLog("****************************")
+            } catch (e: Exception) {
+                onLog("- Failed to write output: ${e.message}")
+                onLog("****************************")
+            }
         } else {
             onLog("- Embed failed! (code=${result.code})")
             onLog("****************************")
         }
-        Shell.cmd("rm -rf '$workDir'").submit()
-        return if (ok) PatchResult(true, log) else PatchResult(false, "$log\nfetch output failed")
+
+        // 清理工作目录
+        if (Info.isRooted) {
+            Shell.cmd("rm -rf '$workDir'").submit()
+        } else {
+            File(workDir).deleteRecursively()
+        }
+        return if (outUri != null) PatchResult(true, outUri) else PatchResult(false, "embed failed")
     }
 
     // ===== KPM 运行时管理（通过 kpcall supercall，固定 root-skey 模式）=====
