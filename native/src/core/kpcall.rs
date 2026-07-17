@@ -14,12 +14,16 @@
 // superkey 可选：上游 KernelPatch 已剥离强 superkey 校验，root 调用者可使用 "su" 作为 key。
 // 若未提供 key 参数，默认使用 "su"（要求调用者已被 su 授权）。
 
+// Edition 2024 默认开启 unsafe_op_in_unsafe_fn 警告；本模块内 unsafe fn 体内的
+// unsafe 操作（syscall/指针解引用等）语义上由调用者保证安全，统一 allow 以减少噪音。
+#![allow(unsafe_op_in_unsafe_fn)]
+
 use base::libc;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 
 // KernelPatch supercall syscall 号（劫持 __NR_truncate = 45）
-const NR_SUPERCALL: i64 = 45;
+const NR_SUPERCALL: libc::c_long = 45;
 
 // supercall 命令码（来自 KernelPatch uapi/scdefs.h）
 const SUPERCALL_HELLO: i64 = 0x1000;
@@ -42,25 +46,25 @@ const KP_MINOR: u32 = 13;
 const KP_PATCH: u32 = 1;
 
 /// 构造 supercall 的 cmd 参数: (version_code << 32) | (0x1158 << 16) | (cmd & 0xFFFF)
-fn ver_and_cmd(_key: &str, cmd: i64) -> i64 {
+fn ver_and_cmd(_key: &str, cmd: i64) -> libc::c_long {
     let version_code = (KP_MAJOR << 16) + (KP_MINOR << 8) + KP_PATCH;
-    ((version_code as i64) << 32) | (0x1158 << 16) | (cmd & 0xFFFF)
+    (((version_code as i64) << 32) | (0x1158 << 16) | (cmd & 0xFFFF)) as libc::c_long
 }
 
 /// 调用 supercall syscall
-unsafe fn sc_call(key: &str, cmd: i64) -> i64 {
+unsafe fn sc_call(key: &str, cmd: i64) -> libc::c_long {
     let key_c = CString::new(key).unwrap_or_default();
     let combined = ver_and_cmd(key, cmd);
     libc::syscall(NR_SUPERCALL, key_c.as_ptr(), combined)
 }
 
-unsafe fn sc_call1(key: &str, cmd: i64, arg1: *const libc::c_void) -> i64 {
+unsafe fn sc_call1(key: &str, cmd: i64, arg1: *const libc::c_void) -> libc::c_long {
     let key_c = CString::new(key).unwrap_or_default();
     let combined = ver_and_cmd(key, cmd);
     libc::syscall(NR_SUPERCALL, key_c.as_ptr(), combined, arg1)
 }
 
-unsafe fn sc_call2(key: &str, cmd: i64, arg1: *const libc::c_void, arg2: usize) -> i64 {
+unsafe fn sc_call2(key: &str, cmd: i64, arg1: *const libc::c_void, arg2: usize) -> libc::c_long {
     let key_c = CString::new(key).unwrap_or_default();
     let combined = ver_and_cmd(key, cmd);
     libc::syscall(NR_SUPERCALL, key_c.as_ptr(), combined, arg1, arg2)
@@ -72,7 +76,7 @@ unsafe fn sc_call3(
     arg1: *const libc::c_void,
     arg2: *const libc::c_void,
     arg3: usize,
-) -> i64 {
+) -> libc::c_long {
     let key_c = CString::new(key).unwrap_or_default();
     let combined = ver_and_cmd(key, cmd);
     libc::syscall(NR_SUPERCALL, key_c.as_ptr(), combined, arg1, arg2, arg3)
@@ -85,7 +89,7 @@ unsafe fn sc_call4(
     arg2: *const libc::c_void,
     arg3: *const libc::c_void,
     arg4: usize,
-) -> i64 {
+) -> libc::c_long {
     let key_c = CString::new(key).unwrap_or_default();
     let combined = ver_and_cmd(key, cmd);
     libc::syscall(NR_SUPERCALL, key_c.as_ptr(), combined, arg1, arg2, arg3, arg4)
@@ -129,25 +133,30 @@ unsafe fn kpcall_main_impl(argc: i32, argv: *mut *mut c_char) -> i32 {
         return 1;
     }
 
-    let command = match get_arg(argv, 1) {
-        Some(c) => c,
-        None => {
-            eprintln!("kpcall: missing command");
-            return 1;
-        }
+    // Edition 2024: unsafe fn 体内调用其他 unsafe fn 仍需显式 unsafe 块
+    let (command, key, has_explicit_key) = unsafe {
+        let command = match get_arg(argv, 1) {
+            Some(c) => c,
+            None => {
+                eprintln!("kpcall: missing command");
+                return 1;
+            }
+        };
+
+        // superkey 可选：默认使用 "su"（root 调用者）
+        // 若第二个参数看起来像 superkey（非命令专用参数），则使用它
+        // 判断逻辑：hello/kp-version/k-version/kpm-nums 这些命令不需要额外参数，
+        // 第二个参数就是 superkey；kpm-info/kpm-unload 等需要 name 参数，第二个参数可能是 key 也可能是 name。
+        // 简化处理：所有命令统一接受 [key] 作为可选第二个参数，后续参数顺延。
+        let key = get_arg(argv, 2)
+            .filter(|s| !s.is_empty())
+            .unwrap_or_else(|| "su".to_string());
+
+        // 若用户提供了 key（argv[2] 存在且非空），则后续参数从 index 3 开始
+        // 否则从 index 2 开始（key 被默认为 "su"）
+        let has_explicit_key = get_arg(argv, 2).map_or(false, |s| !s.is_empty());
+        (command, key, has_explicit_key)
     };
-
-    // superkey 可选：默认使用 "su"（root 调用者）
-    // 若第二个参数看起来像 superkey（非命令专用参数），则使用它
-    // 判断逻辑：hello/kp-version/k-version/kpm-nums 这些命令不需要额外参数，
-    // 第二个参数就是 superkey；kpm-info/kpm-unload 等需要 name 参数，第二个参数可能是 key 也可能是 name。
-    // 简化处理：所有命令统一接受 [key] 作为可选第二个参数，后续参数顺延。
-    let key = get_arg(argv, 2).filter(|s| !s.is_empty()).unwrap_or_else(|| "su".to_string());
-
-    // 根据命令确定后续参数的起始索引
-    // 若用户提供了 key（argv[2] 存在且非空），则后续参数从 index 3 开始
-    // 否则从 index 2 开始（key 被默认为 "su"）
-    let has_explicit_key = get_arg(argv, 2).map_or(false, |s| !s.is_empty());
     let arg_offset = if has_explicit_key { 3 } else { 2 };
 
     match command.as_str() {
@@ -221,11 +230,13 @@ unsafe fn kpcall_main_impl(argc: i32, argv: *mut *mut c_char) -> i32 {
         }
 
         "kpm-info" => {
-            let name = match get_arg(argv, arg_offset) {
-                Some(n) => n,
-                None => {
-                    eprintln!("kpcall kpm-info: missing module name");
-                    return 1;
+            let name = unsafe {
+                match get_arg(argv, arg_offset) {
+                    Some(n) => n,
+                    None => {
+                        eprintln!("kpcall kpm-info: missing module name");
+                        return 1;
+                    }
                 }
             };
             let name_c = CString::new(name).unwrap_or_default();
@@ -251,14 +262,16 @@ unsafe fn kpcall_main_impl(argc: i32, argv: *mut *mut c_char) -> i32 {
         }
 
         "kpm-load" => {
-            let path = match get_arg(argv, arg_offset) {
-                Some(p) => p,
-                None => {
-                    eprintln!("kpcall kpm-load: missing module path");
-                    return 1;
+            let path = unsafe {
+                match get_arg(argv, arg_offset) {
+                    Some(p) => p,
+                    None => {
+                        eprintln!("kpcall kpm-load: missing module path");
+                        return 1;
+                    }
                 }
             };
-            let args = get_arg(argv, arg_offset + 1).unwrap_or_default();
+            let args = unsafe { get_arg(argv, arg_offset + 1) }.unwrap_or_default();
             let path_c = CString::new(path).unwrap_or_default();
             let args_c = CString::new(args).unwrap_or_default();
             // sc_kpm_load(path, args) — 两个指针参数
@@ -279,11 +292,13 @@ unsafe fn kpcall_main_impl(argc: i32, argv: *mut *mut c_char) -> i32 {
         }
 
         "kpm-unload" => {
-            let name = match get_arg(argv, arg_offset) {
-                Some(n) => n,
-                None => {
-                    eprintln!("kpcall kpm-unload: missing module name");
-                    return 1;
+            let name = unsafe {
+                match get_arg(argv, arg_offset) {
+                    Some(n) => n,
+                    None => {
+                        eprintln!("kpcall kpm-unload: missing module name");
+                        return 1;
+                    }
                 }
             };
             let name_c = CString::new(name).unwrap_or_default();
@@ -304,18 +319,22 @@ unsafe fn kpcall_main_impl(argc: i32, argv: *mut *mut c_char) -> i32 {
         }
 
         "kpm-control" => {
-            let name = match get_arg(argv, arg_offset) {
-                Some(n) => n,
-                None => {
-                    eprintln!("kpcall kpm-control: missing module name");
-                    return 1;
+            let name = unsafe {
+                match get_arg(argv, arg_offset) {
+                    Some(n) => n,
+                    None => {
+                        eprintln!("kpcall kpm-control: missing module name");
+                        return 1;
+                    }
                 }
             };
-            let ctl_args = match get_arg(argv, arg_offset + 1) {
-                Some(a) => a,
-                None => {
-                    eprintln!("kpcall kpm-control: missing control args");
-                    return 1;
+            let ctl_args = unsafe {
+                match get_arg(argv, arg_offset + 1) {
+                    Some(a) => a,
+                    None => {
+                        eprintln!("kpcall kpm-control: missing control args");
+                        return 1;
+                    }
                 }
             };
             let name_c = CString::new(name).unwrap_or_default();
