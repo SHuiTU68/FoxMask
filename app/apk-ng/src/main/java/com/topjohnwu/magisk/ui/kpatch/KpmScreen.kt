@@ -11,11 +11,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -36,6 +39,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectionContainer
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -52,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.topjohnwu.magisk.core.R as CoreR
@@ -179,10 +184,21 @@ fun KpmScreen(
             // 操作卡片
             item {
                 ActionsCard(
-                    onPatchBoot = { bootPickerSimple.launch("*/*") },
-                    onEmbedKpm = { embedBootPicker.launch("*/*") },
+                    onPatchBoot = {
+                        viewModel.clearPatchLog()
+                        bootPickerSimple.launch("*/*")
+                    },
+                    onEmbedKpm = {
+                        viewModel.clearPatchLog()
+                        embedBootPicker.launch("*/*")
+                    },
                     enabled = !busy,
                 )
+            }
+
+            // 修补/嵌入过程的实时日志区（APatch 风格：终端日志流，自动滚底，可选中复制）
+            if (uiState.patchLog.isNotEmpty()) {
+                item { PatchLogCard(uiState) }
             }
 
             // 已加载 KPM 列表
@@ -462,6 +478,67 @@ private fun KpmItemCard(
                 maxLines = 4,
                 overflow = TextOverflow.Ellipsis,
             )
+        }
+    }
+}
+
+/**
+ * 修补/嵌入过程的实时日志卡片（APatch 风格）。
+ *
+ * - 等宽字体，终端体验
+ * - SelectionContainer 包裹，可选中复制
+ * - 日志变化时自动滚动到底部
+ * - 修补中显示转圈，完成显示成功/失败标识
+ */
+@Composable
+private fun PatchLogCard(state: KpmViewModel.UiState) {
+    val scrollState = rememberScrollState()
+    // 日志变化时自动滚到底部
+    LaunchedEffect(state.patchLog) {
+        scrollState.animateScrollTo(scrollState.maxValue)
+    }
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                if (state.patching) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.height(16.dp).width(16.dp),
+                        strokeWidth = 2.dp,
+                    )
+                    Text(
+                        text = "Patching…",
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                } else if (state.patchDone) {
+                    Text(
+                        text = "✓ Done",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                } else {
+                    Text(
+                        text = "✗ Failed",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            SelectionContainer {
+                Text(
+                    text = state.patchLog,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 400.dp)
+                        .verticalScroll(scrollState),
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontFamily = FontFamily.Monospace,
+                    ),
+                )
+            }
         }
     }
 }

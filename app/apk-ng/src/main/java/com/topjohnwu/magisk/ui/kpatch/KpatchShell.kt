@@ -3,6 +3,7 @@ package com.topjohnwu.magisk.ui.kpatch
 import android.content.Context
 import com.topjohnwu.magisk.core.Const
 import com.topjohnwu.magisk.core.Info
+import com.topjohnwu.superuser.CallbackList
 import com.topjohnwu.superuser.Shell
 import java.io.File
 
@@ -136,15 +137,25 @@ object KpatchShell {
      * @param context 上下文
      * @param bootImgPath 原始 boot.img 路径
      * @param outputPath 修补后输出路径
+     * @param onLog 实时日志回调，每输出一行调用一次（用于 UI 可视化）
      * @return 修补结果（含成功标志与日志，便于排查失败原因）
      */
     fun patchBoot(
         context: Context,
         bootImgPath: String,
         outputPath: String,
+        onLog: (String) -> Unit = {},
     ): PatchResult {
         if (!ensureBinaries(context)) {
+            onLog("ensureBinaries failed")
             return PatchResult(false, "ensureBinaries failed")
+        }
+
+        // 实时日志回调列表（stdout + stderr 都走这里）
+        val logCallback = object : CallbackList<String>() {
+            override fun onAddElement(e: String?) {
+                e?.let { onLog(it) }
+            }
         }
 
         val kptools = kptoolsExec(context)
@@ -152,33 +163,48 @@ object KpatchShell {
         val workDir = prepareTmpWorkspace(context, mapOf("boot.img" to bootImgPath))
         val kpimg = "$workDir/kpimg"
 
+        // 对齐 APatch boot_patch.sh 的输出风格：步骤标记 + 星号横线
         // 依次执行 unpack → patch 裸内核 → repack（不传 -s，走 root-skey 模式）
         val cmds = arrayOf(
+            "echo '****************************'",
+            "echo ' FoxMask Boot Image Patcher'",
+            "echo '****************************'",
             "cd '$workDir'",
             "rm -f kernel kernel.ori new-boot.img",
             // 1. unpack：从 boot.img 抽取裸内核到当前目录 kernel
+            "echo '- Unpacking boot image'",
             "$kptools unpack 'boot.img'",
             // 2. 保留原始内核备份
             "mv kernel kernel.ori",
             // 3. patch 裸内核
+            "echo '- Patching kernel'",
             "$kptools -p -i kernel.ori -k '$kpimg' -o kernel",
             // 4. repack：用修补后的 kernel 重新打包成 new-boot.img
+            "echo '- Repacking boot image'",
             "$kptools repack 'boot.img'",
         )
-        val result = Shell.cmd(*cmds).exec()
+        val result = Shell.newJob().add(*cmds).to(logCallback, logCallback).exec()
 
-        val log = buildString {
-            appendLine("code=${result.code}")
-            result.out.forEach { appendLine("[out] $it") }
-            result.err.forEach { appendLine("[err] $it") }
-        }
+        val sb = StringBuilder()
+        result.out.forEach { sb.appendLine(it) }
+        result.err.forEach { sb.appendLine("[err] $it") }
+        val log = sb.toString()
 
         // 从 tmpfs 把 new-boot.img 拷回 outputPath（app data 或 cache 目录）
-        val fetch = Shell.cmd("cp '$workDir/new-boot.img' '$outputPath' && echo OK").exec()
+        val fetch = Shell.cmd("cp '$workDir/new-boot.img' '$outputPath' && echo OK")
+            .to(logCallback, logCallback).exec()
         val ok = result.isSuccess &&
             fetch.out.any { it.contains("OK") } &&
             File(outputPath).exists() &&
             File(outputPath).length() > 0
+        if (ok) {
+            onLog("- Successfully Patched!")
+            onLog(" Output file is written to $outputPath")
+            onLog("****************************")
+        } else {
+            onLog("- Patch failed! (code=${result.code})")
+            onLog("****************************")
+        }
         // 清理 tmpfs 工作目录
         Shell.cmd("rm -rf '$workDir'").submit()
         return if (ok) PatchResult(true, log) else PatchResult(false, "$log\nfetch output failed")
@@ -212,6 +238,7 @@ object KpatchShell {
      * @param kpmPath .kpm 文件路径
      * @param kpmName 模块名称
      * @param outputPath 输出路径
+     * @param onLog 实时日志回调，每输出一行调用一次（用于 UI 可视化）
      * @return 嵌入结果（含日志）
      */
     fun embedKpm(
@@ -220,9 +247,18 @@ object KpatchShell {
         kpmPath: String,
         kpmName: String,
         outputPath: String,
+        onLog: (String) -> Unit = {},
     ): PatchResult {
         if (!ensureBinaries(context)) {
+            onLog("ensureBinaries failed")
             return PatchResult(false, "ensureBinaries failed")
+        }
+
+        // 实时日志回调列表（stdout + stderr 都走这里）
+        val logCallback = object : CallbackList<String>() {
+            override fun onAddElement(e: String?) {
+                e?.let { onLog(it) }
+            }
         }
 
         val kptools = kptoolsExec(context)
@@ -233,27 +269,41 @@ object KpatchShell {
         val kpm = "$workDir/module.kpm"
 
         val cmds = arrayOf(
+            "echo '****************************'",
+            "echo ' FoxMask KPM Embedder'",
+            "echo '****************************'",
             "cd '$workDir'",
             "rm -f kernel kernel.ori new-boot.img",
+            "echo '- Unpacking boot image'",
             "$kptools unpack 'boot.img'",
             "mv kernel kernel.ori",
             // -M 嵌入 KPM 模块，-T kpm 指定类型，-N 指定模块名
+            "echo '- Embedding KPM: $kpmName'",
             "$kptools -p -i kernel.ori -M '$kpm' -T kpm -N '$kpmName' -o kernel",
+            "echo '- Repacking boot image'",
             "$kptools repack 'boot.img'",
         )
-        val result = Shell.cmd(*cmds).exec()
+        val result = Shell.newJob().add(*cmds).to(logCallback, logCallback).exec()
 
-        val log = buildString {
-            appendLine("code=${result.code}")
-            result.out.forEach { appendLine("[out] $it") }
-            result.err.forEach { appendLine("[err] $it") }
-        }
+        val sb = StringBuilder()
+        result.out.forEach { sb.appendLine(it) }
+        result.err.forEach { sb.appendLine("[err] $it") }
+        val log = sb.toString()
 
-        val fetch = Shell.cmd("cp '$workDir/new-boot.img' '$outputPath' && echo OK").exec()
+        val fetch = Shell.cmd("cp '$workDir/new-boot.img' '$outputPath' && echo OK")
+            .to(logCallback, logCallback).exec()
         val ok = result.isSuccess &&
             fetch.out.any { it.contains("OK") } &&
             File(outputPath).exists() &&
             File(outputPath).length() > 0
+        if (ok) {
+            onLog("- Successfully Embedded!")
+            onLog(" Output file is written to $outputPath")
+            onLog("****************************")
+        } else {
+            onLog("- Embed failed! (code=${result.code})")
+            onLog("****************************")
+        }
         Shell.cmd("rm -rf '$workDir'").submit()
         return if (ok) PatchResult(true, log) else PatchResult(false, "$log\nfetch output failed")
     }

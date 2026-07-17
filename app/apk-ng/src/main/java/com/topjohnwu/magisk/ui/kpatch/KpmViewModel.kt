@@ -48,6 +48,12 @@ class KpmViewModel : BaseViewModel() {
         val kpatchVersion: String? = null,
         val items: List<KpmItem> = emptyList(),
         val message: String? = null,
+        /** 修补/嵌入过程的实时日志（可视化用），非空时 UI 展示日志区 */
+        val patchLog: String = "",
+        /** 修补中标志，控制日志区显示与按钮禁用 */
+        val patching: Boolean = false,
+        /** 修补完成（成功）标志，控制结果提示 */
+        val patchDone: Boolean = false,
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -176,23 +182,26 @@ class KpmViewModel : BaseViewModel() {
             return
         }
         _busy.value = true
+        _uiState.update { it.copy(patching = true, patchDone = false, patchLog = "") }
         viewModelScope.launch(Dispatchers.IO) {
             val ctx: Context = AppContext
             val bootLocal = copyUriToCache(ctx, bootImgUri, "boot.img")
             val kpmLocal = copyUriToCache(ctx, kpmUri, "$kpmName.kpm")
             val outputPath = "${ctx.cacheDir.absolutePath}/new_boot.img"
             val result = if (bootLocal != null && kpmLocal != null) {
-                KpatchShell.embedKpm(ctx, bootLocal, kpmLocal, kpmName, outputPath)
+                KpatchShell.embedKpm(ctx, bootLocal, kpmLocal, kpmName, outputPath) { line ->
+                    // 实时追加日志行到 state
+                    _uiState.update { it.copy(patchLog = it.patchLog + line + "\n") }
+                }
             } else null
             withContext(Dispatchers.Main) {
                 _busy.value = false
+                _uiState.update { it.copy(patching = false, patchDone = result?.success == true) }
                 if (result == null) {
                     onResult(null)
                 } else if (result.success) {
                     onResult(outputPath)
                 } else {
-                    // 嵌入失败：把日志回传便于排查
-                    showSnackbar("embedKpm failed: ${result.log.take(200)}")
                     onResult(null)
                 }
             }
@@ -211,26 +220,32 @@ class KpmViewModel : BaseViewModel() {
             return
         }
         _busy.value = true
+        _uiState.update { it.copy(patching = true, patchDone = false, patchLog = "") }
         viewModelScope.launch(Dispatchers.IO) {
             val ctx: Context = AppContext
             val bootLocal = copyUriToCache(ctx, bootImgUri, "boot.img")
             val outputPath = "${ctx.cacheDir.absolutePath}/patched_boot.img"
             val result = if (bootLocal != null) {
-                KpatchShell.patchBoot(ctx, bootLocal, outputPath)
+                KpatchShell.patchBoot(ctx, bootLocal, outputPath) { line ->
+                    // 实时追加日志行到 state
+                    _uiState.update { it.copy(patchLog = it.patchLog + line + "\n") }
+                }
             } else null
             withContext(Dispatchers.Main) {
                 _busy.value = false
+                _uiState.update { it.copy(patching = false, patchDone = result?.success == true) }
                 when {
                     result == null -> onResult(null)
                     result.success -> onResult(outputPath)
-                    else -> {
-                        // 修补失败：把日志回传便于排查
-                        showSnackbar("patchBoot failed: ${result.log.take(200)}")
-                        onResult(null)
-                    }
+                    else -> onResult(null)
                 }
             }
         }
+    }
+
+    /** 清除修补日志与完成状态（开始新一轮修补前调用） */
+    fun clearPatchLog() {
+        _uiState.update { it.copy(patchLog = "", patchDone = false) }
     }
 
     /** 清除顶部消息。 */
