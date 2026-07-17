@@ -85,6 +85,7 @@ import com.topjohnwu.magisk.ui.component.rememberLoadingDialog
 import com.topjohnwu.magisk.ui.flash.FlashUtils
 import com.topjohnwu.magisk.ui.install.InstallBottomSheet
 import com.topjohnwu.magisk.ui.install.InstallViewModel
+import com.topjohnwu.magisk.ui.kpatch.KpatchShell
 import kotlinx.coroutines.launch
 import com.topjohnwu.magisk.core.R as CoreR
 
@@ -230,12 +231,11 @@ fun HomeScreen(viewModel: HomeViewModel, installVm: InstallViewModel) {
                 version = viewModel.magiskInstalledVersion,
             ) { showInstallSheet.value = true }
 
-            if (Info.isRooted) {
-                KpatchCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    version = viewModel.kpatchVersion,
-                )
-            }
+            KpatchCard(
+                modifier = Modifier.fillMaxWidth(),
+                version = viewModel.kpatchVersion,
+                installed = uiState.kpatchInstalled,
+            )
 
             StatusCard()
 
@@ -459,6 +459,7 @@ private fun CoreCard(
 private fun KpatchCard(
     modifier: Modifier = Modifier,
     version: String?,
+    installed: Boolean,
 ) {
     Md2Card(modifier = modifier) {
         Row(
@@ -481,8 +482,16 @@ private fun KpatchCard(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text = version ?: stringResource(CoreR.string.home_kpatch_not_installed),
+                    text = version ?: KpatchShell.PACKED_KP_VERSION,
                     style = MaterialTheme.typography.bodyMedium,
+                )
+                Text(
+                    text = if (installed)
+                        stringResource(CoreR.string.settings_kpatch_status_installed_short)
+                    else
+                        stringResource(CoreR.string.home_kpatch_not_installed),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }

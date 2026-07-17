@@ -17,7 +17,9 @@ import java.io.File
  */
 object KpatchShell {
 
-    private const val KP_VERSION = "0.13.1"
+    /** 内置打包的 KernelPatch 版本（与 assets 中的 kpimg 对应） */
+    const val PACKED_KP_VERSION = "0.13.1"
+
     private const val KP_DIR_NAME = "kpatch"
 
     /** 默认 superkey（上游已剥离强校验，root 调用者使用 "su"） */
@@ -113,7 +115,8 @@ object KpatchShell {
         val result = Shell.cmd(
             "$kptools -p -i '$bootImgPath' -k '$kpimg' -s '$key' -o '$outputPath'"
         ).exec()
-        return result.isSuccess && result.out.any { it.contains("patch done") }
+        // kptools 成功时退出码为 0 并生成输出文件，不依赖其 stdout 文案（不同版本输出可能不同）
+        return result.isSuccess && File(outputPath).exists() && File(outputPath).length() > 0
     }
 
     /**

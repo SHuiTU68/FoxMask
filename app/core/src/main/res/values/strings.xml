@@ -190,6 +190,7 @@
     <string name="settings_kpatch_manage_summary">Patch boot image to embed kpatch, manage KPM modules (load/unload/control/embed)</string>
     <string name="settings_kpatch_status_title">Status</string>
     <string name="settings_kpatch_status_installed">KernelPatch installed (version %1$s)</string>
+    <string name="settings_kpatch_status_installed_short">Installed</string>
     <string name="settings_kpatch_status_not_installed">KernelPatch not installed</string>
     <string name="settings_kpatch_status_hint">Patch the boot image with kptools and flash it to enable KernelPatch support.</string>
     <string name="settings_kpatch_superkey_title">Superkey</string>

@@ -156,6 +156,7 @@
     <string name="settings_kpatch_manage_summary">修补 boot 镜像嵌入 kpatch，管理 KPM 模块（加载/卸载/控制/嵌入）</string>
     <string name="settings_kpatch_status_title">状态</string>
     <string name="settings_kpatch_status_installed">KernelPatch 已安装（版本 %1$s）</string>
+    <string name="settings_kpatch_status_installed_short">已安装</string>
     <string name="settings_kpatch_status_not_installed">KernelPatch 未安装</string>
     <string name="settings_kpatch_status_hint">使用 kptools 修补 boot 镜像并刷入即可启用 KernelPatch 支持。</string>
     <string name="settings_kpatch_superkey_title">Superkey</string>

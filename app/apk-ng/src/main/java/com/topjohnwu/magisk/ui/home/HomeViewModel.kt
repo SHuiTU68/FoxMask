@@ -40,6 +40,7 @@ class HomeViewModel(
         val showHideRestore: Boolean = false,
         val envFixCode: Int = 0,
         val kpatchVersion: String? = null,
+        val kpatchInstalled: Boolean = false,
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -92,18 +93,29 @@ class HomeViewModel(
     /**
      * 检测 KernelPatch 是否已安装并获取版本。
      * superkey 可选：为空时 KpatchShell 自动回退到默认 "su"。
-     * 仅在已 root 时检测，避免无 root 环境下的无效 shell 调用。
+     * 版本号总会显示：已安装用 kpcall 获取实际版本，否则回退到内置打包版本。
      */
     private suspend fun detectKpatch() {
-        if (!Info.isRooted) return
         val key = Config.kpatchSuperkey
+        if (!Info.isRooted) {
+            // 无 root：仍展示内置打包版本，标记为未安装
+            _uiState.update {
+                it.copy(kpatchVersion = KpatchShell.PACKED_KP_VERSION, kpatchInstalled = false)
+            }
+            return
+        }
         val installed = withContext(Dispatchers.IO) {
             KpatchShell.isKpatchInstalled(key)
         }
         val version = if (installed) {
             withContext(Dispatchers.IO) { KpatchShell.getKpatchVersion(key) }
-        } else null
-        _uiState.update { it.copy(kpatchVersion = version) }
+                ?: KpatchShell.PACKED_KP_VERSION
+        } else {
+            KpatchShell.PACKED_KP_VERSION
+        }
+        _uiState.update {
+            it.copy(kpatchVersion = version, kpatchInstalled = installed)
+        }
     }
 
     private val networkObserver: (Boolean) -> Unit = { startLoading() }
