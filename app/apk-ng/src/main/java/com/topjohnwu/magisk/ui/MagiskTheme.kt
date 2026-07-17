@@ -121,11 +121,19 @@ fun MagiskTheme(
 /// 把 miuix Colors 映射到 Material3 ColorScheme，
 /// 让 Material3 组件（MaterialTheme.colorScheme.xxx）与 MiuixTheme 颜色一致。
 ///
-/// 注意 background 的处理：miuix 暗色模式的 background 为纯黑 (#000000)，
-/// 而 M3 的 Scaffold 默认容器色 = colorScheme.background，TopAppBar 未滚动时
-/// 透明、会透出 Scaffold 背景。若 background=纯黑，顶栏区域与灰色 surface 卡片
-/// 严重割裂（顶栏一片黑）。故这里把 M3 background 映射为 miuix surface，
-/// 使 Scaffold 背景与卡片底色协调，顶栏透明时也与之同色。
+/// Surface 层级映射要点（miuix 实际颜色值参考）：
+///   浅色: surface=0xFFF7F7F7, surfaceContainer=White, surfaceContainerHigh=0xFFE8E8E8
+///   暗色: surface=Black, surfaceContainer=0xFF242424, surfaceContainerHighest=0xFF2D2D2D
+///
+/// 1. 顶栏(TopAppBar 未滚动透明)透出 Scaffold 背景 = background，
+///    底栏(NavigationBar)用 surfaceContainer。让 background = surfaceContainer，
+///    保证顶栏与底栏颜色一致，避免黑色主题下顶栏纯黑、底栏深灰的割裂。
+///
+/// 2. 浅色模式 surfaceContainer=White(纯白)过亮，改用 surfaceContainerHigh(0xFFE8E8E8)
+///    作为 background 和 surfaceContainer，降低整体亮度。
+///
+/// 3. 卡片用 surfaceVariant，映射为 c.surface（浅色0xFFF7F7F7/暗色Black），
+///    与背景(surfaceContainer)形成区分：浅色卡片比背景浅，暗色卡片比背景深(MIUI风格)。
 private fun miuixColorsToM3(c: top.yukonga.miuix.kmp.theme.Colors): androidx.compose.material3.ColorScheme {
     val isDark = c.background.luminance() < 0.5f
     return if (isDark) {
@@ -142,11 +150,11 @@ private fun miuixColorsToM3(c: top.yukonga.miuix.kmp.theme.Colors): androidx.com
             onTertiary = c.onTertiaryContainer,
             tertiaryContainer = c.tertiaryContainer,
             onTertiaryContainer = c.onTertiaryContainer,
-            background = c.surface,
+            background = c.surfaceContainer,
             onBackground = c.onBackground,
             surface = c.surface,
             onSurface = c.onSurface,
-            surfaceVariant = c.surfaceVariant,
+            surfaceVariant = c.surface,
             onSurfaceVariant = c.onSurfaceVariantSummary,
             surfaceTint = c.primary,
             outline = c.outline,
@@ -158,7 +166,7 @@ private fun miuixColorsToM3(c: top.yukonga.miuix.kmp.theme.Colors): androidx.com
             surfaceContainer = c.surfaceContainer,
             surfaceContainerHigh = c.surfaceContainerHigh,
             surfaceContainerHighest = c.surfaceContainerHighest,
-            surfaceContainerLow = c.surfaceContainer,
+            surfaceContainerLow = c.surface,
             surfaceContainerLowest = c.surface,
         )
     } else {
@@ -175,11 +183,11 @@ private fun miuixColorsToM3(c: top.yukonga.miuix.kmp.theme.Colors): androidx.com
             onTertiary = c.onTertiaryContainer,
             tertiaryContainer = c.tertiaryContainer,
             onTertiaryContainer = c.onTertiaryContainer,
-            background = c.surface,
+            background = c.surfaceContainerHigh,
             onBackground = c.onBackground,
             surface = c.surface,
             onSurface = c.onSurface,
-            surfaceVariant = c.surfaceVariant,
+            surfaceVariant = c.surface,
             onSurfaceVariant = c.onSurfaceVariantSummary,
             surfaceTint = c.primary,
             outline = c.outline,
@@ -188,11 +196,11 @@ private fun miuixColorsToM3(c: top.yukonga.miuix.kmp.theme.Colors): androidx.com
             onError = c.onError,
             errorContainer = c.errorContainer,
             onErrorContainer = c.onErrorContainer,
-            surfaceContainer = c.surfaceContainer,
+            surfaceContainer = c.surfaceContainerHigh,
             surfaceContainerHigh = c.surfaceContainerHigh,
             surfaceContainerHighest = c.surfaceContainerHighest,
-            surfaceContainerLow = c.surfaceContainer,
-            surfaceContainerLowest = c.surface,
+            surfaceContainerLow = c.surface,
+            surfaceContainerLowest = c.surfaceContainer,
         )
     }
 }
