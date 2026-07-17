@@ -146,15 +146,10 @@ fun MagiskTheme(
 ///   (如橘子色)在背景上几乎不可见。当 seedColor != null 时，把种子色按一定比例
 ///   混入 surface 各级，让用户选的颜色在底栏/主页/功能背景上能被肉眼看到。
 ///
-/// MIUI 模式(isOriginal=false):
-///   - background = surfaceContainer(暗色)/surfaceContainerHigh(浅色): 顶栏与底栏颜色一致。
-///   - 浅色 surfaceContainer 用 surfaceContainerHigh(0xFFE8E8E8)替代纯白，降低亮度。
-///   - 卡片 surfaceVariant = surface，与背景形成分层：MIUI 风格的"深灰底+纯黑卡片"。
-///
-/// Original 模式(isOriginal=true):
-///   - 顶栏/底栏/卡片统一颜色，与主题一致，不做分层，保持 Magisk md2 原始的扁平统一观感。
-///   - 暗色用 surfaceContainer(0xFF242424 深灰)而非 surface(纯黑)，避免纯黑刺眼。
-///   - 浅色用 surface(0xFFF7F7F7 浅灰)。
+/// 所有背景统一(unified)，不做分层：
+///   - 顶栏/底栏/卡片/功能背景全部用同一个 unified 颜色，消除分割。
+///   - 暗色用 surfaceContainer(0xFF242424 深灰，避免纯黑刺眼)。
+///   - 浅色：Original 用 surface(0xFFF7F7F7 浅白)，MIUI 用 surfaceContainerHigh(0xFFE8E8E8 浅灰)。
 private fun miuixColorsToM3(
     c: top.yukonga.miuix.kmp.theme.Colors,
     isOriginal: Boolean = false,
@@ -175,83 +170,17 @@ private fun miuixColorsToM3(
         if (seedColor != null) lerp(c.surfaceContainer, seedColor, tintAmount) else c.surfaceContainer
     val surfaceContainerHigh =
         if (seedColor != null) lerp(c.surfaceContainerHigh, seedColor, tintAmount) else c.surfaceContainerHigh
-    val surfaceContainerHighest =
-        if (seedColor != null) lerp(c.surfaceContainerHighest, seedColor, tintAmount) else c.surfaceContainerHighest
 
-    if (isOriginal) {
-        // Original 模式：顶栏/底栏/卡片统一颜色，与主题一致，不做分层。
-        // 暗色用 surfaceContainer(深灰)而非 surface(纯黑)，避免纯黑。
-        // 浅色用 surface(浅灰)。
-        val unified = if (isDark) surfaceContainer else surface
-        return if (isDark) {
-            darkColorScheme(
-                primary = c.primary,
-                onPrimary = c.onPrimary,
-                primaryContainer = c.primaryContainer,
-                onPrimaryContainer = c.onPrimaryContainer,
-                secondary = c.secondary,
-                onSecondary = c.onSecondary,
-                secondaryContainer = c.secondaryContainer,
-                onSecondaryContainer = c.onSecondaryContainer,
-                tertiary = c.tertiaryContainer,
-                onTertiary = c.onTertiaryContainer,
-                tertiaryContainer = c.tertiaryContainer,
-                onTertiaryContainer = c.onTertiaryContainer,
-                background = unified,
-                onBackground = c.onBackground,
-                surface = unified,
-                onSurface = c.onSurface,
-                surfaceVariant = unified,
-                onSurfaceVariant = c.onSurfaceVariantSummary,
-                surfaceTint = c.primary,
-                outline = c.outline,
-                outlineVariant = c.dividerLine,
-                error = c.error,
-                onError = c.onError,
-                errorContainer = c.errorContainer,
-                onErrorContainer = c.onErrorContainer,
-                surfaceContainer = unified,
-                surfaceContainerHigh = unified,
-                surfaceContainerHighest = unified,
-                surfaceContainerLow = unified,
-                surfaceContainerLowest = unified,
-            )
-        } else {
-            lightColorScheme(
-                primary = c.primary,
-                onPrimary = c.onPrimary,
-                primaryContainer = c.primaryContainer,
-                onPrimaryContainer = c.onPrimaryContainer,
-                secondary = c.secondary,
-                onSecondary = c.onSecondary,
-                secondaryContainer = c.secondaryContainer,
-                onSecondaryContainer = c.onSecondaryContainer,
-                tertiary = c.tertiaryContainer,
-                onTertiary = c.onTertiaryContainer,
-                tertiaryContainer = c.tertiaryContainer,
-                onTertiaryContainer = c.onTertiaryContainer,
-                background = unified,
-                onBackground = c.onBackground,
-                surface = unified,
-                onSurface = c.onSurface,
-                surfaceVariant = unified,
-                onSurfaceVariant = c.onSurfaceVariantSummary,
-                surfaceTint = c.primary,
-                outline = c.outline,
-                outlineVariant = c.dividerLine,
-                error = c.error,
-                onError = c.onError,
-                errorContainer = c.errorContainer,
-                onErrorContainer = c.onErrorContainer,
-                surfaceContainer = unified,
-                surfaceContainerHigh = unified,
-                surfaceContainerHighest = unified,
-                surfaceContainerLow = unified,
-                surfaceContainerLowest = unified,
-            )
-        }
+    // 所有 surface 角色统一为单个 unified 值，消除顶栏/底栏/卡片/背景的分割。
+    // - 暗色: surfaceContainer(深灰 0xFF242424，避免纯黑)
+    // - Original 浅色: surface(浅白 0xFFF7F7F7)
+    // - MIUI 浅色: surfaceContainerHigh(浅灰 0xFFE8E8E8，保留 MIUI 灰底基调)
+    val unified = when {
+        isDark -> surfaceContainer
+        isOriginal -> surface
+        else -> surfaceContainerHigh
     }
-    // MIUI 模式：深灰底+纯黑卡片的分层风格
+
     return if (isDark) {
         darkColorScheme(
             primary = c.primary,
@@ -266,11 +195,11 @@ private fun miuixColorsToM3(
             onTertiary = c.onTertiaryContainer,
             tertiaryContainer = c.tertiaryContainer,
             onTertiaryContainer = c.onTertiaryContainer,
-            background = surfaceContainer,
+            background = unified,
             onBackground = c.onBackground,
-            surface = surface,
+            surface = unified,
             onSurface = c.onSurface,
-            surfaceVariant = surface,
+            surfaceVariant = unified,
             onSurfaceVariant = c.onSurfaceVariantSummary,
             surfaceTint = c.primary,
             outline = c.outline,
@@ -279,11 +208,11 @@ private fun miuixColorsToM3(
             onError = c.onError,
             errorContainer = c.errorContainer,
             onErrorContainer = c.onErrorContainer,
-            surfaceContainer = surfaceContainer,
-            surfaceContainerHigh = surfaceContainerHigh,
-            surfaceContainerHighest = surfaceContainerHighest,
-            surfaceContainerLow = surface,
-            surfaceContainerLowest = surface,
+            surfaceContainer = unified,
+            surfaceContainerHigh = unified,
+            surfaceContainerHighest = unified,
+            surfaceContainerLow = unified,
+            surfaceContainerLowest = unified,
         )
     } else {
         lightColorScheme(
@@ -299,11 +228,11 @@ private fun miuixColorsToM3(
             onTertiary = c.onTertiaryContainer,
             tertiaryContainer = c.tertiaryContainer,
             onTertiaryContainer = c.onTertiaryContainer,
-            background = surfaceContainerHigh,
+            background = unified,
             onBackground = c.onBackground,
-            surface = surface,
+            surface = unified,
             onSurface = c.onSurface,
-            surfaceVariant = surface,
+            surfaceVariant = unified,
             onSurfaceVariant = c.onSurfaceVariantSummary,
             surfaceTint = c.primary,
             outline = c.outline,
@@ -312,11 +241,11 @@ private fun miuixColorsToM3(
             onError = c.onError,
             errorContainer = c.errorContainer,
             onErrorContainer = c.onErrorContainer,
-            surfaceContainer = surfaceContainerHigh,
-            surfaceContainerHigh = surfaceContainerHigh,
-            surfaceContainerHighest = surfaceContainerHighest,
-            surfaceContainerLow = surface,
-            surfaceContainerLowest = surfaceContainer,
+            surfaceContainer = unified,
+            surfaceContainerHigh = unified,
+            surfaceContainerHighest = unified,
+            surfaceContainerLow = unified,
+            surfaceContainerLowest = unified,
         )
     }
 }
