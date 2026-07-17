@@ -57,9 +57,13 @@ abstract class TransformApkTask : DefaultTask() {
             .setCertificates(info.certificate)
             .setValidation(SigningOptions.Validation.ASSUME_INVALID)
             .build()
+        // autoSortFiles=false：避免 apkzlib 在 close 时对 STORED+page-aligned 的
+        // jniLibs（如 libkptools.so）做重排导致字节级损坏（表现为 ELF dynamic
+        // section 整体左移 1 字节，linker 报 empty/missing DT_HASH/DT_GNU_HASH）。
+        // APK 条目排序仅为访问优化，Android 并不要求排序，关闭不会影响安装/加载。
         val options = ZFileOptions().apply {
             noTimestamps = true
-            autoSortFiles = true
+            autoSortFiles = false
         }
         outFile.parentFile?.mkdirs()
         inFile.copyTo(outFile, overwrite = true)

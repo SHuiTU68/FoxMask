@@ -297,6 +297,29 @@ fun Project.setupMainApk() {
             }
         }
     }
+
+    // 防御性修复：libkptools.so 在 jniLibs 打包与 TransformApkTask 重打包过程中
+    // 可能被字节级损坏（历史现象：ELF dynamic section 整体左移 1 字节，导致
+    // on-device linker 报 "empty/missing DT_HASH/DT_GNU_HASH"，
+    // kptools 无法被 link，boot 修补失败 code=1）。
+    //
+    // 在 ZFile 关闭前用源文件覆写 libkptools.so 条目，保证最终 APK 中的字节与
+    // 源文件完全一致。stub/test 模块没有该条目，转换会自动跳过。
+    val kptoolsSource = layout.projectDirectory.file(
+        "src/main/jniLibs/arm64-v8a/libkptools.so"
+    )
+    tasks.withType(TransformApkTask::class) {
+        inputs.files(kptoolsSource)
+        transformations.add {
+            val entryPath = "lib/arm64-v8a/libkptools.so"
+            val existing = it.get(entryPath)
+            if (existing != null) {
+                existing.delete()
+                val bytes = kptoolsSource.get().asFile.readBytes()
+                it.add(entryPath, java.io.ByteArrayInputStream(bytes), false)
+            }
+        }
+    }
 }
 
 const val LSPOSED_DOWNLOAD_URL =
