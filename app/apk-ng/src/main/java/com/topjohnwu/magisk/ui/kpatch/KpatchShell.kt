@@ -199,7 +199,7 @@ object KpatchShell {
             "echo '- Repacking boot image'",
             "$kptools repack 'boot.img'",
         )
-        val result = Shell.newJob().add(*cmds).to(logCallback, logCallback).exec()
+        val result = Shell.cmd(*cmds).to(logCallback, logCallback).exec()
 
         val newBootFile = File(workDir, "new-boot.img")
         val patchOk = result.isSuccess && newBootFile.exists() && newBootFile.length() > 0
@@ -310,7 +310,7 @@ object KpatchShell {
             "echo '- Repacking boot image'",
             "$kptools repack 'boot.img'",
         )
-        val result = Shell.newJob().add(*cmds).to(logCallback, logCallback).exec()
+        val result = Shell.cmd(*cmds).to(logCallback, logCallback).exec()
 
         val newBootFile = File(workDir, "new-boot.img")
         val patchOk = result.isSuccess && newBootFile.exists() && newBootFile.length() > 0

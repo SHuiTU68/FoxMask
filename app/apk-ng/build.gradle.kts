@@ -18,6 +18,9 @@ android {
     packaging {
         jniLibs {
             excludes += "lib/*/libandroidx.graphics.path.so"
+            // kptools 是已 stripped 的第三方 ARM64 ELF，AGP 默认 strip 会报
+            // "section table goes past the end of file"，排除不再 strip。
+            doNotStrip += "**/libkptools.so"
         }
     }
 
