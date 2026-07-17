@@ -193,11 +193,6 @@
     <string name="settings_kpatch_status_installed_short">Installed</string>
     <string name="settings_kpatch_status_not_installed">KernelPatch not installed</string>
     <string name="settings_kpatch_status_hint">Patch the boot image with kptools and flash it to enable KernelPatch support.</string>
-    <string name="settings_kpatch_superkey_title">Superkey</string>
-    <string name="settings_kpatch_superkey_summary">Optional. Upstream KernelPatch has stripped strong superkey validation, root callers can use \"su\" as the default key. Leave empty to use the default \"su\".</string>
-    <string name="settings_kpatch_superkey_save">Save</string>
-    <string name="settings_kpatch_superkey_required">Please set the superkey first</string>
-    <string name="settings_kpatch_superkey_placeholder">su (default)</string>
     <string name="settings_kpatch_actions_title">Actions</string>
     <string name="settings_kpatch_patch_boot">Patch Boot</string>
     <string name="settings_kpatch_embed_kpm">Embed KPM</string>

@@ -61,7 +61,6 @@ import com.topjohnwu.magisk.core.R as CoreR
  *
  * 显示：
  * - kpatch 安装状态与版本
- * - superkey 输入与保存
  * - 修补 boot / 嵌入 KPM / 加载 KPM 操作入口
  * - 已加载 KPM 列表（卸载、控制）
  */
@@ -76,16 +75,10 @@ fun KpmScreen(
     val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-    // superkey 输入
-    var superkeyInput by remember { mutableStateOf(uiState.superkey) }
-    LaunchedEffect(uiState.superkey) {
-        if (superkeyInput.isEmpty()) superkeyInput = uiState.superkey
-    }
-
-    // 修补 boot picker（superkey 可选，为空时使用默认 "su"）
+    // 修补 boot picker（固定 root-skey 模式，无需 superkey）
     val bootPickerSimple = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
-        viewModel.patchBoot(uri, superkeyInput) { out ->
+        viewModel.patchBoot(uri) { out ->
             if (out != null) {
                 viewModel.showSnackbar(context.getString(CoreR.string.settings_kpatch_patch_done, out))
             } else {
@@ -182,15 +175,6 @@ fun KpmScreen(
         ) {
             // 状态卡片
             item { StatusCard(uiState, busy) }
-
-            // superkey 设置
-            item {
-                SuperkeyCard(
-                    value = superkeyInput,
-                    onValueChange = { superkeyInput = it },
-                    onSave = { viewModel.saveSuperkey(superkeyInput) },
-                )
-            }
 
             // 操作卡片
             item {
@@ -399,43 +383,6 @@ private fun StatusCard(state: KpmViewModel.UiState, busy: Boolean) {
                 androidx.compose.material3.LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth(),
                 )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SuperkeyCard(
-    value: String,
-    onValueChange: (String) -> Unit,
-    onSave: () -> Unit,
-) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = stringResource(CoreR.string.settings_kpatch_superkey_title),
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = stringResource(CoreR.string.settings_kpatch_superkey_summary),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                placeholder = { Text(stringResource(CoreR.string.settings_kpatch_superkey_placeholder)) },
-            )
-            Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = onSave,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(CoreR.string.settings_kpatch_superkey_save))
             }
         }
     }

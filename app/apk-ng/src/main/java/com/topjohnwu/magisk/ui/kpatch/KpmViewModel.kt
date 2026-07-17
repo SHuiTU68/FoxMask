@@ -6,7 +6,6 @@ import android.widget.Toast
 import androidx.lifecycle.viewModelScope
 import com.topjohnwu.magisk.arch.BaseViewModel
 import com.topjohnwu.magisk.core.AppContext
-import com.topjohnwu.magisk.core.Config
 import com.topjohnwu.magisk.core.R as CoreR
 import com.topjohnwu.magisk.core.ktx.toast
 import kotlinx.coroutines.Dispatchers
@@ -38,8 +37,8 @@ data class KpmItem(
  * - 嵌入 KPM 到 boot 镜像
  * - 修补 boot 镜像嵌入 kpatch
  *
- * superkey 自选：上游 KernelPatch 已剥离强 superkey 校验，root 调用者可使用 "su" 作为 key。
- * [Config.kpatchSuperkey] 为空时，[KpatchShell] 自动回退到默认 "su"。
+ * superkey 已剥离：上游 KernelPatch 不再做强 superkey 校验，root 调用者
+ * 固定使用 "su"（root-skey 模式），无需用户配置。
  */
 class KpmViewModel : BaseViewModel() {
 
@@ -48,7 +47,6 @@ class KpmViewModel : BaseViewModel() {
         val kpatchInstalled: Boolean = false,
         val kpatchVersion: String? = null,
         val items: List<KpmItem> = emptyList(),
-        val superkey: String = "",
         val message: String? = null,
     )
 
@@ -58,60 +56,13 @@ class KpmViewModel : BaseViewModel() {
     private val _busy = MutableStateFlow(false)
     val busy: StateFlow<Boolean> = _busy.asStateFlow()
 
-    /** 由 KpmScreen 主动调用启动加载。superkey 可为空（自动回退 "su"）。 */
+    /** 由 KpmScreen 主动调用启动加载。 */
     fun startLoading() {
-        val key = Config.kpatchSuperkey
-        _uiState.update { it.copy(superkey = key) }
-        viewModelScope.launch(Dispatchers.IO) {
-            val installed = KpatchShell.isKpatchInstalled(key)
-            val version = if (installed) KpatchShell.getKpatchVersion(key) else null
-            val items = if (installed) loadKpmList(key) else emptyList()
-            _uiState.update {
-                it.copy(
-                    loading = false,
-                    kpatchInstalled = installed,
-                    kpatchVersion = version,
-                    items = items,
-                )
-            }
-        }
-    }
-
-    /** 下拉/重试刷新 KPM 列表。superkey 为空时自动回退 "su"。 */
-    fun refresh() {
-        val key = _uiState.value.superkey
         _uiState.update { it.copy(loading = true) }
         viewModelScope.launch(Dispatchers.IO) {
-            val installed = KpatchShell.isKpatchInstalled(key)
-            val items = if (installed) loadKpmList(key) else emptyList()
-            _uiState.update {
-                it.copy(
-                    loading = false,
-                    kpatchInstalled = installed,
-                    items = items,
-                )
-            }
-        }
-    }
-
-    private fun loadKpmList(superkey: String): List<KpmItem> {
-        val names = KpatchShell.listKpms(superkey)
-        return names.map { name ->
-            KpmItem(name = name, info = KpatchShell.getKpmInfo(superkey, name) ?: "")
-        }
-    }
-
-    /**
-     * 保存 superkey 并重新检测 kpatch 状态。
-     * 传入空字符串表示清除自定义 key，回退到默认 "su"。
-     */
-    fun saveSuperkey(key: String) {
-        Config.kpatchSuperkey = key
-        _uiState.update { it.copy(superkey = key, loading = true) }
-        viewModelScope.launch(Dispatchers.IO) {
-            val installed = KpatchShell.isKpatchInstalled(key)
-            val version = if (installed) KpatchShell.getKpatchVersion(key) else null
-            val items = if (installed) loadKpmList(key) else emptyList()
+            val installed = KpatchShell.isKpatchInstalled()
+            val version = if (installed) KpatchShell.getKpatchVersion() else null
+            val items = if (installed) loadKpmList() else emptyList()
             _uiState.update {
                 it.copy(
                     loading = false,
@@ -120,6 +71,29 @@ class KpmViewModel : BaseViewModel() {
                     items = items,
                 )
             }
+        }
+    }
+
+    /** 下拉/重试刷新 KPM 列表。 */
+    fun refresh() {
+        _uiState.update { it.copy(loading = true) }
+        viewModelScope.launch(Dispatchers.IO) {
+            val installed = KpatchShell.isKpatchInstalled()
+            val items = if (installed) loadKpmList() else emptyList()
+            _uiState.update {
+                it.copy(
+                    loading = false,
+                    kpatchInstalled = installed,
+                    items = items,
+                )
+            }
+        }
+    }
+
+    private fun loadKpmList(): List<KpmItem> {
+        val names = KpatchShell.listKpms()
+        return names.map { name ->
+            KpmItem(name = name, info = KpatchShell.getKpmInfo(name) ?: "")
         }
     }
 
@@ -130,14 +104,13 @@ class KpmViewModel : BaseViewModel() {
      */
     fun loadKpm(kpmUri: Uri, args: String) {
         if (_busy.value) return
-        val key = _uiState.value.superkey
         _busy.value = true
         viewModelScope.launch(Dispatchers.IO) {
             val ctx: Context = AppContext
             // 将 Uri 拷贝到本地缓存目录后传给 kpcall，避免 SELinux/路径问题
             val localPath = copyUriToCache(ctx, kpmUri, "kpm_load.kpm")
             val ok = if (localPath != null) {
-                KpatchShell.loadKpm(key, localPath, args)
+                KpatchShell.loadKpm(localPath, args)
             } else false
             withContext(Dispatchers.Main) {
                 _busy.value = false
@@ -155,10 +128,9 @@ class KpmViewModel : BaseViewModel() {
     /** 卸载 KPM 模块。 */
     fun unloadKpm(name: String) {
         if (_busy.value) return
-        val key = _uiState.value.superkey
         _busy.value = true
         viewModelScope.launch(Dispatchers.IO) {
-            val ok = KpatchShell.unloadKpm(key, name)
+            val ok = KpatchShell.unloadKpm(name)
             withContext(Dispatchers.Main) {
                 _busy.value = false
                 if (ok) {
@@ -175,10 +147,9 @@ class KpmViewModel : BaseViewModel() {
     /** 控制 KPM 模块。 */
     fun controlKpm(name: String, ctlArgs: String) {
         if (_busy.value) return
-        val key = _uiState.value.superkey
         _busy.value = true
         viewModelScope.launch(Dispatchers.IO) {
-            val result = KpatchShell.controlKpm(key, name, ctlArgs)
+            val result = KpatchShell.controlKpm(name, ctlArgs)
             withContext(Dispatchers.Main) {
                 _busy.value = false
                 if (result != null) {
@@ -232,10 +203,9 @@ class KpmViewModel : BaseViewModel() {
      * 修补 boot 镜像，嵌入 kpatch。
      * 通常在用户首次启动 kpatch 支持时调用。
      * @param bootImgUri 原始 boot.img Uri
-     * @param superkey 用户设置的 superkey
      * @param onResult 输出路径（成功时）或 null（失败）
      */
-    fun patchBoot(bootImgUri: Uri, superkey: String, onResult: (String?) -> Unit) {
+    fun patchBoot(bootImgUri: Uri, onResult: (String?) -> Unit) {
         if (_busy.value) {
             onResult(null)
             return
@@ -246,18 +216,13 @@ class KpmViewModel : BaseViewModel() {
             val bootLocal = copyUriToCache(ctx, bootImgUri, "boot.img")
             val outputPath = "${ctx.cacheDir.absolutePath}/patched_boot.img"
             val result = if (bootLocal != null) {
-                KpatchShell.patchBoot(ctx, bootLocal, superkey, outputPath)
+                KpatchShell.patchBoot(ctx, bootLocal, outputPath)
             } else null
             withContext(Dispatchers.Main) {
                 _busy.value = false
                 when {
                     result == null -> onResult(null)
-                    result.success -> {
-                        // 修补成功后保存 superkey
-                        Config.kpatchSuperkey = superkey
-                        _uiState.update { it.copy(superkey = superkey) }
-                        onResult(outputPath)
-                    }
+                    result.success -> onResult(outputPath)
                     else -> {
                         // 修补失败：把日志回传便于排查
                         showSnackbar("patchBoot failed: ${result.log.take(200)}")
