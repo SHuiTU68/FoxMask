@@ -37,7 +37,9 @@ const SUPERCALL_KPM_LIST: i64 = 0x1031;
 const SUPERCALL_KPM_INFO: i64 = 0x1032;
 
 // supercall hello 成功返回值
-const SUPERCALL_HELLO_MAGIC: i64 = 0x11581158;
+// 注意：用 libc::c_long 而非 i64，保证与 libc::syscall 返回值类型一致，
+// 在 32 位 target（armeabi-v7a/x86，c_long=i32）上也能直接比较。
+const SUPERCALL_HELLO_MAGIC: libc::c_long = 0x11581158;
 
 // KernelPatch 版本码（0.13.1 = 0x0D01）
 // 用于 ver_and_cmd 的高 32 位
