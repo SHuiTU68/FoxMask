@@ -140,18 +140,19 @@ object KpatchShell {
         val keyArg = if (key == DEFAULT_KEY) "" else "-s '$key'"
 
         // 依次执行 unpack → patch 裸内核 → repack
-        val result = Shell.newJob().apply {
-            add("cd '${workDir.absolutePath}'")
-            add("rm -f kernel kernel.ori new-boot.img")
+        val cmds = arrayOf(
+            "cd '${workDir.absolutePath}'",
+            "rm -f kernel kernel.ori new-boot.img",
             // 1. unpack：从 boot.img 抽取裸内核到当前目录 kernel
-            add("'$kptools' unpack '${boot.absolutePath}'")
+            "'$kptools' unpack '${boot.absolutePath}'",
             // 2. 保留原始内核备份
-            add("mv kernel kernel.ori")
+            "mv kernel kernel.ori",
             // 3. patch 裸内核
-            add("'$kptools' -p -i kernel.ori $keyArg -k '$kpimg' -o kernel")
+            "'$kptools' -p -i kernel.ori $keyArg -k '$kpimg' -o kernel",
             // 4. repack：用修补后的 kernel 重新打包成 new-boot.img
-            add("'$kptools' repack '${boot.absolutePath}'")
-        }.exec()
+            "'$kptools' repack '${boot.absolutePath}'",
+        )
+        val result = Shell.cmd(*cmds).exec()
 
         val log = buildString {
             appendLine("code=${result.code}")
@@ -220,15 +221,16 @@ object KpatchShell {
             return PatchResult(false, "copy boot.img failed: ${e.message}")
         }
 
-        val result = Shell.newJob().apply {
-            add("cd '${workDir.absolutePath}'")
-            add("rm -f kernel kernel.ori new-boot.img")
-            add("'$kptools' unpack '${boot.absolutePath}'")
-            add("mv kernel kernel.ori")
+        val cmds = arrayOf(
+            "cd '${workDir.absolutePath}'",
+            "rm -f kernel kernel.ori new-boot.img",
+            "'$kptools' unpack '${boot.absolutePath}'",
+            "mv kernel kernel.ori",
             // -M 嵌入 KPM 模块，-T kpm 指定类型，-N 指定模块名
-            add("'$kptools' -p -i kernel.ori -M '$kpmPath' -T kpm -N '$kpmName' -o kernel")
-            add("'$kptools' repack '${boot.absolutePath}'")
-        }.exec()
+            "'$kptools' -p -i kernel.ori -M '$kpmPath' -T kpm -N '$kpmName' -o kernel",
+            "'$kptools' repack '${boot.absolutePath}'",
+        )
+        val result = Shell.cmd(*cmds).exec()
 
         val log = buildString {
             appendLine("code=${result.code}")
