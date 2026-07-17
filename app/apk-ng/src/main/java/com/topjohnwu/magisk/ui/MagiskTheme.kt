@@ -1,7 +1,11 @@
 package com.topjohnwu.magisk.ui
 
+import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -12,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.topjohnwu.magisk.core.Config
 import com.topjohnwu.magisk.ui.theme.LocalIsMonetTheme
@@ -30,61 +35,91 @@ object ThemeState {
 /// 避免到处直接读 ThemeState，也便于在 Preview 中覆盖。
 val LocalFloatingNav = staticCompositionLocalOf { true }
 
-/// 是否使用 Magisk 原始 md2 主题样式（Original 模式下为 true）。
-/// 下层组件据此切换卡片圆角/阴影/背景色等 md2 视觉特征。
+/// 是否使用 Magisk 原始 md2 主题样式（已弃用，保留兼容旧引用，恒为 false）。
+/// Original 模式现在直接用上游纯 Material3 视觉，不再有 md2 分支。
 val LocalMd2Style = staticCompositionLocalOf { false }
 
-/// Magisk 原始 md2 主题的视觉常量。
-/// 直接取自上游 app/apk 模块的 styles_md2_impl.xml / dimens.xml：
-///   - WidgetFoundation.Card: cardCornerRadius=@dimen/l_50(8dp), cardElevation=0dp,
-///     cardBackgroundColor=?colorSurfaceVariant
-///   - WidgetFoundation.Card.Primary: cardBackgroundColor=?colorPrimary
-///   - 首页 Magisk 卡标题: textColor=?colorPrimary
-/// 这些常量仅在 Original 模式下被组件引用。
+/// Magisk 原始 md2 主题的视觉常量（已弃用，保留兼容旧引用）。
 object MagiskMd2 {
     val cardCornerRadius = 8.dp
     val cardElevation = 0.dp
 }
 
-/// 主题入口 — 移植自 WeaveMask (github.com/Seyud/WeaveMask) 的主题架构。
+/// 主题入口。
 ///
-/// 以 MiuixTheme 为唯一真相源（通过 WeaveMagiskTheme/ThemeController 控制），
-/// 同时把 MiuixTheme 的 Colors 映射到 Material3 ColorScheme，
-/// 供现有 Material3 组件使用（MaterialTheme.colorScheme.xxx）。
+/// 双模式架构:
+/// - uiStyle=0 (Original): 直接用上游 Magisk 的纯 Material3 主题逻辑，
+///   Android 12+ 走系统 Material You (dynamicLightColorScheme/dynamicDarkColorScheme)，
+///   低版本/非 Monet 用 M3 默认 scheme。完全绕开 miuix，与上游 UI 视觉一致。
+/// - uiStyle=1 (MIUI): WeaveMagiskTheme (MiuixTheme + ThemeController) 为唯一真相源，
+///   通过 miuixColorsToM3() 把 miuix Colors 映射回 M3 ColorScheme。
 ///
 /// colorMode 取值:
-/// 0 = 跟随系统
-/// 1 = 亮色
-/// 2 = 暗色
-/// 3 = Monet 跟随系统
-/// 4 = Monet 亮色
-/// 5 = Monet 暗色
+/// 0 = 跟随系统 / 1 = 亮色 / 2 = 暗色
+/// 3 = Monet 跟随系统 / 4 = Monet 亮色 / 5 = Monet 暗色
 ///
-/// uiStyle:
-/// 0 = Original (Magisk md2 风格)
-/// 1 = MIUI (Miuix 风格)
-///
-/// keyColor: Monet 种子色，0 表示使用系统壁纸色
+/// uiStyle: 0 = Original (上游纯 M3) / 1 = MIUI (miuix)
+/// keyColor: Monet 种子色，0 表示使用系统壁纸色（仅 MIUI 模式生效）
 @Composable
 fun MagiskTheme(
     content: @Composable () -> Unit
 ) {
     val mode = ThemeState.colorMode
     val useMiuix = ThemeState.uiStyle == 1
-    // 悬浮底栏是 MIUI 模式专属特性，
-    // Original 模式始终用标准 M3 底栏，保持 Magisk 原始观感。
-    val useFloatingNav = ThemeState.floatingNav && useMiuix
-    // Original 模式启用 md2 样式（上游 app/apk 的 WidgetFoundation.Card 风格）
-    val useMd2Style = !useMiuix
+    // 悬浮底栏: MIUI 模式按用户设置; Original 模式始终悬浮(上游本就是悬浮底栏)
+    val useFloatingNav = if (useMiuix) ThemeState.floatingNav else true
 
-    // keyColor: 0 表示使用系统壁纸色（传 null 给 WeaveMagiskTheme）
+    // keyColor: 0 表示使用系统壁纸色（传 null 给 WeaveMagiskTheme），仅 MIUI 模式用
     val keyColorInt = ThemeState.keyColor
     val keyColor = if (keyColorInt == 0) null else Color(keyColorInt)
 
+    if (!useMiuix) {
+        // ============ Original 模式：上游纯 Material3 主题 ============
+        // 直接复刻上游 app/apk-ng/MagiskTheme.kt 逻辑，绕开 miuix。
+        // Original 模式不使用 keyColor，把 Monet 模式归并到对应非 Monet 模式：
+        //   1(亮色)/4(Monet亮色) -> 1(亮色)
+        //   2(暗色)/5(Monet暗色) -> 2(暗色)
+        //   0(系统)/3(Monet系统) -> 0(系统)
+        val originalMode = when (mode) {
+            1, 4 -> 1
+            2, 5 -> 2
+            else -> 0
+        }
+        val isDark = isSystemInDarkTheme()
+        val context = LocalContext.current
+        val isDarkTheme = when (originalMode) {
+            1 -> false
+            2 -> true
+            else -> isDark
+        }
+        // Original 模式走系统 Material You (Android 12+)，不用 keyColor 种子色
+        val useDynamicColor = originalMode == 3 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        // originalMode 已归并掉 3/4/5，实际不会进 useDynamicColor 分支；
+        // 保留逻辑与上游一致，若未来放开 Monet 归并则自动生效。
+        val colorScheme = when {
+            useDynamicColor && isDarkTheme -> dynamicDarkColorScheme(context)
+            useDynamicColor && !isDarkTheme -> dynamicLightColorScheme(context)
+            isDarkTheme -> darkColorScheme()
+            else -> lightColorScheme()
+        }
+        CompositionLocalProvider(
+            LocalFloatingNav provides useFloatingNav,
+            LocalMd2Style provides false,
+            LocalIsMonetTheme provides false,
+        ) {
+            MaterialTheme(
+                colorScheme = colorScheme,
+                content = content
+            )
+        }
+        return
+    }
+
+    // ============ MIUI 模式：miuix 主题 ============
     val wrapped = @Composable {
         CompositionLocalProvider(
             LocalFloatingNav provides useFloatingNav,
-            LocalMd2Style provides useMd2Style,
+            LocalMd2Style provides false,
         ) {
             // MaterialTheme 用 MiuixTheme 当前的 colors 映射，保证 M3 组件颜色一致
             val miuixColors = MiuixTheme.colorScheme
@@ -95,7 +130,7 @@ fun MagiskTheme(
             val seedColor = if (isMonet) keyColor else null
             val m3ColorScheme = miuixColorsToM3(
                 miuixColors,
-                isOriginal = useMd2Style,
+                isOriginal = false,
                 seedColor = seedColor
             )
             MaterialTheme(
@@ -105,33 +140,11 @@ fun MagiskTheme(
         }
     }
 
-    if (useMiuix) {
-        // MIUI 模式：WeaveMagiskTheme (MiuixTheme + ThemeController) 为唯一真相源
-        WeaveMagiskTheme(
-            colorMode = mode,
-            keyColor = keyColor,
-            content = wrapped
-        )
-    } else {
-        // Original 模式：也用 WeaveMagiskTheme（colorMode 0=跟随系统，用 miuix 默认配色），
-        // 但通过 LocalMd2Style 让组件切换为 md2 视觉风格。
-        // Original 模式不使用 keyColor/Monet，把 Monet 模式归并到对应的非 Monet 模式：
-        //   1(亮色)/4(Monet亮色) -> 1(亮色)
-        //   2(暗色)/5(Monet暗色) -> 2(暗色)
-        //   0(系统)/3(Monet系统) -> 0(系统)
-        // 否则用户在 Original 模式下切换 3/4/5 会被统一映射到 0(系统)，
-        // 系统是暗色时无论怎么切都是暗色主题。
-        val originalMode = when (mode) {
-            1, 4 -> 1
-            2, 5 -> 2
-            else -> 0
-        }
-        WeaveMagiskTheme(
-            colorMode = originalMode,
-            keyColor = null,
-            content = wrapped
-        )
-    }
+    WeaveMagiskTheme(
+        colorMode = mode,
+        keyColor = keyColor,
+        content = wrapped
+    )
 }
 
 /// 把 miuix Colors 映射到 Material3 ColorScheme，

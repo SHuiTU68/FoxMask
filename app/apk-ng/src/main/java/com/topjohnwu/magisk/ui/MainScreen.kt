@@ -158,11 +158,11 @@ fun MainScreen(initialTab: Int = Tab.HOME.ordinal) {
     }
 }
 
-/// 悬浮底栏：圆角胶囊形，MIUI 风格。
+/// 悬浮底栏：圆角胶囊形（上游 Magisk 原始样式）。
 ///
-/// 背景说明：
-/// 用完全不透明的 surfaceContainer 作为底栏背景，与 M3 标准底栏同色，
-/// 保证与主题 UI 颜色完全一致，不会出现色差或透出背后内容的"白条"。
+/// 背景用 MaterialTheme.colorScheme.surfaceContainer，与主题一致。
+/// Original 模式始终使用此底栏（与上游一致）；MIUI 模式下若用户关闭
+/// floatingNav 则改用 StandardNavigationBar。
 @Composable
 private fun FloatingNavigationBar(
     pagerState: PagerState,
@@ -173,36 +173,27 @@ private fun FloatingNavigationBar(
     val shape = RoundedCornerShape(28.dp)
     val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
-    // 底栏背景色：基于 surfaceContainer（M3 标准底栏色，与主题一致）。
-    val navBgColor = MaterialTheme.colorScheme.surfaceContainer
-
-    Box(
+    Row(
         modifier = modifier
             .padding(bottom = navBarInset + 12.dp, start = 24.dp, end = 24.dp)
             .shadow(elevation = 6.dp, shape = shape)
             .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
             .fillMaxWidth()
             .height(64.dp)
-            .background(navBgColor)
+            .padding(horizontal = 4.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // 内容层：图标和文字
-        Row(
-            modifier = Modifier
-                .matchParentSize()
-                .padding(horizontal = 4.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            visibleTabs.forEachIndexed { index, tab ->
-                FloatingNavItem(
-                    icon = ImageVector.vectorResource(tab.iconRes),
-                    label = stringResource(tab.titleRes),
-                    selected = pagerState.currentPage == index,
-                    enabled = true,
-                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                    modifier = Modifier.weight(1f)
-                )
-            }
+        visibleTabs.forEachIndexed { index, tab ->
+            FloatingNavItem(
+                icon = ImageVector.vectorResource(tab.iconRes),
+                label = stringResource(tab.titleRes),
+                selected = pagerState.currentPage == index,
+                enabled = true,
+                onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }

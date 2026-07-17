@@ -31,7 +31,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -79,8 +78,6 @@ import com.topjohnwu.magisk.core.ktx.toast
 import com.topjohnwu.magisk.core.tasks.AppMigration
 import com.topjohnwu.magisk.core.tasks.MagiskInstaller
 import com.topjohnwu.magisk.ui.MainActivity
-import com.topjohnwu.magisk.ui.LocalMd2Style
-import com.topjohnwu.magisk.ui.MagiskMd2
 import com.topjohnwu.magisk.ui.component.LoadingDialogHandle
 import com.topjohnwu.magisk.ui.component.MarkdownTextAsync
 import com.topjohnwu.magisk.ui.component.rememberLoadingDialog
@@ -90,32 +87,16 @@ import com.topjohnwu.magisk.ui.install.InstallViewModel
 import kotlinx.coroutines.launch
 import com.topjohnwu.magisk.core.R as CoreR
 
-/// 卡片组件：根据 LocalMd2Style 切换 md2 风格与 M3 默认风格。
-/// Original 模式（md2）：8dp 圆角、0dp 阴影、surfaceVariant 背景，
-///   对应上游 app/apk 的 WidgetFoundation.Card
-///   （styles_md2_impl.xml: cardCornerRadius=@dimen/l_50, cardElevation=0dp,
-///    cardBackgroundColor=?colorSurfaceVariant）
-/// MIUI 模式：24dp 圆角、M3 默认阴影、surface 背景。
+/// 卡片组件（上游 Magisk 样式）：24dp 圆角、M3 默认阴影与背景。
 @Composable
 private fun Md2Card(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    if (LocalMd2Style.current) {
-        Card(
-            modifier = modifier,
-            shape = RoundedCornerShape(MagiskMd2.cardCornerRadius),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = MagiskMd2.cardElevation),
-        ) { content() }
-    } else {
-        Card(
-            modifier = modifier,
-            shape = RoundedCornerShape(24.dp)
-        ) { content() }
-    }
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(24.dp)
+    ) { content() }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -441,14 +422,13 @@ private fun CoreCard(
                     painter = painterResource(CoreR.drawable.ic_magisk_outline),
                     contentDescription = null,
                     modifier = Modifier.size(48.dp),
-                    tint = if (LocalMd2Style.current) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(Modifier.width(16.dp))
                 Column {
                     Text(
                         text = stringResource(CoreR.string.magisk),
                         style = MaterialTheme.typography.titleLarge,
-                        color = if (LocalMd2Style.current) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
                         text = version.ifEmpty { stringResource(CoreR.string.not_available) },

@@ -3,12 +3,10 @@ package com.topjohnwu.magisk.ui.component
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,30 +22,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.topjohnwu.magisk.ui.LocalMd2Style
-import com.topjohnwu.magisk.ui.MagiskMd2
 
-/// 设置页分组容器卡片。
-/// Original 模式（md2）：8dp 圆角、0dp 阴影、surfaceVariant 背景，
-///   对应上游 app/apk 的 WidgetFoundation.Card
-/// MIUI 模式：M3 默认 Card 样式。
+/// 设置页分组容器卡片（上游 Magisk 样式）：M3 默认 Card。
 @Composable
 fun SettingsSectionCard(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    if (LocalMd2Style.current) {
-        Card(
-            modifier = modifier,
-            shape = RoundedCornerShape(MagiskMd2.cardCornerRadius),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = MagiskMd2.cardElevation),
-        ) { content() }
-    } else {
-        Card(modifier = modifier) { content() }
-    }
+    Card(modifier = modifier) { content() }
 }
 
 @Composable
