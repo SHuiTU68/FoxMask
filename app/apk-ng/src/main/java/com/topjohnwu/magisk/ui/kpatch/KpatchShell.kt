@@ -17,8 +17,11 @@ import java.io.File
  */
 object KpatchShell {
 
+    /** 修补结果：含成功标志与执行日志，便于失败时排查 */
+    data class PatchResult(val success: Boolean, val log: String)
+
     /** 内置打包的 KernelPatch 版本（与 assets 中的 kpimg 对应） */
-    const val PACKED_KP_VERSION = "0.13.1"
+    const val PACKED_KP_VERSION = "0.13.2"
 
     private const val KP_DIR_NAME = "kpatch"
 
@@ -95,28 +98,79 @@ object KpatchShell {
 
     /**
      * 修补 boot 镜像，嵌入 KernelPatch。
+     *
+     * 对齐官方 APatch boot_patch.sh 流程：
+     *   1. kptools unpack boot.img      → 抽取裸内核 kernel
+     *   2. kptools -p -i kernel.ori -k kpimg -o kernel   → 修补裸内核
+     *   3. kptools repack boot.img      → 生成 new-boot.img
+     *
+     * 注意：kptools -p 只接受裸内核（或 UNCOMPRESSED_IMG 头），不能直接处理 Android boot.img。
+     *
      * @param context 上下文
      * @param bootImgPath 原始 boot.img 路径
-     * @param superkey 修补时设置的 superkey，为空时使用默认 "su"
+     * @param superkey 修补时设置的 superkey，为空时使用默认 "su"（此时不传 key 参数，走 root-skey 模式）
      * @param outputPath 修补后输出路径
-     * @return 修补是否成功
+     * @return 修补结果（含成功标志与日志，便于排查失败原因）
      */
     fun patchBoot(
         context: Context,
         bootImgPath: String,
         superkey: String,
         outputPath: String,
-    ): Boolean {
-        if (!ensureBinaries(context)) return false
+    ): PatchResult {
+        if (!ensureBinaries(context)) {
+            return PatchResult(false, "ensureBinaries failed")
+        }
         val kptools = kptoolsPath(context)
         val kpimg = kpimgPath(context)
         val key = effectiveKey(superkey)
 
-        val result = Shell.cmd(
-            "$kptools -p -i '$bootImgPath' -k '$kpimg' -s '$key' -o '$outputPath'"
-        ).exec()
-        // kptools 成功时退出码为 0 并生成输出文件，不依赖其 stdout 文案（不同版本输出可能不同）
-        return result.isSuccess && File(outputPath).exists() && File(outputPath).length() > 0
+        // 可写工作目录：kptools unpack/repack 操作当前目录的 kernel / new-boot.img
+        val workDir = File(context.filesDir, "kpatch_work").apply { mkdirs() }
+        val boot = File(workDir, "boot.img")
+        try {
+            File(bootImgPath).inputStream().use { input ->
+                boot.outputStream().use { output -> input.copyTo(output) }
+            }
+        } catch (e: Exception) {
+            return PatchResult(false, "copy boot.img failed: ${e.message}")
+        }
+
+        // superkey 参数：默认 "su" 时不传（走 root-skey 模式）；否则用 -s 明文
+        val keyArg = if (key == DEFAULT_KEY) "" else "-s '$key'"
+
+        // 依次执行 unpack → patch 裸内核 → repack
+        val result = Shell.newJob().apply {
+            add("cd '${workDir.absolutePath}'")
+            add("rm -f kernel kernel.ori new-boot.img")
+            // 1. unpack：从 boot.img 抽取裸内核到当前目录 kernel
+            add("'$kptools' unpack '${boot.absolutePath}'")
+            // 2. 保留原始内核备份
+            add("mv kernel kernel.ori")
+            // 3. patch 裸内核
+            add("'$kptools' -p -i kernel.ori $keyArg -k '$kpimg' -o kernel")
+            // 4. repack：用修补后的 kernel 重新打包成 new-boot.img
+            add("'$kptools' repack '${boot.absolutePath}'")
+        }.exec()
+
+        val log = buildString {
+            appendLine("code=${result.code}")
+            result.out.forEach { appendLine("[out] $it") }
+            result.err.forEach { appendLine("[err] $it") }
+        }
+
+        val newBoot = File(workDir, "new-boot.img")
+        val ok = result.isSuccess && newBoot.exists() && newBoot.length() > 0
+        if (ok) {
+            try {
+                val out = File(outputPath).apply { parentFile?.mkdirs() }
+                newBoot.copyTo(out, overwrite = true)
+                return PatchResult(true, log)
+            } catch (e: Exception) {
+                return PatchResult(false, "$log\ncopy output failed: ${e.message}")
+            }
+        }
+        return PatchResult(false, log)
     }
 
     /**
@@ -133,13 +187,16 @@ object KpatchShell {
     }
 
     /**
-     * 嵌入 KPM 模块到 boot 镜像。
+     * 嵌入 KPM 模块到已修补 kpatch 的 boot 镜像。
+     *
+     * 同样遵循 unpack → patch（-M 嵌入）→ repack 流程，因为 kptools -p 只接受裸内核。
+     *
      * @param context 上下文
      * @param bootImgPath 已修补 kpatch 的 boot.img 路径
      * @param kpmPath .kpm 文件路径
      * @param kpmName 模块名称
      * @param outputPath 输出路径
-     * @return 嵌入是否成功
+     * @return 嵌入结果（含日志）
      */
     fun embedKpm(
         context: Context,
@@ -147,14 +204,50 @@ object KpatchShell {
         kpmPath: String,
         kpmName: String,
         outputPath: String,
-    ): Boolean {
-        if (!ensureBinaries(context)) return false
+    ): PatchResult {
+        if (!ensureBinaries(context)) {
+            return PatchResult(false, "ensureBinaries failed")
+        }
         val kptools = kptoolsPath(context)
 
-        val result = Shell.cmd(
-            "$kptools -p -i '$bootImgPath' -M '$kpmPath' -T kpm -N '$kpmName' -o '$outputPath'"
-        ).exec()
-        return result.isSuccess
+        val workDir = File(context.filesDir, "kpatch_work").apply { mkdirs() }
+        val boot = File(workDir, "boot.img")
+        try {
+            File(bootImgPath).inputStream().use { input ->
+                boot.outputStream().use { output -> input.copyTo(output) }
+            }
+        } catch (e: Exception) {
+            return PatchResult(false, "copy boot.img failed: ${e.message}")
+        }
+
+        val result = Shell.newJob().apply {
+            add("cd '${workDir.absolutePath}'")
+            add("rm -f kernel kernel.ori new-boot.img")
+            add("'$kptools' unpack '${boot.absolutePath}'")
+            add("mv kernel kernel.ori")
+            // -M 嵌入 KPM 模块，-T kpm 指定类型，-N 指定模块名
+            add("'$kptools' -p -i kernel.ori -M '$kpmPath' -T kpm -N '$kpmName' -o kernel")
+            add("'$kptools' repack '${boot.absolutePath}'")
+        }.exec()
+
+        val log = buildString {
+            appendLine("code=${result.code}")
+            result.out.forEach { appendLine("[out] $it") }
+            result.err.forEach { appendLine("[err] $it") }
+        }
+
+        val newBoot = File(workDir, "new-boot.img")
+        val ok = result.isSuccess && newBoot.exists() && newBoot.length() > 0
+        if (ok) {
+            try {
+                val out = File(outputPath).apply { parentFile?.mkdirs() }
+                newBoot.copyTo(out, overwrite = true)
+                return PatchResult(true, log)
+            } catch (e: Exception) {
+                return PatchResult(false, "$log\ncopy output failed: ${e.message}")
+            }
+        }
+        return PatchResult(false, log)
     }
 
     // ===== KPM 运行时管理（通过 kpcall supercall）=====

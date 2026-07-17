@@ -210,12 +210,20 @@ class KpmViewModel : BaseViewModel() {
             val bootLocal = copyUriToCache(ctx, bootImgUri, "boot.img")
             val kpmLocal = copyUriToCache(ctx, kpmUri, "$kpmName.kpm")
             val outputPath = "${ctx.cacheDir.absolutePath}/new_boot.img"
-            val ok = if (bootLocal != null && kpmLocal != null) {
+            val result = if (bootLocal != null && kpmLocal != null) {
                 KpatchShell.embedKpm(ctx, bootLocal, kpmLocal, kpmName, outputPath)
-            } else false
+            } else null
             withContext(Dispatchers.Main) {
                 _busy.value = false
-                onResult(if (ok) outputPath else null)
+                if (result == null) {
+                    onResult(null)
+                } else if (result.success) {
+                    onResult(outputPath)
+                } else {
+                    // 嵌入失败：把日志回传便于排查
+                    showSnackbar("embedKpm failed: ${result.log.take(200)}")
+                    onResult(null)
+                }
             }
         }
     }
@@ -237,17 +245,25 @@ class KpmViewModel : BaseViewModel() {
             val ctx: Context = AppContext
             val bootLocal = copyUriToCache(ctx, bootImgUri, "boot.img")
             val outputPath = "${ctx.cacheDir.absolutePath}/patched_boot.img"
-            val ok = if (bootLocal != null) {
+            val result = if (bootLocal != null) {
                 KpatchShell.patchBoot(ctx, bootLocal, superkey, outputPath)
-            } else false
+            } else null
             withContext(Dispatchers.Main) {
                 _busy.value = false
-                if (ok) {
-                    // 修补成功后保存 superkey
-                    Config.kpatchSuperkey = superkey
-                    _uiState.update { it.copy(superkey = superkey) }
+                when {
+                    result == null -> onResult(null)
+                    result.success -> {
+                        // 修补成功后保存 superkey
+                        Config.kpatchSuperkey = superkey
+                        _uiState.update { it.copy(superkey = superkey) }
+                        onResult(outputPath)
+                    }
+                    else -> {
+                        // 修补失败：把日志回传便于排查
+                        showSnackbar("patchBoot failed: ${result.log.take(200)}")
+                        onResult(null)
+                    }
                 }
-                onResult(if (ok) outputPath else null)
             }
         }
     }
