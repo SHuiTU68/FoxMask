@@ -66,8 +66,9 @@ fun MagiskTheme(
 ) {
     val mode = ThemeState.colorMode
     val useMiuix = ThemeState.uiStyle == 1
-    // 悬浮底栏: MIUI 模式按用户设置; Original 模式始终悬浮(上游本就是悬浮底栏)
-    val useFloatingNav = if (useMiuix) ThemeState.floatingNav else true
+    // 底栏: MIUI 模式按用户 floatingNav 设置(默认悬浮);
+    // Original 模式始终用标准底栏(贴底无圆角，对应上游 app/apk 老版观感)。
+    val useFloatingNav = useMiuix && ThemeState.floatingNav
 
     // keyColor: 0 表示使用系统壁纸色（传 null 给 WeaveMagiskTheme），仅 MIUI 模式用
     val keyColorInt = ThemeState.keyColor

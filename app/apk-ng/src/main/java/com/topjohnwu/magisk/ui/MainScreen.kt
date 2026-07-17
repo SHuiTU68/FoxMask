@@ -158,11 +158,9 @@ fun MainScreen(initialTab: Int = Tab.HOME.ordinal) {
     }
 }
 
-/// 悬浮底栏：圆角胶囊形（上游 Magisk 原始样式）。
+/// 悬浮底栏：圆角胶囊形（MIUI 风格，仅 MIUI 模式且 floatingNav=true 时使用）。
 ///
 /// 背景用 MaterialTheme.colorScheme.surfaceContainer，与主题一致。
-/// Original 模式始终使用此底栏（与上游一致）；MIUI 模式下若用户关闭
-/// floatingNav 则改用 StandardNavigationBar。
 @Composable
 private fun FloatingNavigationBar(
     pagerState: PagerState,
