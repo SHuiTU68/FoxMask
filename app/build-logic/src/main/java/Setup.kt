@@ -17,6 +17,7 @@ import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.filter
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.register
+import org.gradle.kotlin.dsl.withType
 import java.io.File
 import java.net.URI
 import java.security.MessageDigest
