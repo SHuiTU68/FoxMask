@@ -45,6 +45,10 @@ object KpatchShell {
     /**
      * 从 assets 复制 kptools/kpimg 到本地目录并设置可执行权限。
      * 幂等操作，已存在则跳过。
+     *
+     * 注意：本地目录 (app_data_file) 仅用于存放原始二进制，实际执行时
+     * 需要复制到 [Const.TMPDIR] (/dev/tmp，root 上下文) 才能执行——
+     * Android 10+ SELinux 在 enforcing 模式下禁止执行 app_data_file。
      */
     fun ensureBinaries(context: Context): Boolean {
         val dir = File(kpatchDir(context))
@@ -65,9 +69,36 @@ object KpatchShell {
             }
         }
 
-        // 设置可执行权限
-        Shell.cmd("chmod 755 '${kptools.absolutePath}'").exec()
         return kptools.exists() && kpimg.exists()
+    }
+
+    /**
+     * 在 [Const.TMPDIR] 下准备 kpatch 工作环境：
+     * - 复制 kptools / kpimg / 任意额外输入文件到 tmpfs
+     * - chmod +x kptools
+     * - 返回工作目录路径（已存在）
+     *
+     * SELinux 拒绝从 app_data_file 执行二进制（表现为 shell code=126），
+     * 因此必须把所有要执行的文件搬到 root 上下文的 tmpfs。
+     */
+    private fun prepareTmpWorkspace(context: Context, extraFiles: Map<String, String>): String {
+        val tmp = Const.TMPDIR
+        val workDir = "$tmp/kpatch_work"
+        val kptoolsSrc = kptoolsPath(context)
+        val kpimgSrc = kpimgPath(context)
+        val cmds = mutableListOf(
+            "rm -rf '$workDir'",
+            "mkdir -p '$workDir'",
+            "cp '$kptoolsSrc' '$workDir/kptools'",
+            "cp '$kpimgSrc' '$workDir/kpimg'",
+            "chmod 755 '$workDir/kptools'",
+        )
+        // extraFiles: 目标文件名 → 源路径（app data 中的路径）
+        extraFiles.forEach { (destName, srcPath) ->
+            cmds.add("cp '$srcPath' '$workDir/$destName'")
+        }
+        Shell.cmd(*cmds.toTypedArray()).exec()
+        return workDir
     }
 
     /**
@@ -121,36 +152,29 @@ object KpatchShell {
         if (!ensureBinaries(context)) {
             return PatchResult(false, "ensureBinaries failed")
         }
-        val kptools = kptoolsPath(context)
-        val kpimg = kpimgPath(context)
         val key = effectiveKey(superkey)
 
-        // 可写工作目录：kptools unpack/repack 操作当前目录的 kernel / new-boot.img
-        val workDir = File(context.filesDir, "kpatch_work").apply { mkdirs() }
-        val boot = File(workDir, "boot.img")
-        try {
-            File(bootImgPath).inputStream().use { input ->
-                boot.outputStream().use { output -> input.copyTo(output) }
-            }
-        } catch (e: Exception) {
-            return PatchResult(false, "copy boot.img failed: ${e.message}")
-        }
+        // 工作目录用 /dev/tmp（tmpfs，root 上下文，可执行）。
+        // 直接在 app data 目录执行 kptools 会因 SELinux 拒绝（code=126）。
+        val workDir = prepareTmpWorkspace(context, mapOf("boot.img" to bootImgPath))
+        val kptools = "$workDir/kptools"
+        val kpimg = "$workDir/kpimg"
 
         // superkey 参数：默认 "su" 时不传（走 root-skey 模式）；否则用 -s 明文
         val keyArg = if (key == DEFAULT_KEY) "" else "-s '$key'"
 
         // 依次执行 unpack → patch 裸内核 → repack
         val cmds = arrayOf(
-            "cd '${workDir.absolutePath}'",
+            "cd '$workDir'",
             "rm -f kernel kernel.ori new-boot.img",
             // 1. unpack：从 boot.img 抽取裸内核到当前目录 kernel
-            "'$kptools' unpack '${boot.absolutePath}'",
+            "'$kptools' unpack 'boot.img'",
             // 2. 保留原始内核备份
             "mv kernel kernel.ori",
             // 3. patch 裸内核
             "'$kptools' -p -i kernel.ori $keyArg -k '$kpimg' -o kernel",
             // 4. repack：用修补后的 kernel 重新打包成 new-boot.img
-            "'$kptools' repack '${boot.absolutePath}'",
+            "'$kptools' repack 'boot.img'",
         )
         val result = Shell.cmd(*cmds).exec()
 
@@ -160,18 +184,15 @@ object KpatchShell {
             result.err.forEach { appendLine("[err] $it") }
         }
 
-        val newBoot = File(workDir, "new-boot.img")
-        val ok = result.isSuccess && newBoot.exists() && newBoot.length() > 0
-        if (ok) {
-            try {
-                val out = File(outputPath).apply { parentFile?.mkdirs() }
-                newBoot.copyTo(out, overwrite = true)
-                return PatchResult(true, log)
-            } catch (e: Exception) {
-                return PatchResult(false, "$log\ncopy output failed: ${e.message}")
-            }
-        }
-        return PatchResult(false, log)
+        // 从 tmpfs 把 new-boot.img 拷回 outputPath（app data 或 cache 目录）
+        val fetch = Shell.cmd("cp '$workDir/new-boot.img' '$outputPath' && echo OK").exec()
+        val ok = result.isSuccess &&
+            fetch.out.any { it.contains("OK") } &&
+            File(outputPath).exists() &&
+            File(outputPath).length() > 0
+        // 清理 tmpfs 工作目录
+        Shell.cmd("rm -rf '$workDir'").submit()
+        return if (ok) PatchResult(true, log) else PatchResult(false, "$log\nfetch output failed")
     }
 
     /**
@@ -182,8 +203,14 @@ object KpatchShell {
      */
     fun isBootPatched(context: Context, bootImgPath: String): Boolean {
         if (!ensureBinaries(context)) return false
-        val kptools = kptoolsPath(context)
-        val result = Shell.cmd("$kptools -l -i '$bootImgPath'").exec()
+        // 同样需要在 tmpfs 执行 kptools，避免 SELinux 拒绝
+        val workDir = prepareTmpWorkspace(context, mapOf("boot.img" to bootImgPath))
+        val kptools = "$workDir/kptools"
+        val result = Shell.cmd(
+            "cd '$workDir'",
+            "'$kptools' -l -i 'boot.img'",
+        ).exec()
+        Shell.cmd("rm -rf '$workDir'").submit()
         return result.isSuccess && result.out.any { it.contains("patched=") }
     }
 
@@ -209,26 +236,23 @@ object KpatchShell {
         if (!ensureBinaries(context)) {
             return PatchResult(false, "ensureBinaries failed")
         }
-        val kptools = kptoolsPath(context)
 
-        val workDir = File(context.filesDir, "kpatch_work").apply { mkdirs() }
-        val boot = File(workDir, "boot.img")
-        try {
-            File(bootImgPath).inputStream().use { input ->
-                boot.outputStream().use { output -> input.copyTo(output) }
-            }
-        } catch (e: Exception) {
-            return PatchResult(false, "copy boot.img failed: ${e.message}")
-        }
+        // 同 patchBoot：用 /dev/tmp 避开 SELinux 对 app_data_file 的 exec 拒绝
+        val workDir = prepareTmpWorkspace(
+            context,
+            mapOf("boot.img" to bootImgPath, "module.kpm" to kpmPath),
+        )
+        val kptools = "$workDir/kptools"
+        val kpm = "$workDir/module.kpm"
 
         val cmds = arrayOf(
-            "cd '${workDir.absolutePath}'",
+            "cd '$workDir'",
             "rm -f kernel kernel.ori new-boot.img",
-            "'$kptools' unpack '${boot.absolutePath}'",
+            "'$kptools' unpack 'boot.img'",
             "mv kernel kernel.ori",
             // -M 嵌入 KPM 模块，-T kpm 指定类型，-N 指定模块名
-            "'$kptools' -p -i kernel.ori -M '$kpmPath' -T kpm -N '$kpmName' -o kernel",
-            "'$kptools' repack '${boot.absolutePath}'",
+            "'$kptools' -p -i kernel.ori -M '$kpm' -T kpm -N '$kpmName' -o kernel",
+            "'$kptools' repack 'boot.img'",
         )
         val result = Shell.cmd(*cmds).exec()
 
@@ -238,18 +262,13 @@ object KpatchShell {
             result.err.forEach { appendLine("[err] $it") }
         }
 
-        val newBoot = File(workDir, "new-boot.img")
-        val ok = result.isSuccess && newBoot.exists() && newBoot.length() > 0
-        if (ok) {
-            try {
-                val out = File(outputPath).apply { parentFile?.mkdirs() }
-                newBoot.copyTo(out, overwrite = true)
-                return PatchResult(true, log)
-            } catch (e: Exception) {
-                return PatchResult(false, "$log\ncopy output failed: ${e.message}")
-            }
-        }
-        return PatchResult(false, log)
+        val fetch = Shell.cmd("cp '$workDir/new-boot.img' '$outputPath' && echo OK").exec()
+        val ok = result.isSuccess &&
+            fetch.out.any { it.contains("OK") } &&
+            File(outputPath).exists() &&
+            File(outputPath).length() > 0
+        Shell.cmd("rm -rf '$workDir'").submit()
+        return if (ok) PatchResult(true, log) else PatchResult(false, "$log\nfetch output failed")
     }
 
     // ===== KPM 运行时管理（通过 kpcall supercall）=====
