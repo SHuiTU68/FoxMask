@@ -86,7 +86,9 @@ fun MagiskTheme(
         ) {
             // MaterialTheme 用 MiuixTheme 当前的 colors 映射，保证 M3 组件颜色一致
             val miuixColors = MiuixTheme.colorScheme
-            val m3ColorScheme = miuixColorsToM3(miuixColors)
+            // Original 模式希望顶栏/底栏/卡片颜色统一(纯黑或浅灰)，
+            // 与 MIUI 模式的"深灰底+纯黑卡片"分层风格区分。
+            val m3ColorScheme = miuixColorsToM3(miuixColors, isOriginal = useMd2Style)
             MaterialTheme(
                 colorScheme = m3ColorScheme,
                 content = content
@@ -125,17 +127,93 @@ fun MagiskTheme(
 ///   浅色: surface=0xFFF7F7F7, surfaceContainer=White, surfaceContainerHigh=0xFFE8E8E8
 ///   暗色: surface=Black, surfaceContainer=0xFF242424, surfaceContainerHighest=0xFF2D2D2D
 ///
-/// 1. 顶栏(TopAppBar 未滚动透明)透出 Scaffold 背景 = background，
-///    底栏(NavigationBar)用 surfaceContainer。让 background = surfaceContainer，
-///    保证顶栏与底栏颜色一致，避免黑色主题下顶栏纯黑、底栏深灰的割裂。
+/// MIUI 模式(isOriginal=false):
+///   - background = surfaceContainer: 顶栏(TopAppBar 透明透出 Scaffold 背景)与
+///     底栏(NavigationBar 用 surfaceContainer)颜色一致，避免黑色主题顶栏纯黑、
+///     底栏深灰的割裂。
+///   - 浅色 surfaceContainer 用 surfaceContainerHigh(0xFFE8E8E8)替代纯白，降低亮度。
+///   - 卡片 surfaceVariant = c.surface（浅色0xFFF7F7F7/暗色Black），与背景形成
+///     分层：MIUI 风格的"深灰底+纯黑卡片"。
 ///
-/// 2. 浅色模式 surfaceContainer=White(纯白)过亮，改用 surfaceContainerHigh(0xFFE8E8E8)
-///    作为 background 和 surfaceContainer，降低整体亮度。
-///
-/// 3. 卡片用 surfaceVariant，映射为 c.surface（浅色0xFFF7F7F7/暗色Black），
-///    与背景(surfaceContainer)形成区分：浅色卡片比背景浅，暗色卡片比背景深(MIUI风格)。
-private fun miuixColorsToM3(c: top.yukonga.miuix.kmp.theme.Colors): androidx.compose.material3.ColorScheme {
+/// Original 模式(isOriginal=true):
+///   - 顶栏/底栏/卡片统一用 c.surface（暗色纯黑/浅色0xFFF7F7F7），与主题一致，
+///     不做分层，保持 Magisk md2 原始的扁平统一观感。
+private fun miuixColorsToM3(
+    c: top.yukonga.miuix.kmp.theme.Colors,
+    isOriginal: Boolean = false
+): androidx.compose.material3.ColorScheme {
     val isDark = c.background.luminance() < 0.5f
+    if (isOriginal) {
+        // Original 模式：顶栏/底栏/卡片统一用 c.surface，与主题颜色一致
+        return if (isDark) {
+            darkColorScheme(
+                primary = c.primary,
+                onPrimary = c.onPrimary,
+                primaryContainer = c.primaryContainer,
+                onPrimaryContainer = c.onPrimaryContainer,
+                secondary = c.secondary,
+                onSecondary = c.onSecondary,
+                secondaryContainer = c.secondaryContainer,
+                onSecondaryContainer = c.onSecondaryContainer,
+                tertiary = c.tertiaryContainer,
+                onTertiary = c.onTertiaryContainer,
+                tertiaryContainer = c.tertiaryContainer,
+                onTertiaryContainer = c.onTertiaryContainer,
+                background = c.surface,
+                onBackground = c.onBackground,
+                surface = c.surface,
+                onSurface = c.onSurface,
+                surfaceVariant = c.surface,
+                onSurfaceVariant = c.onSurfaceVariantSummary,
+                surfaceTint = c.primary,
+                outline = c.outline,
+                outlineVariant = c.dividerLine,
+                error = c.error,
+                onError = c.onError,
+                errorContainer = c.errorContainer,
+                onErrorContainer = c.onErrorContainer,
+                surfaceContainer = c.surface,
+                surfaceContainerHigh = c.surface,
+                surfaceContainerHighest = c.surface,
+                surfaceContainerLow = c.surface,
+                surfaceContainerLowest = c.surface,
+            )
+        } else {
+            lightColorScheme(
+                primary = c.primary,
+                onPrimary = c.onPrimary,
+                primaryContainer = c.primaryContainer,
+                onPrimaryContainer = c.onPrimaryContainer,
+                secondary = c.secondary,
+                onSecondary = c.onSecondary,
+                secondaryContainer = c.secondaryContainer,
+                onSecondaryContainer = c.onSecondaryContainer,
+                tertiary = c.tertiaryContainer,
+                onTertiary = c.onTertiaryContainer,
+                tertiaryContainer = c.tertiaryContainer,
+                onTertiaryContainer = c.onTertiaryContainer,
+                background = c.surface,
+                onBackground = c.onBackground,
+                surface = c.surface,
+                onSurface = c.onSurface,
+                surfaceVariant = c.surface,
+                onSurfaceVariant = c.onSurfaceVariantSummary,
+                surfaceTint = c.primary,
+                outline = c.outline,
+                outlineVariant = c.dividerLine,
+                error = c.error,
+                onError = c.onError,
+                errorContainer = c.errorContainer,
+                onErrorContainer = c.onErrorContainer,
+                surfaceContainer = c.surface,
+                surfaceContainerHigh = c.surface,
+                surfaceContainerHighest = c.surface,
+                surfaceContainerLow = c.surface,
+                surfaceContainerLowest = c.surface,
+            )
+        }
+    }
+    // MIUI 模式：深灰底+纯黑卡片的分层风格
     return if (isDark) {
         darkColorScheme(
             primary = c.primary,
