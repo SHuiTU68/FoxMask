@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -319,6 +320,30 @@ private fun ModuleCard(item: ModuleItem, viewModel: ModuleViewModel, onUpdateCli
                                 )
                                 Text(
                                     text = stringResource(CoreR.string.module_action),
+                                    color = actionIconTint,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
+                        }
+                    }
+                    if (item.showWebUI) {
+                        Button(
+                            colors = ButtonDefaults.buttonColors(containerColor = actionBg),
+                            contentPadding = PaddingValues(horizontal = 10.dp),
+                            onClick = { viewModel.runWebUI(item.module.id, item.module.name) },
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(20.dp),
+                                    imageVector = Icons.Default.Public,
+                                    tint = actionIconTint,
+                                    contentDescription = stringResource(CoreR.string.module_webui)
+                                )
+                                Text(
+                                    text = stringResource(CoreR.string.module_webui),
                                     color = actionIconTint,
                                     style = MaterialTheme.typography.bodyMedium,
                                 )

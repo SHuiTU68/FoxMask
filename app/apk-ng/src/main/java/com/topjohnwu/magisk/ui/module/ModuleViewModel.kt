@@ -28,6 +28,7 @@ import kotlinx.parcelize.Parcelize
 class ModuleItem(val module: LocalModule) {
     val showNotice: Boolean
     val showAction: Boolean
+    val showWebUI: Boolean
     val noticeText: TextHolder
 
     init {
@@ -39,6 +40,7 @@ class ModuleItem(val module: LocalModule) {
             (Info.isZygiskEnabled && isRiru) ||
             (!Info.isZygiskEnabled && isZygisk)
         showAction = module.hasAction && !showNotice
+        showWebUI = module.hasWebUI && !showNotice
         noticeText =
             when {
                 zygiskUnloaded -> CoreR.string.zygisk_module_unloaded.asText()
@@ -115,6 +117,10 @@ class ModuleViewModel : AsyncLoadViewModel() {
 
     fun runAction(id: String, name: String) {
         navigateTo(Route.Action(id, name))
+    }
+
+    fun runWebUI(id: String, name: String) {
+        navigateTo(Route.WebUI(id, name))
     }
 
     fun toggleEnabled(item: ModuleItem) {
