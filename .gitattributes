@@ -20,4 +20,8 @@ tools/elf-cleaner/** -binary
 *.png binary
 *.jpg binary
 *.ttf binary
+*.so binary
+*.kpm binary
 app/core/src/main/assets/kpatch/* binary
+app/apk-ng/src/main/assets/kpatch/* binary
+app/apk-ng/src/main/jniLibs/**/*.so binary
