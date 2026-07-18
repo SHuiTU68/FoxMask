@@ -60,10 +60,10 @@ import com.topjohnwu.magisk.core.R as CoreR
 
 enum class Tab(val titleRes: Int, val iconRes: Int) {
     MODULES(CoreR.string.modules, R.drawable.ic_module),
-    SUPERUSER(CoreR.string.superuser, CoreR.drawable.ic_superuser),
+    SETTINGS(CoreR.string.settings, R.drawable.ic_settings),
     HOME(CoreR.string.section_home, R.drawable.ic_home),
     LOG(CoreR.string.logs, R.drawable.ic_bug),
-    SETTINGS(CoreR.string.settings, R.drawable.ic_settings);
+    SUPERUSER(CoreR.string.superuser, CoreR.drawable.ic_superuser);
 }
 
 @Composable
