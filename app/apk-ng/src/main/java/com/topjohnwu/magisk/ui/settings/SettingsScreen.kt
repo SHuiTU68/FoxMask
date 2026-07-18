@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.os.Build
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -42,6 +44,7 @@ import com.topjohnwu.magisk.core.isRunningAsStub
 import com.topjohnwu.magisk.core.utils.LocaleSetting
 import com.topjohnwu.magisk.core.utils.MediaStoreUtils
 import com.topjohnwu.magisk.ui.ThemeState
+import com.topjohnwu.magisk.ui.component.KitsuneWallpaper
 import com.topjohnwu.magisk.ui.component.SettingsArrow
 import com.topjohnwu.magisk.ui.component.SettingsDropdown
 import com.topjohnwu.magisk.ui.component.SettingsSectionCard
@@ -49,6 +52,9 @@ import com.topjohnwu.magisk.ui.component.SettingsSwitch
 import com.topjohnwu.magisk.ui.component.AdaptiveSmallTitle
 import com.topjohnwu.magisk.ui.component.SmallTitle
 import com.topjohnwu.magisk.ui.theme.MonetPresetPalette
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.topjohnwu.magisk.core.R as CoreR
 
 /// 从 Context 递归解包出 Activity（LocalContext 返回的可能是 ContextWrapper）
@@ -104,6 +110,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 @Composable
 private fun CustomizationSection(viewModel: SettingsViewModel) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     AdaptiveSmallTitle(text = stringResource(CoreR.string.settings_customization))
     SettingsSectionCard(modifier = Modifier.fillMaxWidth()) {
@@ -245,6 +252,26 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
                 onClick = { viewModel.requestAddShortcut() }
             )
         }
+
+        // 设置 Kitsune 壁纸 — 把内置狐面壁纸应用到系统桌面。
+        // 渲染矢量图→bitmap→WallpaperManager.setBitmap，在 IO 线程执行。
+        SettingsArrow(
+            title = stringResource(CoreR.string.settings_kitsune_wallpaper_title),
+            summary = stringResource(CoreR.string.settings_kitsune_wallpaper_summary),
+            onClick = {
+                val appContext = context.applicationContext
+                scope.launch {
+                    val ok = withContext(Dispatchers.IO) {
+                        KitsuneWallpaper.apply(appContext)
+                    }
+                    val msg = if (ok)
+                        appContext.getString(CoreR.string.kitsune_wallpaper_applied)
+                    else
+                        appContext.getString(CoreR.string.kitsune_wallpaper_failed)
+                    Toast.makeText(appContext, msg, Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
     }
 }
 

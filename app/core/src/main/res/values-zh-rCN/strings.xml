@@ -210,6 +210,10 @@
     <string name="settings_floating_nav_glass_summary">为悬浮底栏启用液态玻璃效果（折射+色散+模糊，需 Android 13+ 才能完整呈现）</string>
     <string name="settings_predictive_back_title">预测性返回手势</string>
     <string name="settings_predictive_back_summary">启用预测性返回手势支持（Android 14+），默认关闭</string>
+    <string name="settings_kitsune_wallpaper_title">应用狐面壁纸</string>
+    <string name="settings_kitsune_wallpaper_summary">将内置狐面（Kitsune mask）壁纸设为桌面背景</string>
+    <string name="kitsune_wallpaper_applied">狐面壁纸已应用</string>
+    <string name="kitsune_wallpaper_failed">壁纸应用失败</string>
     <string name="setting_add_shortcut_summary">在隐藏后难以识别名称和图标的情况下，添加快捷方式到桌面</string>
     <string name="settings_doh_title">安全 DNS（DoH）</string>
     <string name="settings_doh_description">解决某些地区的 DNS 污染问题</string>

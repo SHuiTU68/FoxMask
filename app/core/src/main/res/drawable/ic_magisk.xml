@@ -1,20 +1,29 @@
 <vector android:height="48dp" android:viewportHeight="720"
     android:viewportWidth="720" android:width="48dp" xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 狐狸主体轮廓（橙色）：头部 + 两只尖耳朵 -->
-    <path android:fillColor="#FF6E40" android:pathData="M 360,255 L 290,270 L 165,80 L 130,340 C 115,460 175,605 360,655 C 545,605 605,460 590,340 L 555,80 L 430,270 L 360,255 Z"/>
-    <!-- 左耳内侧（白色） -->
-    <path android:fillColor="#FFFFFF" android:pathData="M 180,160 L 197,300 L 268,280 Z"/>
-    <!-- 右耳内侧（白色） -->
-    <path android:fillColor="#FFFFFF" android:pathData="M 540,160 L 523,300 L 452,280 Z"/>
-    <!-- 脸部白色面具（吻部 + 脸颊） -->
-    <path android:fillColor="#FFFFFF" android:pathData="M 360,275 C 305,285 270,310 250,365 C 230,425 240,500 285,560 C 320,600 345,615 360,615 C 375,615 400,600 435,560 C 480,500 490,425 470,365 C 450,310 415,285 360,275 Z"/>
-    <!-- 左眼（深色） -->
-    <path android:fillColor="#303030" android:pathData="M 280,395 C 300,380 325,385 335,400 C 320,415 295,415 280,395 Z"/>
-    <!-- 右眼（深色） -->
-    <path android:fillColor="#303030" android:pathData="M 440,395 C 420,380 395,385 385,400 C 400,415 425,415 440,395 Z"/>
-    <!-- 鼻子（深色三角形） -->
-    <path android:fillColor="#303030" android:pathData="M 360,490 L 340,468 L 380,468 Z"/>
-    <!-- 嘴部线条（深色） -->
-    <path android:fillColor="#303030" android:pathData="M 354,490 L 366,490 L 366,520 L 354,520 Z"/>
-    <path android:fillColor="#303030" android:pathData="M 360,520 L 340,540 L 350,545 L 360,535 L 370,545 L 380,540 Z"/>
+    <!-- 和风狐面（Kitsune mask）：白脸 + 红纹 + 黑眼 + 尖耳 -->
+    <!-- 主体面具轮廓（米白）：双尖耳 + 耳间凹陷 + 外扩脸颊 + 收窄下颌 -->
+    <path android:fillColor="#F5F0E6" android:pathData="M 360,108 L 296,72 L 248,162 C 192,184 148,260 148,348 C 148,444 200,540 292,602 L 360,638 L 428,602 C 520,540 572,444 572,348 C 572,260 528,184 472,162 L 424,72 Z"/>
+    <!-- 左耳内侧（朱红） -->
+    <path android:fillColor="#C8332B" android:pathData="M 296,72 L 266,150 L 286,150 L 300,108 Z"/>
+    <!-- 右耳内侧（朱红） -->
+    <path android:fillColor="#C8332B" android:pathData="M 424,72 L 454,150 L 434,150 L 420,108 Z"/>
+    <!-- 额头中央红色菱纹（狐面经典额饰） -->
+    <path android:fillColor="#C8332B" android:pathData="M 360,150 L 344,182 L 360,206 L 376,182 Z"/>
+    <!-- 左眼周红纹（叶形，向外下方延伸） -->
+    <path android:fillColor="#C8332B" android:pathData="M 244,332 C 270,306 316,320 326,358 C 304,386 252,374 244,332 Z"/>
+    <!-- 右眼周红纹（叶形，向外下方延伸） -->
+    <path android:fillColor="#C8332B" android:pathData="M 476,332 C 450,306 404,320 394,358 C 416,386 468,374 476,332 Z"/>
+    <!-- 左眼（黑色杏仁形） -->
+    <path android:fillColor="#1A1A1A" android:pathData="M 258,348 C 284,336 314,344 320,360 C 294,370 268,364 258,348 Z"/>
+    <!-- 右眼（黑色杏仁形） -->
+    <path android:fillColor="#1A1A1A" android:pathData="M 462,348 C 436,336 406,344 400,360 C 426,370 452,364 462,348 Z"/>
+    <!-- 鼻子（黑色小三角，朝下） -->
+    <path android:fillColor="#1A1A1A" android:pathData="M 360,452 L 346,434 L 374,434 Z"/>
+    <!-- 嘴部红色线条：从鼻尖向下分叉 -->
+    <path android:fillColor="#C8332B" android:strokeColor="#C8332B" android:strokeWidth="6" android:strokeLineCap="round" android:pathData="M 360,452 L 360,488"/>
+    <path android:fillColor="#C8332B" android:strokeColor="#C8332B" android:strokeWidth="6" android:strokeLineCap="round" android:pathData="M 360,488 Q 344,504 330,498"/>
+    <path android:fillColor="#C8332B" android:strokeColor="#C8332B" android:strokeWidth="6" android:strokeLineCap="round" android:pathData="M 360,488 Q 376,504 390,498"/>
+    <!-- 颊侧红色短纹（狐面腮红装饰） -->
+    <path android:fillColor="#C8332B" android:pathData="M 196,408 C 214,400 232,404 242,416 C 226,428 204,422 196,408 Z"/>
+    <path android:fillColor="#C8332B" android:pathData="M 524,408 C 506,400 488,404 478,416 C 494,428 516,422 524,408 Z"/>
 </vector>

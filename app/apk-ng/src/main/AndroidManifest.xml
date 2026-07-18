@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- 设置 Kitsune 壁纸功能需要 SET_WALLPAPER（普通权限，安装时自动授予） -->
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+
     <!-- miuix-blur 库声明的 minSdk=33 高于本项目 minSdk=23。
          该库内部有 isRenderEffectSupported()(API 31+)/isRuntimeShaderSupported()(API 33+)
          运行时判断，低版本自动降级；本项目所有液态玻璃调用均在 SettingsScreen 用
