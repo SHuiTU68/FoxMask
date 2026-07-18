@@ -19,10 +19,10 @@ static void zygiskd(int socket) {
 
 #if defined(__LP64__)
     set_nice_name("sys_comp64");
-    LOGI("* Launching sys_comp64\n");
+    ZLOGV("launching sys_comp64\n");
 #else
     set_nice_name("sys_comp32");
-    LOGI("* Launching sys_comp32\n");
+    ZLOGV("launching sys_comp32\n");
 #endif
 
     // Load modules
@@ -40,7 +40,8 @@ static void zygiskd(int socket) {
                 if (void *h = android_dlopen_ext("/jit-cache", RTLD_LAZY, &info)) {
                     *(void **) &entry = dlsym(h, "zygisk_companion_entry");
                 } else {
-                    LOGW("Failed to dlopen zygisk module: %s\n", dlerror());
+                    // 反检测：日志不含 "zygisk module" 字样，改为通用描述
+                    LOGW("Failed to dlopen companion module: %s\n", dlerror());
                 }
             }
             modules.push_back(entry);
@@ -77,7 +78,8 @@ static void zygiskd(int socket) {
 // This should only ever be called internally
 int zygisk_main(int argc, char *argv[]) {
     android_logging();
-    if (argc == 3 && argv[1] == "companion"sv) {
+    // 反检测：argv[1] 从 "companion" 改为 "init"，与 daemon.rs execl 同步。
+    if (argc == 3 && argv[1] == "init"sv) {
         zygiskd(parse_int(argv[2]));
     }
     return 0;

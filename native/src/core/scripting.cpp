@@ -25,12 +25,11 @@ static void set_script_env() {
     char new_path[4096];
     ssprintf(new_path, sizeof(new_path), "%s:%s", getenv("PATH"), get_magisk_tmp());
     setenv("PATH", new_path, 1);
-    if (MagiskD::Get().zygisk_enabled())
-        setenv("ZYGISK_ENABLED", "1", 1);
-    if (MagiskD::Get().sulist_enabled())
-        setenv("SULIST_ENABLED", "1", 1);
-    if (MagiskD::Get().mount_modules_enabled())
-        setenv("MOUNT_MODULES_ENABLED", "1", 1);
+    // 反检测：不再向 shell 脚本子进程注入 ZYGISK_ENABLED/SULIST_ENABLED/
+    // MOUNT_MODULES_ENABLED 环境变量。这些变量会被脚本启动的子进程继承，
+    // 检测方可通过 /proc/<pid>/environ 直接读取。
+    // Magisk app 进程的状态查询仍由 module.cpp 的 app_specialize_post 设置
+    // （仅 Magisk app 主进程，UID 隔离已保护）。
 };
 
 void exec_script(Utf8CStr script) {
