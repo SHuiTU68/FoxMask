@@ -195,9 +195,11 @@
     <string name="settings_kpatch_status_hint">Patch the boot image with kptools and flash it to enable KernelPatch support.</string>
     <string name="settings_kpatch_actions_title">Actions</string>
     <string name="settings_kpatch_patch_boot">Patch Boot</string>
-    <string name="settings_kpatch_embed_kpm">Embed KPM</string>
     <string name="settings_kpatch_patch_done">Boot image patched: %1$s</string>
-    <string name="settings_kpatch_embed_done">KPM embedded: %1$s</string>
+    <string name="settings_kpatch_embed_choice_title">Embed KPM module?</string>
+    <string name="settings_kpatch_embed_choice_msg">Do you want to embed a KPM module into the boot image? The module name will be read automatically from the .kpm.info section.</string>
+    <string name="settings_kpatch_embed_choice_yes">Embed KPM</string>
+    <string name="settings_kpatch_embed_choice_no">Patch only</string>
     <string name="settings_kpatch_kpm_list_title">Loaded KPM Modules</string>
     <string name="settings_kpatch_kpm_empty">No KPM module loaded</string>
     <string name="settings_kpatch_kpm_load">Load KPM</string>

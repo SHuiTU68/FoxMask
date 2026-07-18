@@ -37,7 +37,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -80,10 +79,21 @@ fun KpmScreen(
     val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-    // 修补 boot picker
-    val bootPickerSimple = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    // boot picker：选完 boot 后弹对话框让用户选择是否嵌入 KPM
+    var pendingBootUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var showEmbedChoiceDialog by remember { mutableStateOf(false) }
+    val bootPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
-        viewModel.patchBoot(uri) { out ->
+        pendingBootUri = uri
+        showEmbedChoiceDialog = true
+    }
+
+    // 选完 boot 后，如果用户选"嵌入 KPM"，再弹 KPM picker
+    val kpmPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        val bootUri = pendingBootUri
+        pendingBootUri = null
+        if (uri == null || bootUri == null) return@rememberLauncherForActivityResult
+        viewModel.patchBoot(bootUri, uri) { out ->
             if (out != null) {
                 viewModel.showSnackbar(context.getString(CoreR.string.settings_kpatch_patch_done, out))
             } else {
@@ -96,26 +106,6 @@ fun KpmScreen(
     val loadKpmPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         viewModel.loadKpm(uri, "")
-    }
-
-    // 嵌入 KPM 两步：先选 boot，再选 KPM 模块（模块名由 kptools 自动读取）
-    var embedBootUri by remember { mutableStateOf<android.net.Uri?>(null) }
-    val embedKpmPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        val bootUri = embedBootUri
-        embedBootUri = null
-        if (uri == null || bootUri == null) return@rememberLauncherForActivityResult
-        viewModel.embedKpm(bootUri, uri) { out ->
-            if (out != null) {
-                viewModel.showSnackbar(context.getString(CoreR.string.settings_kpatch_embed_done, out))
-            } else {
-                viewModel.showSnackbar(context.getString(CoreR.string.failure))
-            }
-        }
-    }
-    val embedBootPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        embedBootUri = uri
-        embedKpmPicker.launch("*/*")
     }
 
     // 控制 KPM 参数对话框
@@ -182,15 +172,9 @@ fun KpmScreen(
                 ActionsCard(
                     onPatchBoot = {
                         viewModel.clearPatchLog()
-                        bootPickerSimple.launch("*/*")
-                    },
-                    onEmbedKpm = {
-                        viewModel.clearPatchLog()
-                        embedBootPicker.launch("*/*")
+                        bootPicker.launch("*/*")
                     },
                     enabled = !busy,
-                    // 嵌入 KPM 不需要前置条件：kptools -p 会同时嵌入 kpatch 和 KPM
-                    embedEnabled = !busy,
                 )
             }
 
@@ -249,6 +233,43 @@ fun KpmScreen(
                 }
             }
         }
+    }
+
+    // 选完 boot 后的"是否嵌入 KPM"对话框（APatch 风格）
+    if (showEmbedChoiceDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showEmbedChoiceDialog = false
+                pendingBootUri = null
+            },
+            title = { Text(stringResource(CoreR.string.settings_kpatch_embed_choice_title)) },
+            text = { Text(stringResource(CoreR.string.settings_kpatch_embed_choice_msg)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showEmbedChoiceDialog = false
+                    kpmPicker.launch("*/*")
+                }) {
+                    Text(stringResource(CoreR.string.settings_kpatch_embed_choice_yes))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showEmbedChoiceDialog = false
+                    val bootUri = pendingBootUri
+                    pendingBootUri = null
+                    if (bootUri == null) return@TextButton
+                    viewModel.patchBoot(bootUri, null) { out ->
+                        if (out != null) {
+                            viewModel.showSnackbar(context.getString(CoreR.string.settings_kpatch_patch_done, out))
+                        } else {
+                            viewModel.showSnackbar(context.getString(CoreR.string.failure))
+                        }
+                    }
+                }) {
+                    Text(stringResource(CoreR.string.settings_kpatch_embed_choice_no))
+                }
+            },
+        )
     }
 
     // 控制 KPM 参数对话框
@@ -367,9 +388,7 @@ private fun StatusCard(state: KpmViewModel.UiState, busy: Boolean) {
 @Composable
 private fun ActionsCard(
     onPatchBoot: () -> Unit,
-    onEmbedKpm: () -> Unit,
     enabled: Boolean,
-    embedEnabled: Boolean,
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -378,28 +397,14 @@ private fun ActionsCard(
                 style = MaterialTheme.typography.titleMedium,
             )
             Spacer(Modifier.height(8.dp))
-            Row(
+            Button(
+                onClick = onPatchBoot,
+                enabled = enabled,
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                OutlinedButton(
-                    onClick = onPatchBoot,
-                    enabled = enabled,
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Icon(Icons.Default.Build, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(CoreR.string.settings_kpatch_patch_boot))
-                }
-                OutlinedButton(
-                    onClick = onEmbedKpm,
-                    enabled = embedEnabled,
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(CoreR.string.settings_kpatch_embed_kpm))
-                }
+                Icon(Icons.Default.Build, contentDescription = null)
+                Spacer(Modifier.width(4.dp))
+                Text(stringResource(CoreR.string.settings_kpatch_patch_boot))
             }
         }
     }

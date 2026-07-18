@@ -52,8 +52,6 @@ class KpmViewModel : BaseViewModel() {
         val patching: Boolean = false,
         /** 修补完成（成功）标志，控制结果提示 */
         val patchDone: Boolean = false,
-        /** 是否已有 boot 镜像可用（修补成功后置 true，用于 gating 嵌入 KPM 按钮） */
-        val hasBoot: Boolean = false,
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -185,45 +183,13 @@ class KpmViewModel : BaseViewModel() {
     }
 
     /**
-     * 嵌入 KPM 模块到 boot 镜像。
-     * 注意：嵌入是离线操作，不需要 kpatch 已安装到内核，也不需要 root。
-     * 输出文件写入 Downloads 目录。模块名由 kptools 自动从 .kpm.info section 读取。
-     * @param bootImgUri 已修补 kpatch 的 boot.img Uri
-     * @param kpmUri .kpm 文件 Uri
-     * @param onResult 输出文件 Uri（成功时）或 null（失败）
-     */
-    fun embedKpm(bootImgUri: Uri, kpmUri: Uri, onResult: (String?) -> Unit) {
-        if (_busy.value) {
-            onResult(null)
-            return
-        }
-        _busy.value = true
-        _uiState.update { it.copy(patching = true, patchDone = false, patchLog = "", hasBoot = true) }
-        viewModelScope.launch(Dispatchers.IO) {
-            val ctx: Context = AppContext
-            val bootLocal = copyUriToCache(ctx, bootImgUri, "boot.img")
-            val kpmLocal = copyUriToCache(ctx, kpmUri, "embed.kpm")
-            val result = if (bootLocal != null && kpmLocal != null) {
-                KpatchShell.embedKpm(ctx, bootLocal, kpmLocal) { line ->
-                    // 实时追加日志行到 state
-                    _uiState.update { it.copy(patchLog = it.patchLog + line + "\n") }
-                }
-            } else null
-            withContext(Dispatchers.Main) {
-                _busy.value = false
-                _uiState.update { it.copy(patching = false, patchDone = result?.success == true) }
-                onResult(result?.takeIf { it.success }?.log)
-            }
-        }
-    }
-
-    /**
-     * 修补 boot 镜像，嵌入 kpatch。
+     * 修补 boot 镜像，嵌入 kpatch（可选同时嵌入 KPM 模块）。
      * 离线操作，不需要 root。输出文件写入 Downloads 目录。
      * @param bootImgUri 原始 boot.img Uri
+     * @param kpmUri 可选 .kpm 文件 Uri，传 null 仅修补 kpatch
      * @param onResult 输出文件 Uri（成功时）或 null（失败）
      */
-    fun patchBoot(bootImgUri: Uri, onResult: (String?) -> Unit) {
+    fun patchBoot(bootImgUri: Uri, kpmUri: Uri? = null, onResult: (String?) -> Unit) {
         if (_busy.value) {
             onResult(null)
             return
@@ -233,20 +199,19 @@ class KpmViewModel : BaseViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             val ctx: Context = AppContext
             val bootLocal = copyUriToCache(ctx, bootImgUri, "boot.img")
-            val result = if (bootLocal != null) {
-                KpatchShell.patchBoot(ctx, bootLocal) { line ->
+            val kpmLocal = kpmUri?.let { copyUriToCache(ctx, it, "embed.kpm") }
+            val result = if (bootLocal != null && (kpmUri == null || kpmLocal != null)) {
+                KpatchShell.patchBoot(ctx, bootLocal, kpmLocal) { line ->
                     // 实时追加日志行到 state
                     _uiState.update { it.copy(patchLog = it.patchLog + line + "\n") }
                 }
             } else null
             withContext(Dispatchers.Main) {
                 _busy.value = false
-                // 修补成功后标记 hasBoot，启用嵌入 KPM 按钮
                 _uiState.update {
                     it.copy(
                         patching = false,
                         patchDone = result?.success == true,
-                        hasBoot = result?.success == true || it.hasBoot,
                     )
                 }
                 onResult(result?.takeIf { it.success }?.log)

@@ -137,26 +137,29 @@ object KpatchShell {
     }
 
     /**
-     * 修补 boot 镜像，嵌入 KernelPatch。
+     * 修补 boot 镜像，嵌入 KernelPatch（可选同时嵌入 KPM 模块）。
      *
      * 对齐官方 APatch boot_patch.sh 流程：
      *   1. kptools unpack boot.img      → 抽取裸内核 kernel
-     *   2. kptools -p -i kernel.ori -k kpimg -o kernel   → 修补裸内核
+     *   2. kptools -p -i kernel.ori -k kpimg [-M kpm -T kpm] -o kernel   → 修补裸内核
      *   3. kptools repack boot.img      → 生成 new-boot.img
      *
      * 注意：kptools -p 只接受裸内核（或 UNCOMPRESSED_IMG 头），不能直接处理 Android boot.img。
+     * 传 [kpmPath] 时会在 -p 命令后追加 -M -T kpm，同时嵌入 KPM 模块（APatch 透明转发 -M 的做法）。
      *
      * 离线操作，不需要 root：kptools 从 nativeLibraryDir 执行，工作目录用 app cacheDir，
      * 输出通过 MediaStore 写到 /storage/emulated/0/Download/。
      *
      * @param context 上下文
      * @param bootImgPath 原始 boot.img 路径（app cache 中的本地路径）
+     * @param kpmPath 可选 .kpm 文件路径（app cache 中的本地路径），传 null 仅修补 kpatch
      * @param onLog 实时日志回调，每输出一行调用一次（用于 UI 可视化）
      * @return 修补结果（success=true 时 log 字段是输出文件的 Uri 字符串）
      */
     fun patchBoot(
         context: Context,
         bootImgPath: String,
+        kpmPath: String? = null,
         onLog: (String) -> Unit = {},
     ): PatchResult {
         if (!ensureBinaries(context)) {
@@ -172,12 +175,24 @@ object KpatchShell {
         }
 
         val kptools = kptoolsExec(context)
-        val workDir = prepareWorkspace(context, mapOf("boot.img" to bootImgPath))
+        val extraFiles = if (kpmPath != null) {
+            mapOf("boot.img" to bootImgPath, "module.kpm" to kpmPath)
+        } else {
+            mapOf("boot.img" to bootImgPath)
+        }
+        val workDir = prepareWorkspace(context, extraFiles)
         val kpimg = "$workDir/kpimg"
+        val kpm = if (kpmPath != null) "$workDir/module.kpm" else null
 
         // 对齐 APatch boot_patch.sh 的输出风格：步骤标记 + 星号横线
         // 依次执行 unpack → patch 裸内核 → repack
         // 未传 -s/-S 时，kptools.c:206 自动启用 root_skey 模式
+        // 传 -M 时嵌入 KPM（模块名由 kptools 自动从 .kpm.info section 读取，patch.c:597）
+        val patchCmd = if (kpm != null) {
+            "$kptools -p -i kernel.ori -k '$kpimg' -M '$kpm' -T kpm -o kernel"
+        } else {
+            "$kptools -p -i kernel.ori -k '$kpimg' -o kernel"
+        }
         val cmds = arrayOf(
             "echo '****************************'",
             "echo ' FoxMask Boot Image Patcher'",
@@ -189,9 +204,9 @@ object KpatchShell {
             "$kptools unpack 'boot.img'",
             // 2. 保留原始内核备份
             "mv kernel kernel.ori",
-            // 3. patch 裸内核
+            // 3. patch 裸内核（可选嵌入 KPM）
             "echo '- Patching kernel'",
-            "$kptools -p -i kernel.ori -k '$kpimg' -o kernel",
+            patchCmd,
             // 4. repack：用修补后的 kernel 重新打包成 new-boot.img
             "echo '- Repacking boot image'",
             "$kptools repack 'boot.img'",
@@ -209,7 +224,8 @@ object KpatchShell {
             try {
                 val ts = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US)
                     .format(java.util.Date())
-                val outFile = getFile("patched_boot_$ts.img")
+                val prefix = if (kpm != null) "embedded_boot_" else "patched_boot_"
+                val outFile = getFile("${prefix}$ts.img")
                 outFile.uri.outputStream().use { out ->
                     FileInputStream(newBootFile).use { input -> input.copyTo(out) }
                 }
@@ -255,106 +271,6 @@ object KpatchShell {
             File(workDir).deleteRecursively()
         }
         return result.isSuccess && result.out.any { it.contains("patched=") }
-    }
-
-    /**
-     * 嵌入 KPM 模块到已修补 kpatch 的 boot 镜像。
-     *
-     * 同样遵循 unpack → patch（-M 嵌入）→ repack 流程，因为 kptools -p 只接受裸内核。
-     * 离线操作，不需要 root；输出通过 MediaStore 写到 Downloads。
-     *
-     * 模块名由 kptools 自动从 KPM 文件的 .kpm.info section 读取（patch.c:597），
-     * 无需调用方传入。
-     *
-     * @param context 上下文
-     * @param bootImgPath 已修补 kpatch 的 boot.img 路径（app cache 中的本地路径）
-     * @param kpmPath .kpm 文件路径（app cache 中的本地路径）
-     * @param onLog 实时日志回调，每输出一行调用一次（用于 UI 可视化）
-     * @return 嵌入结果（success=true 时 log 字段是输出文件的 Uri 字符串）
-     */
-    fun embedKpm(
-        context: Context,
-        bootImgPath: String,
-        kpmPath: String,
-        onLog: (String) -> Unit = {},
-    ): PatchResult {
-        if (!ensureBinaries(context)) {
-            onLog("ensureBinaries failed")
-            return PatchResult(false, "ensureBinaries failed")
-        }
-
-        // 实时日志回调列表（stdout + stderr 都走这里）
-        val logCallback = object : CallbackList<String>() {
-            override fun onAddElement(e: String?) {
-                e?.let { onLog(it) }
-            }
-        }
-
-        val kptools = kptoolsExec(context)
-        val workDir = prepareWorkspace(
-            context,
-            mapOf("boot.img" to bootImgPath, "module.kpm" to kpmPath),
-        )
-        val kpm = "$workDir/module.kpm"
-        val kpimg = "$workDir/kpimg"
-
-        // 对齐 APatch boot_patch.sh + kptools 上游 (tools/kptools.c, tools/patch.c)：
-        // - kptools -p 无论新增还是更新 patch，都强制要求 -k kpimg（patch.c:513）
-        // - 未传 -s/-S 时，kptools.c:206 自动启用 root_skey 模式
-        // - -M 嵌入新 extra，-T kpm 指定类型为 KPM 模块
-        // - 不传 -N 时，kptools 会从 KPM 的 .kpm.info section 自动读取 name (patch.c:597)
-        // - 已修补 boot 的 kernel 里有 preset，patch_update_img 会走 update 流程保留原 patch
-        val cmds = arrayOf(
-            "echo '****************************'",
-            "echo ' FoxMask KPM Embedder'",
-            "echo '****************************'",
-            "cd '$workDir'",
-            "rm -f kernel kernel.ori new-boot.img",
-            "echo '- Unpacking boot image'",
-            "$kptools unpack 'boot.img'",
-            "mv kernel kernel.ori",
-            "echo '- Embedding KPM'",
-            "$kptools -p -i kernel.ori -k '$kpimg' -M '$kpm' -T kpm -o kernel",
-            "echo '- Repacking boot image'",
-            "$kptools repack 'boot.img'",
-        )
-        val result = Shell.cmd(*cmds).to(logCallback, logCallback).exec()
-
-        val newBootFile = File(workDir, "new-boot.img")
-        val patchOk = result.isSuccess && newBootFile.exists() && newBootFile.length() > 0
-
-        // 通过 MediaStore 把 new-boot.img 写到 Downloads 目录（无需 root）
-        // 文件名加时间戳，避免 Downloads 已有同名文件时触发
-        // SQLite UNIQUE constraint (files._data) 错误
-        var outUri: String? = null
-        if (patchOk) {
-            try {
-                val ts = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US)
-                    .format(java.util.Date())
-                val outFile = getFile("embedded_boot_$ts.img")
-                outFile.uri.outputStream().use { out ->
-                    FileInputStream(newBootFile).use { input -> input.copyTo(out) }
-                }
-                outUri = outFile.uri.toString()
-                onLog("- Successfully Embedded!")
-                onLog(" Output file is written to $outFile")
-                onLog("****************************")
-            } catch (e: Exception) {
-                onLog("- Failed to write output: ${e.message}")
-                onLog("****************************")
-            }
-        } else {
-            onLog("- Embed failed! (code=${result.code})")
-            onLog("****************************")
-        }
-
-        // 清理工作目录
-        if (Info.isRooted) {
-            Shell.cmd("rm -rf '$workDir'").submit()
-        } else {
-            File(workDir).deleteRecursively()
-        }
-        return if (outUri != null) PatchResult(true, outUri) else PatchResult(false, "embed failed")
     }
 
     // ===== KPM 运行时管理（通过 kpcall supercall）=====
