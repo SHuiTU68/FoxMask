@@ -368,26 +368,9 @@ void HookContext::post_native_bridge_load(void *handle) {
         return _URC_NO_REASON;
     }, &arg);
 
-    // 隐藏 zygisk 痕迹：恢复 ro.dalvik.vm.native.bridge 为原始值。
-    // zygisk 已加载进 zygote 进程内存，fork 出的 app 进程通过继承获得 zygisk，
-    // 不再需要该属性保持 "libzygisk.so" 值。恢复后 app 读取属性看不到 zygisk 痕迹。
-    // daemon 在 zygote 崩溃重启时会重新 set_prop，所以恢复不影响 zygote 重启流程。
-    // 在重载真实 native bridge 之前恢复，最小化属性暴露窗口。
-    auto nb = get_prop(NBPROP);
-    auto len = sizeof(ZYGISKLDR) - 1;
-    if (nb.size() > len) {
-        set_prop(NBPROP, nb.c_str() + len);
-    } else {
-        set_prop(NBPROP, "0");
-    }
-
     if (!arg.load_native_bridge || !arg.callbacks)
         return;
 
-    // Reload the real native bridge if necessary (nb 已在恢复属性前捕获，不受影响)
-    if (nb.size() > len) {
-        arg.load_native_bridge(nb.c_str() + len, arg.callbacks);
-    }
     runtime_callbacks = arg.callbacks;
 }
 
