@@ -115,23 +115,35 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // 自定义壁纸：用系统 Photo Picker 选图（API 33+ 原生，低版本自动回退 ACTION_OPEN_DOCUMENT）
-    // 选中后渲染 centerCrop 并 setBitmap。整个解码+写入在 IO 线程。
+    // 自定义壁纸：用系统 Photo Picker 选图（API 33+ 原生，低版本自动回退 ACTION_OPEN_DOCUMENT）。
+    // 选完图弹对话框让用户选作用范围（主屏 / 锁屏 / 两者），再渲染 centerCrop 并 setBitmap。
+    // 整个解码+写入在 IO 线程。
+    var pendingWallpaperUri by remember { mutableStateOf<android.net.Uri?>(null) }
     val wallpaperPicker = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        val appContext = context.applicationContext
-        scope.launch {
-            val ok = withContext(Dispatchers.IO) {
-                WallpaperUtil.applyFromUri(appContext, uri)
+        if (uri != null) pendingWallpaperUri = uri
+    }
+
+    pendingWallpaperUri?.let { uri ->
+        WallpaperTargetDialog(
+            onDismiss = { pendingWallpaperUri = null },
+            onSelect = { target ->
+                val appContext = context.applicationContext
+                val pickedUri = uri
+                pendingWallpaperUri = null
+                scope.launch {
+                    val ok = withContext(Dispatchers.IO) {
+                        WallpaperUtil.applyFromUri(appContext, pickedUri, target)
+                    }
+                    val msg = if (ok)
+                        appContext.getString(CoreR.string.custom_wallpaper_applied)
+                    else
+                        appContext.getString(CoreR.string.custom_wallpaper_failed)
+                    Toast.makeText(appContext, msg, Toast.LENGTH_SHORT).show()
+                }
             }
-            val msg = if (ok)
-                appContext.getString(CoreR.string.custom_wallpaper_applied)
-            else
-                appContext.getString(CoreR.string.custom_wallpaper_failed)
-            Toast.makeText(appContext, msg, Toast.LENGTH_SHORT).show()
-        }
+        )
     }
 
     AdaptiveSmallTitle(text = stringResource(CoreR.string.settings_customization))
@@ -286,6 +298,34 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
             }
         )
     }
+}
+
+/// 壁纸作用范围选择对话框：主屏 / 锁屏 / 两者
+@Composable
+private fun WallpaperTargetDialog(
+    onDismiss: () -> Unit,
+    onSelect: (WallpaperUtil.Target) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(CoreR.string.wallpaper_target_title)) },
+        text = { Text(stringResource(CoreR.string.wallpaper_target_message)) },
+        confirmButton = {
+            TextButton(onClick = { onSelect(WallpaperUtil.Target.SYSTEM) }) {
+                Text(stringResource(CoreR.string.wallpaper_target_home))
+            }
+        },
+        dismissButton = {
+            androidx.compose.foundation.layout.Row {
+                TextButton(onClick = { onSelect(WallpaperUtil.Target.LOCK) }) {
+                    Text(stringResource(CoreR.string.wallpaper_target_lock))
+                }
+                TextButton(onClick = { onSelect(WallpaperUtil.Target.BOTH) }) {
+                    Text(stringResource(CoreR.string.wallpaper_target_both))
+                }
+            }
+        }
+    )
 }
 
 // --- App Settings ---

@@ -23,8 +23,19 @@ object WallpaperUtil {
 
     private const val TAG = "WallpaperUtil"
 
-    /** 从 [uri] 解码、缩放并设置为壁纸。返回是否成功。在 IO 线程调用。 */
-    fun applyFromUri(context: Context, uri: Uri): Boolean {
+    /** 壁纸作用范围：主屏 / 锁屏 / 两者 */
+    enum class Target(val flags: Int) {
+        SYSTEM(WallpaperManager.FLAG_SYSTEM),
+        LOCK(WallpaperManager.FLAG_LOCK),
+        BOTH(WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK)
+    }
+
+    /**
+     * 从 [uri] 解码、缩放并设置为壁纸。
+     * [target] 指定写到主屏 / 锁屏 / 两者（API 24+ 的 setBitmap(bitmap, visible) 重载）。
+     * 返回是否成功。在 IO 线程调用。
+     */
+    fun applyFromUri(context: Context, uri: Uri, target: Target = Target.BOTH): Boolean {
         return try {
             val wm = WallpaperManager.getInstance(context)
             val targetW = wm.desiredMinimumWidth.takeIf { it > 0 } ?: 1080
@@ -53,7 +64,8 @@ object WallpaperUtil {
             val dstRect = Rect(0, 0, targetW, targetH)
             canvas.drawBitmap(decoded, srcRect, dstRect, null)
 
-            wm.setBitmap(out)
+            // setBitmap(bitmap, visible) 指定作用范围：FLAG_SYSTEM=主屏, FLAG_LOCK=锁屏
+            wm.setBitmap(out, true, target.flags)
             decoded.recycle()
             out.recycle()
             true

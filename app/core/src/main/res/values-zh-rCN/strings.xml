@@ -211,9 +211,14 @@
     <string name="settings_predictive_back_title">预测性返回手势</string>
     <string name="settings_predictive_back_summary">启用预测性返回手势支持（Android 14+），默认关闭</string>
     <string name="settings_custom_wallpaper_title">设置自定义壁纸</string>
-    <string name="settings_custom_wallpaper_summary">从相册选一张图设为桌面壁纸</string>
+    <string name="settings_custom_wallpaper_summary">从相册选一张图，可选择设到主屏 / 锁屏 / 两者</string>
     <string name="custom_wallpaper_applied">壁纸已应用</string>
     <string name="custom_wallpaper_failed">壁纸应用失败</string>
+    <string name="wallpaper_target_title">壁纸应用到</string>
+    <string name="wallpaper_target_message">选择壁纸的作用范围</string>
+    <string name="wallpaper_target_home">主屏</string>
+    <string name="wallpaper_target_lock">锁屏</string>
+    <string name="wallpaper_target_both">两者</string>
     <string name="setting_add_shortcut_summary">在隐藏后难以识别名称和图标的情况下，添加快捷方式到桌面</string>
     <string name="settings_doh_title">安全 DNS（DoH）</string>
     <string name="settings_doh_description">解决某些地区的 DNS 污染问题</string>
