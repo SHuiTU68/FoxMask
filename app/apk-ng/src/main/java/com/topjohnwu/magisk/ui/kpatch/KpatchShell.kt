@@ -294,7 +294,14 @@ object KpatchShell {
             mapOf("boot.img" to bootImgPath, "module.kpm" to kpmPath),
         )
         val kpm = "$workDir/module.kpm"
+        val kpimg = "$workDir/kpimg"
 
+        // 对齐 APatch boot_patch.sh + kptools 上游 (tools/kptools.c, tools/patch.c)：
+        // - kptools -p 无论新增还是更新 patch，都强制要求 -k kpimg（patch.c:513）
+        // - 未传 -s/-S 时，kptools.c:206 自动启用 root_skey 模式（FoxMask 固定走该模式）
+        // - -M 嵌入新 extra，-T kpm 指定类型为 KPM 模块
+        // - -N 可选；不传时 kptools 会从 KPM 的 .kpm.info section 自动读取 name (patch.c:597)
+        // - 已修补 boot 的 kernel 里有 preset，patch_update_img 会走 update 流程保留原 patch
         val cmds = arrayOf(
             "echo '****************************'",
             "echo ' FoxMask KPM Embedder'",
@@ -304,9 +311,8 @@ object KpatchShell {
             "echo '- Unpacking boot image'",
             "$kptools unpack 'boot.img'",
             "mv kernel kernel.ori",
-            // -M 嵌入 KPM 模块，-T kpm 指定类型，-N 指定模块名
             "echo '- Embedding KPM: $kpmName'",
-            "$kptools -p -i kernel.ori -M '$kpm' -T kpm -N '$kpmName' -o kernel",
+            "$kptools -p -i kernel.ori -k '$kpimg' -M '$kpm' -T kpm -N '$kpmName' -o kernel",
             "echo '- Repacking boot image'",
             "$kptools repack 'boot.img'",
         )
