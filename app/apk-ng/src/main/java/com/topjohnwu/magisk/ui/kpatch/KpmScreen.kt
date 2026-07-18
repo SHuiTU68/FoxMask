@@ -80,7 +80,7 @@ fun KpmScreen(
     val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-    // 修补 boot picker（固定 root-skey 模式，无需 superkey）
+    // 修补 boot picker
     val bootPickerSimple = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         viewModel.patchBoot(uri) { out ->
@@ -98,22 +98,18 @@ fun KpmScreen(
         viewModel.loadKpm(uri, "")
     }
 
-    // 嵌入 KPM 需要两步：先选 boot，再选 kpm
+    // 嵌入 KPM 两步：先选 boot，再选 KPM 模块（模块名由 kptools 自动读取）
     var embedBootUri by remember { mutableStateOf<android.net.Uri?>(null) }
-    var embedKpmName by remember { mutableStateOf("") }
-    var showEmbedNameDialog by remember { mutableStateOf(false) }
     val embedBootPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         embedBootUri = uri
-        showEmbedNameDialog = true
+        embedKpmPicker.launch("*/*")
     }
     val embedKpmPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         val bootUri = embedBootUri
-        val name = embedKpmName
         embedBootUri = null
-        embedKpmName = ""
-        if (uri == null || bootUri == null || name.isEmpty()) return@rememberLauncherForActivityResult
-        viewModel.embedKpm(bootUri, uri, name) { out ->
+        if (uri == null || bootUri == null) return@rememberLauncherForActivityResult
+        viewModel.embedKpm(bootUri, uri) { out ->
             if (out != null) {
                 viewModel.showSnackbar(context.getString(CoreR.string.settings_kpatch_embed_done, out))
             } else {
@@ -253,44 +249,6 @@ fun KpmScreen(
                 }
             }
         }
-    }
-
-    // 嵌入 KPM 名称对话框
-    if (showEmbedNameDialog) {
-        AlertDialog(
-            onDismissRequest = {
-                showEmbedNameDialog = false
-                embedBootUri = null
-            },
-            title = { Text(stringResource(CoreR.string.settings_kpatch_embed_kpm_name_title)) },
-            text = {
-                OutlinedTextField(
-                    value = embedKpmName,
-                    onValueChange = { embedKpmName = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    enabled = embedKpmName.isNotEmpty(),
-                    onClick = {
-                        showEmbedNameDialog = false
-                        embedKpmPicker.launch("*/*")
-                    },
-                ) {
-                    Text(stringResource(android.R.string.ok))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showEmbedNameDialog = false
-                    embedBootUri = null
-                }) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            },
-        )
     }
 
     // 控制 KPM 参数对话框

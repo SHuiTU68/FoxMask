@@ -164,7 +164,6 @@
     <string name="settings_kpatch_embed_kpm">嵌入 KPM</string>
     <string name="settings_kpatch_patch_done">Boot 镜像已修补：%1$s</string>
     <string name="settings_kpatch_embed_done">KPM 已嵌入：%1$s</string>
-    <string name="settings_kpatch_embed_kpm_name_title">KPM 模块名称</string>
     <string name="settings_kpatch_kpm_list_title">已加载的 KPM 模块</string>
     <string name="settings_kpatch_kpm_empty">未加载 KPM 模块</string>
     <string name="settings_kpatch_kpm_load">加载 KPM</string>

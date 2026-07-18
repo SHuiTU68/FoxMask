@@ -198,7 +198,6 @@
     <string name="settings_kpatch_embed_kpm">Embed KPM</string>
     <string name="settings_kpatch_patch_done">Boot image patched: %1$s</string>
     <string name="settings_kpatch_embed_done">KPM embedded: %1$s</string>
-    <string name="settings_kpatch_embed_kpm_name_title">KPM module name</string>
     <string name="settings_kpatch_kpm_list_title">Loaded KPM Modules</string>
     <string name="settings_kpatch_kpm_empty">No KPM module loaded</string>
     <string name="settings_kpatch_kpm_load">Load KPM</string>

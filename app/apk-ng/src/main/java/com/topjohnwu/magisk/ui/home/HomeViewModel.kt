@@ -92,7 +92,6 @@ class HomeViewModel(
 
     /**
      * 检测 KernelPatch 是否已安装并获取版本。
-     * superkey 已剥离：固定 root-skey 模式，无需用户配置。
      * 版本号总会显示：已安装用 kpcall 获取实际版本，否则回退到内置打包版本。
      */
     private suspend fun detectKpatch() {

@@ -37,9 +37,6 @@ data class KpmItem(
  * - 列出 / 加载 / 卸载 / 控制 KPM 模块
  * - 嵌入 KPM 到 boot 镜像
  * - 修补 boot 镜像嵌入 kpatch
- *
- * superkey 已剥离：上游 KernelPatch 不再做强 superkey 校验，root 调用者
- * 固定使用 "su"（root-skey 模式），无需用户配置。
  */
 class KpmViewModel : BaseViewModel() {
 
@@ -190,13 +187,12 @@ class KpmViewModel : BaseViewModel() {
     /**
      * 嵌入 KPM 模块到 boot 镜像。
      * 注意：嵌入是离线操作，不需要 kpatch 已安装到内核，也不需要 root。
-     * 输出文件写入 Downloads 目录。
+     * 输出文件写入 Downloads 目录。模块名由 kptools 自动从 .kpm.info section 读取。
      * @param bootImgUri 已修补 kpatch 的 boot.img Uri
      * @param kpmUri .kpm 文件 Uri
-     * @param kpmName 模块名称
      * @param onResult 输出文件 Uri（成功时）或 null（失败）
      */
-    fun embedKpm(bootImgUri: Uri, kpmUri: Uri, kpmName: String, onResult: (String?) -> Unit) {
+    fun embedKpm(bootImgUri: Uri, kpmUri: Uri, onResult: (String?) -> Unit) {
         if (_busy.value) {
             onResult(null)
             return
@@ -206,9 +202,9 @@ class KpmViewModel : BaseViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             val ctx: Context = AppContext
             val bootLocal = copyUriToCache(ctx, bootImgUri, "boot.img")
-            val kpmLocal = copyUriToCache(ctx, kpmUri, "$kpmName.kpm")
+            val kpmLocal = copyUriToCache(ctx, kpmUri, "embed.kpm")
             val result = if (bootLocal != null && kpmLocal != null) {
-                KpatchShell.embedKpm(ctx, bootLocal, kpmLocal, kpmName) { line ->
+                KpatchShell.embedKpm(ctx, bootLocal, kpmLocal) { line ->
                     // 实时追加日志行到 state
                     _uiState.update { it.copy(patchLog = it.patchLog + line + "\n") }
                 }
