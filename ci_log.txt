@@ -1,0 +1,1471 @@
+﻿2026-07-18T04:38:44.5711209Z Current runner version: '2.335.1'
+2026-07-18T04:38:44.5743690Z ##[group]Runner Image Provisioner
+2026-07-18T04:38:44.5745281Z Hosted Compute Agent
+2026-07-18T04:38:44.5746211Z Version: 20260707.563
+2026-07-18T04:38:44.5747321Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+2026-07-18T04:38:44.5748562Z Build Date: 2026-07-07T19:33:50Z
+2026-07-18T04:38:44.5749708Z Worker ID: {1f1e714f-4a43-48d4-923b-3c7b841c8cc6}
+2026-07-18T04:38:44.5750957Z Azure Region: eastus
+2026-07-18T04:38:44.5751872Z ##[endgroup]
+2026-07-18T04:38:44.5754240Z ##[group]Operating System
+2026-07-18T04:38:44.5755543Z Ubuntu
+2026-07-18T04:38:44.5756332Z 24.04.4
+2026-07-18T04:38:44.5757260Z LTS
+2026-07-18T04:38:44.5758120Z ##[endgroup]
+2026-07-18T04:38:44.5759083Z ##[group]Runner Image
+2026-07-18T04:38:44.5760070Z Image: ubuntu-24.04
+2026-07-18T04:38:44.5761023Z Version: 20260714.240.1
+2026-07-18T04:38:44.5763150Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260714.240/images/ubuntu/Ubuntu2404-Readme.md
+2026-07-18T04:38:44.5766207Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260714.240
+2026-07-18T04:38:44.5768358Z ##[endgroup]
+2026-07-18T04:38:44.5770369Z ##[group]GITHUB_TOKEN Permissions
+2026-07-18T04:38:44.5772966Z Contents: read
+2026-07-18T04:38:44.5773937Z Metadata: read
+2026-07-18T04:38:44.5775164Z Packages: read
+2026-07-18T04:38:44.5776184Z ##[endgroup]
+2026-07-18T04:38:44.5779020Z Secret source: Actions
+2026-07-18T04:38:44.5780195Z Prepare workflow directory
+2026-07-18T04:38:44.6245355Z Prepare all required actions
+2026-07-18T04:38:44.6300592Z Getting action download info
+2026-07-18T04:38:44.7983745Z Download action repository 'actions/checkout@v6' (SHA:df4cb1c069e1874edd31b4311f1884172cec0e10)
+2026-07-18T04:38:45.0118396Z Complete job name: Test building on ubuntu-24.04
+2026-07-18T04:38:45.0983194Z ##[group]Run actions/checkout@v6
+2026-07-18T04:38:45.0984068Z with:
+2026-07-18T04:38:45.0984520Z   submodules: recursive
+2026-07-18T04:38:45.0985376Z   repository: SHuiTU68/FoxMask
+2026-07-18T04:38:45.0989258Z   token: ***
+2026-07-18T04:38:45.0989688Z   ssh-strict: true
+2026-07-18T04:38:45.0990115Z   ssh-user: git
+2026-07-18T04:38:45.0990668Z   persist-credentials: true
+2026-07-18T04:38:45.0991169Z   clean: true
+2026-07-18T04:38:45.0991635Z   sparse-checkout-cone-mode: true
+2026-07-18T04:38:45.0992156Z   fetch-depth: 1
+2026-07-18T04:38:45.0992581Z   fetch-tags: false
+2026-07-18T04:38:45.0993027Z   show-progress: true
+2026-07-18T04:38:45.0993477Z   lfs: false
+2026-07-18T04:38:45.0993901Z   set-safe-directory: true
+2026-07-18T04:38:45.0995530Z ##[endgroup]
+2026-07-18T04:38:45.1988010Z Syncing repository: SHuiTU68/FoxMask
+2026-07-18T04:38:45.1990428Z ##[group]Getting Git version info
+2026-07-18T04:38:45.1991538Z Working directory is '/home/runner/work/FoxMask/FoxMask'
+2026-07-18T04:38:45.1993258Z [command]/usr/bin/git version
+2026-07-18T04:38:45.2069257Z git version 2.54.0
+2026-07-18T04:38:45.2093125Z ##[endgroup]
+2026-07-18T04:38:45.2109241Z Temporarily overriding HOME='/home/runner/work/_temp/f0f82a78-dc0a-413e-99ca-aa166d0cb8a6' before making global git config changes
+2026-07-18T04:38:45.2111514Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-18T04:38:45.2115432Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/FoxMask/FoxMask
+2026-07-18T04:38:45.2179063Z Deleting the contents of '/home/runner/work/FoxMask/FoxMask'
+2026-07-18T04:38:45.2183886Z ##[group]Determining repository object format
+2026-07-18T04:38:45.2192272Z ##[endgroup]
+2026-07-18T04:38:45.2193453Z ##[group]Initializing the repository
+2026-07-18T04:38:45.2194567Z [command]/usr/bin/git init /home/runner/work/FoxMask/FoxMask
+2026-07-18T04:38:45.2307935Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-07-18T04:38:45.2309831Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-07-18T04:38:45.2311448Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-07-18T04:38:45.2313306Z hint: call:
+2026-07-18T04:38:45.2313927Z hint:
+2026-07-18T04:38:45.2314694Z hint: 	git config --global init.defaultBranch <name>
+2026-07-18T04:38:45.2315939Z hint:
+2026-07-18T04:38:45.2316918Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-07-18T04:38:45.2318424Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-07-18T04:38:45.2319594Z hint:
+2026-07-18T04:38:45.2320227Z hint: 	git branch -m <name>
+2026-07-18T04:38:45.2320965Z hint:
+2026-07-18T04:38:45.2322002Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-07-18T04:38:45.2323659Z Initialized empty Git repository in /home/runner/work/FoxMask/FoxMask/.git/
+2026-07-18T04:38:45.2327514Z [command]/usr/bin/git remote add origin https://github.com/SHuiTU68/FoxMask
+2026-07-18T04:38:45.2374644Z ##[endgroup]
+2026-07-18T04:38:45.2376210Z ##[group]Disabling automatic garbage collection
+2026-07-18T04:38:45.2378876Z [command]/usr/bin/git config --local gc.auto 0
+2026-07-18T04:38:45.2409959Z ##[endgroup]
+2026-07-18T04:38:45.2411266Z ##[group]Setting up auth
+2026-07-18T04:38:45.2412138Z Removing SSH command configuration
+2026-07-18T04:38:45.2422040Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-18T04:38:45.2456503Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-18T04:38:45.2848444Z Removing HTTP extra header
+2026-07-18T04:38:45.2854659Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-18T04:38:45.2893634Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-18T04:38:45.3110928Z Removing includeIf entries pointing to credentials config files
+2026-07-18T04:38:45.3118070Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-18T04:38:45.3151994Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-18T04:38:45.3374725Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-07-18T04:38:45.3415562Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/FoxMask/FoxMask/.git.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:45.3448969Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/FoxMask/FoxMask/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:45.3487102Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:45.3520633Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:45.3551042Z ##[endgroup]
+2026-07-18T04:38:45.3552453Z ##[group]Fetching the repository
+2026-07-18T04:38:45.3561869Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +d8bcc3c16755bc86a7957b2fc80733c4f41b87eb:refs/remotes/origin/master
+2026-07-18T04:38:45.6900946Z From https://github.com/SHuiTU68/FoxMask
+2026-07-18T04:38:45.6901992Z  * [new ref]         d8bcc3c16755bc86a7957b2fc80733c4f41b87eb -> origin/master
+2026-07-18T04:38:45.6943421Z [command]/usr/bin/git branch --list --remote origin/master
+2026-07-18T04:38:45.6973767Z   origin/master
+2026-07-18T04:38:45.6982196Z [command]/usr/bin/git rev-parse refs/remotes/origin/master
+2026-07-18T04:38:45.7007866Z d8bcc3c16755bc86a7957b2fc80733c4f41b87eb
+2026-07-18T04:38:45.7012508Z ##[endgroup]
+2026-07-18T04:38:45.7013854Z ##[group]Determining the checkout info
+2026-07-18T04:38:45.7015625Z ##[endgroup]
+2026-07-18T04:38:45.7017119Z [command]/usr/bin/git sparse-checkout disable
+2026-07-18T04:38:45.7061648Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-07-18T04:38:45.7091103Z ##[group]Checking out the ref
+2026-07-18T04:38:45.7094242Z [command]/usr/bin/git checkout --progress --force -B master refs/remotes/origin/master
+2026-07-18T04:38:45.7623479Z Reset branch 'master'
+2026-07-18T04:38:45.7626063Z branch 'master' set up to track 'origin/master'.
+2026-07-18T04:38:45.7633553Z ##[endgroup]
+2026-07-18T04:38:45.7634381Z ##[group]Setting up auth for fetching submodules
+2026-07-18T04:38:45.7639051Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-07-18T04:38:45.7678640Z [command]/usr/bin/git config --global include.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:45.7709781Z [command]/usr/bin/git config --global --unset-all url.https://github.com/.insteadOf
+2026-07-18T04:38:45.7743908Z [command]/usr/bin/git config --global --add url.https://github.com/.insteadOf git@github.com:
+2026-07-18T04:38:45.7782505Z [command]/usr/bin/git config --global --add url.https://github.com/.insteadOf org-205447483@github.com:
+2026-07-18T04:38:45.7812384Z ##[endgroup]
+2026-07-18T04:38:45.7813266Z ##[group]Fetching submodules
+2026-07-18T04:38:45.7815635Z [command]/usr/bin/git submodule sync --recursive
+2026-07-18T04:38:45.8044472Z [command]/usr/bin/git -c protocol.version=2 submodule update --init --force --depth=1 --recursive
+2026-07-18T04:38:45.8271219Z Submodule 'crt0' (https://github.com/topjohnwu/crt0.git) registered for path 'native/src/external/crt0'
+2026-07-18T04:38:45.8276460Z Submodule 'cxx-rs' (https://github.com/topjohnwu/cxx.git) registered for path 'native/src/external/cxx-rs'
+2026-07-18T04:38:45.8281749Z Submodule 'libcxx' (https://github.com/topjohnwu/libcxx.git) registered for path 'native/src/external/libcxx'
+2026-07-18T04:38:45.8297633Z Submodule 'lsplt' (https://github.com/LSPosed/LSPlt.git) registered for path 'native/src/external/lsplt'
+2026-07-18T04:38:45.8300262Z Submodule 'lz4' (https://github.com/lz4/lz4.git) registered for path 'native/src/external/lz4'
+2026-07-18T04:38:45.8302437Z Submodule 'selinux' (https://github.com/topjohnwu/selinux.git) registered for path 'native/src/external/selinux'
+2026-07-18T04:38:45.8305404Z Submodule 'system_properties' (https://github.com/topjohnwu/system_properties.git) registered for path 'native/src/external/system_properties'
+2026-07-18T04:38:45.8332007Z Cloning into '/home/runner/work/FoxMask/FoxMask/native/src/external/crt0'...
+2026-07-18T04:38:46.0733313Z Cloning into '/home/runner/work/FoxMask/FoxMask/native/src/external/cxx-rs'...
+2026-07-18T04:38:46.3500220Z Cloning into '/home/runner/work/FoxMask/FoxMask/native/src/external/libcxx'...
+2026-07-18T04:38:47.0269776Z Cloning into '/home/runner/work/FoxMask/FoxMask/native/src/external/lsplt'...
+2026-07-18T04:38:47.2626936Z Cloning into '/home/runner/work/FoxMask/FoxMask/native/src/external/lz4'...
+2026-07-18T04:38:47.5389448Z Cloning into '/home/runner/work/FoxMask/FoxMask/native/src/external/selinux'...
+2026-07-18T04:38:48.7233871Z Cloning into '/home/runner/work/FoxMask/FoxMask/native/src/external/system_properties'...
+2026-07-18T04:38:48.9645376Z Submodule path 'native/src/external/crt0': checked out '49bbd472a250e75315a9183586fab1e0c0982618'
+2026-07-18T04:38:48.9966358Z Submodule path 'native/src/external/cxx-rs': checked out 'b09b91554b392523f633b9e3cbe0b43273528c71'
+2026-07-18T04:38:49.1027670Z Submodule path 'native/src/external/libcxx': checked out 'd5117df3ba7704aab06c3a30b97c7529c931662b'
+2026-07-18T04:38:49.5548342Z From https://github.com/LSPosed/LSPlt
+2026-07-18T04:38:49.5549183Z  * branch            cef80a97a73184b4def9b3e1148884365fc173fd -> FETCH_HEAD
+2026-07-18T04:38:49.5689192Z Submodule path 'native/src/external/lsplt': checked out 'cef80a97a73184b4def9b3e1148884365fc173fd'
+2026-07-18T04:38:50.0807093Z From https://github.com/lz4/lz4
+2026-07-18T04:38:50.0808073Z  * branch            d44371841a2f1728a3f36839fd4b7e872d0927d3 -> FETCH_HEAD
+2026-07-18T04:38:50.1057267Z Submodule path 'native/src/external/lz4': checked out 'd44371841a2f1728a3f36839fd4b7e872d0927d3'
+2026-07-18T04:38:50.2662864Z Submodule path 'native/src/external/selinux': checked out 'be1b39a657fee7faacfae548b75cb53302043a01'
+2026-07-18T04:38:50.2782031Z Submodule path 'native/src/external/system_properties': checked out '80b217db022ac7c46431b81b1f85bbe1aeddf49a'
+2026-07-18T04:38:50.2813138Z [command]/usr/bin/git submodule foreach --recursive git config --local gc.auto 0
+2026-07-18T04:38:50.3032123Z Entering 'native/src/external/crt0'
+2026-07-18T04:38:50.3077316Z Entering 'native/src/external/cxx-rs'
+2026-07-18T04:38:50.3115773Z Entering 'native/src/external/libcxx'
+2026-07-18T04:38:50.3154813Z Entering 'native/src/external/lsplt'
+2026-07-18T04:38:50.3192781Z Entering 'native/src/external/lz4'
+2026-07-18T04:38:50.3230229Z Entering 'native/src/external/selinux'
+2026-07-18T04:38:50.3269553Z Entering 'native/src/external/system_properties'
+2026-07-18T04:38:50.3314543Z ##[endgroup]
+2026-07-18T04:38:50.3315440Z ##[group]Persisting credentials for submodules
+2026-07-18T04:38:50.3322799Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'url\.https\:\/\/github\.com\/\.insteadOf' && git config --local --unset-all 'url.https://github.com/.insteadOf' || :"
+2026-07-18T04:38:50.3537557Z Entering 'native/src/external/crt0'
+2026-07-18T04:38:50.3584102Z Entering 'native/src/external/cxx-rs'
+2026-07-18T04:38:50.3627824Z Entering 'native/src/external/libcxx'
+2026-07-18T04:38:50.3673093Z Entering 'native/src/external/lsplt'
+2026-07-18T04:38:50.3718180Z Entering 'native/src/external/lz4'
+2026-07-18T04:38:50.3762847Z Entering 'native/src/external/selinux'
+2026-07-18T04:38:50.3816057Z Entering 'native/src/external/system_properties'
+2026-07-18T04:38:50.3869828Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-18T04:38:50.4105955Z Entering 'native/src/external/crt0'
+2026-07-18T04:38:50.4129068Z file:/home/runner/work/FoxMask/FoxMask/.git/modules/crt0/config	remote.origin.url
+2026-07-18T04:38:50.4147702Z Entering 'native/src/external/cxx-rs'
+2026-07-18T04:38:50.4166873Z file:/home/runner/work/FoxMask/FoxMask/.git/modules/cxx-rs/config	remote.origin.url
+2026-07-18T04:38:50.4186811Z Entering 'native/src/external/libcxx'
+2026-07-18T04:38:50.4205945Z file:/home/runner/work/FoxMask/FoxMask/.git/modules/libcxx/config	remote.origin.url
+2026-07-18T04:38:50.4227038Z Entering 'native/src/external/lsplt'
+2026-07-18T04:38:50.4246128Z file:/home/runner/work/FoxMask/FoxMask/.git/modules/lsplt/config	remote.origin.url
+2026-07-18T04:38:50.4263842Z Entering 'native/src/external/lz4'
+2026-07-18T04:38:50.4282927Z file:/home/runner/work/FoxMask/FoxMask/.git/modules/lz4/config	remote.origin.url
+2026-07-18T04:38:50.4301562Z Entering 'native/src/external/selinux'
+2026-07-18T04:38:50.4321233Z file:/home/runner/work/FoxMask/FoxMask/.git/modules/selinux/config	remote.origin.url
+2026-07-18T04:38:50.4341518Z Entering 'native/src/external/system_properties'
+2026-07-18T04:38:50.4360699Z file:/home/runner/work/FoxMask/FoxMask/.git/modules/system_properties/config	remote.origin.url
+2026-07-18T04:38:50.4396819Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/crt0/config includeIf.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/crt0.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:50.4442676Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/crt0/config includeIf.gitdir:/github/workspace/.git/modules/crt0.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:50.4480842Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/cxx-rs/config includeIf.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/cxx-rs.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:50.4516725Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/cxx-rs/config includeIf.gitdir:/github/workspace/.git/modules/cxx-rs.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:50.4553000Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/libcxx/config includeIf.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/libcxx.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:50.4586183Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/libcxx/config includeIf.gitdir:/github/workspace/.git/modules/libcxx.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:50.4618929Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/lsplt/config includeIf.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/lsplt.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:50.4666956Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/lsplt/config includeIf.gitdir:/github/workspace/.git/modules/lsplt.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:50.4687106Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/lz4/config includeIf.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/lz4.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:50.4720261Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/lz4/config includeIf.gitdir:/github/workspace/.git/modules/lz4.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:50.4756809Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/selinux/config includeIf.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/selinux.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:50.4801037Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/selinux/config includeIf.gitdir:/github/workspace/.git/modules/selinux.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:50.4838460Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/system_properties/config includeIf.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/system_properties.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:50.4876204Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/system_properties/config includeIf.gitdir:/github/workspace/.git/modules/system_properties.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:38:50.4907861Z [command]/usr/bin/git submodule foreach --recursive git config --local --add 'url.https://github.com/.insteadOf' 'git@github.com:'
+2026-07-18T04:38:50.5121314Z Entering 'native/src/external/crt0'
+2026-07-18T04:38:50.5160596Z Entering 'native/src/external/cxx-rs'
+2026-07-18T04:38:50.5199583Z Entering 'native/src/external/libcxx'
+2026-07-18T04:38:50.5240034Z Entering 'native/src/external/lsplt'
+2026-07-18T04:38:50.5278701Z Entering 'native/src/external/lz4'
+2026-07-18T04:38:50.5316858Z Entering 'native/src/external/selinux'
+2026-07-18T04:38:50.5357086Z Entering 'native/src/external/system_properties'
+2026-07-18T04:38:50.5405850Z [command]/usr/bin/git submodule foreach --recursive git config --local --add 'url.https://github.com/.insteadOf' 'org-205447483@github.com:'
+2026-07-18T04:38:50.5621625Z Entering 'native/src/external/crt0'
+2026-07-18T04:38:50.5660282Z Entering 'native/src/external/cxx-rs'
+2026-07-18T04:38:50.5699853Z Entering 'native/src/external/libcxx'
+2026-07-18T04:38:50.5740569Z Entering 'native/src/external/lsplt'
+2026-07-18T04:38:50.5779979Z Entering 'native/src/external/lz4'
+2026-07-18T04:38:50.5819094Z Entering 'native/src/external/selinux'
+2026-07-18T04:38:50.5860073Z Entering 'native/src/external/system_properties'
+2026-07-18T04:38:50.5906933Z ##[endgroup]
+2026-07-18T04:38:50.5950386Z [command]/usr/bin/git log -1 --format=%H
+2026-07-18T04:38:50.5977253Z d8bcc3c16755bc86a7957b2fc80733c4f41b87eb
+2026-07-18T04:38:50.6362380Z Prepare all required actions
+2026-07-18T04:38:50.6362833Z Getting action download info
+2026-07-18T04:38:50.6994261Z Download action repository 'actions/setup-java@v5' (SHA:03ad4de0992f5dab5e18fcb136590ce7c4a0ac95)
+2026-07-18T04:38:50.8948734Z Download action repository 'actions/setup-python@v6' (SHA:ece7cb06caefa5fff74198d8649806c4678c61a1)
+2026-07-18T04:38:50.9717430Z Download action repository 'actions/cache@v5' (SHA:caa296126883cff596d87d8935842f9db880ef25)
+2026-07-18T04:38:51.1255728Z Download action repository 'gacts/run-and-post-run@v1' (SHA:598d7a875d5620e0457490555b5e18e46082aa47)
+2026-07-18T04:38:51.2842950Z ##[group]Run ./.github/actions/setup
+2026-07-18T04:38:51.2843228Z with:
+2026-07-18T04:38:51.2843428Z   is-asset-build: false
+2026-07-18T04:38:51.2843647Z ##[endgroup]
+2026-07-18T04:38:51.3016080Z ##[group]Run actions/setup-java@v5
+2026-07-18T04:38:51.3016395Z with:
+2026-07-18T04:38:51.3016579Z   distribution: temurin
+2026-07-18T04:38:51.3016839Z   java-version: 21
+2026-07-18T04:38:51.3017085Z   java-package: jdk
+2026-07-18T04:38:51.3017293Z   check-latest: false
+2026-07-18T04:38:51.3017495Z   set-default: true
+2026-07-18T04:38:51.3017691Z   verify-signature: false
+2026-07-18T04:38:51.3017907Z   server-id: github
+2026-07-18T04:38:51.3018125Z   server-username: GITHUB_ACTOR
+2026-07-18T04:38:51.3018369Z   server-password: GITHUB_TOKEN
+2026-07-18T04:38:51.3018606Z   overwrite-settings: true
+2026-07-18T04:38:51.3018833Z   job-status: success
+2026-07-18T04:38:51.3021499Z   token: ***
+2026-07-18T04:38:51.3021712Z   show-download-progress: false
+2026-07-18T04:38:51.3021961Z ##[endgroup]
+2026-07-18T04:38:51.4461619Z ##[group]Installed distributions
+2026-07-18T04:38:51.4620648Z Resolved Java 21.0.11+10 from tool-cache
+2026-07-18T04:38:51.4621231Z Setting Java 21.0.11+10 as the default
+2026-07-18T04:38:51.4706816Z Creating toolchains.xml for JDK version 21 from temurin
+2026-07-18T04:38:51.4728625Z Writing to /home/runner/.m2/toolchains.xml
+2026-07-18T04:38:51.4729048Z 
+2026-07-18T04:38:51.4729232Z Java configuration:
+2026-07-18T04:38:51.4729773Z   Distribution: temurin
+2026-07-18T04:38:51.4730162Z   Version: 21.0.11+10
+2026-07-18T04:38:51.4730718Z   Path: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:38:51.4731232Z 
+2026-07-18T04:38:51.4731777Z ##[endgroup]
+2026-07-18T04:38:51.4763446Z Creating settings.xml with server-id: github
+2026-07-18T04:38:51.4764076Z Writing to /home/runner/.m2/settings.xml
+2026-07-18T04:38:51.4765587Z Configured MAVEN_ARGS to include -ntp to suppress Maven transfer progress logs. Set 'show-download-progress: true' to keep the download progress output.
+2026-07-18T04:38:51.4967773Z ##[group]Run actions/setup-python@v6
+2026-07-18T04:38:51.4968186Z with:
+2026-07-18T04:38:51.4968477Z   python-version: 3.x
+2026-07-18T04:38:51.4968823Z   check-latest: false
+2026-07-18T04:38:51.4974037Z   token: ***
+2026-07-18T04:38:51.4974367Z   update-environment: true
+2026-07-18T04:38:51.4974757Z   allow-prereleases: false
+2026-07-18T04:38:51.4975330Z   freethreaded: false
+2026-07-18T04:38:51.4975654Z env:
+2026-07-18T04:38:51.4976123Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:38:51.4976951Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:38:51.4977804Z   MAVEN_ARGS: -ntp
+2026-07-18T04:38:51.4978117Z ##[endgroup]
+2026-07-18T04:38:51.6274541Z ##[group]Installed versions
+2026-07-18T04:38:51.6374276Z Successfully set up CPython (3.14.6)
+2026-07-18T04:38:51.6375267Z ##[endgroup]
+2026-07-18T04:38:51.6577262Z ##[group]Run actions/cache@v5
+2026-07-18T04:38:51.6577640Z with:
+2026-07-18T04:38:51.6577917Z   path: .sccache
+2026-07-18T04:38:51.6578373Z   key: sccache-Linux-d8bcc3c16755bc86a7957b2fc80733c4f41b87eb
+2026-07-18T04:38:51.6578961Z   restore-keys: sccache-Linux-
+2026-07-18T04:38:51.6579362Z   enableCrossOsArchive: false
+2026-07-18T04:38:51.6579754Z   fail-on-cache-miss: false
+2026-07-18T04:38:51.6580118Z   lookup-only: false
+2026-07-18T04:38:51.6580688Z   save-always: false
+2026-07-18T04:38:51.6581006Z env:
+2026-07-18T04:38:51.6581477Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:38:51.6582314Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:38:51.6582974Z   MAVEN_ARGS: -ntp
+2026-07-18T04:38:51.6583398Z   pythonLocation: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:51.6584109Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.14.6/x64/lib/pkgconfig
+2026-07-18T04:38:51.6584802Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:51.6585600Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:51.6586220Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:51.6586846Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.14.6/x64/lib
+2026-07-18T04:38:51.6587369Z ##[endgroup]
+2026-07-18T04:38:51.8701602Z Cache hit for restore-key: sccache-Linux-8ab25a1e4d4e1f5a97839ff1e5fe2d0f8219eaeb
+2026-07-18T04:38:52.9280245Z Received 222298112 of 308520947 (72.1%), 211.8 MBs/sec
+2026-07-18T04:38:53.3356086Z Received 308520947 of 308520947 (100.0%), 208.8 MBs/sec
+2026-07-18T04:38:53.3358622Z Cache Size: ~294 MB (308520947 B)
+2026-07-18T04:38:53.3470388Z [command]/usr/bin/tar -xf /home/runner/work/_temp/7e6a04cb-c8e7-4bb3-9036-4d2dcff3e67a/cache.tzst -P -C /home/runner/work/FoxMask/FoxMask --use-compress-program unzstd
+2026-07-18T04:38:53.7261559Z Cache restored successfully
+2026-07-18T04:38:53.7474697Z Cache restored from key: sccache-Linux-8ab25a1e4d4e1f5a97839ff1e5fe2d0f8219eaeb
+2026-07-18T04:38:53.7635425Z ##[group]Run bash $GITHUB_ACTION_PATH/sccache.sh
+2026-07-18T04:38:53.7636048Z [36;1mbash $GITHUB_ACTION_PATH/sccache.sh[0m
+2026-07-18T04:38:53.7636564Z [36;1msccache --start-server[0m
+2026-07-18T04:38:53.7636981Z [36;1msccache -z[0m
+2026-07-18T04:38:53.7727512Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-07-18T04:38:53.7727871Z env:
+2026-07-18T04:38:53.7728198Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:38:53.7728713Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:38:53.7729104Z   MAVEN_ARGS: -ntp
+2026-07-18T04:38:53.7729379Z   pythonLocation: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:53.7729823Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.14.6/x64/lib/pkgconfig
+2026-07-18T04:38:53.7730247Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:53.7730632Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:53.7731003Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:53.7731385Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.14.6/x64/lib
+2026-07-18T04:38:53.7731702Z   SCCACHE_DIRECT: false
+2026-07-18T04:38:53.7731976Z   SCCACHE_DIR: /home/runner/work/FoxMask/FoxMask/.sccache
+2026-07-18T04:38:53.7732282Z   SCCACHE_CACHE_SIZE: 300M
+2026-07-18T04:38:53.7732501Z   SCCACHE_IDLE_TIMEOUT: 0
+2026-07-18T04:38:53.7732721Z ##[endgroup]
+2026-07-18T04:38:53.9237442Z   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+2026-07-18T04:38:53.9238438Z                                  Dload  Upload   Total   Spent    Left  Speed
+2026-07-18T04:38:53.9239043Z 
+2026-07-18T04:38:54.0277201Z   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+2026-07-18T04:38:54.0278274Z   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+2026-07-18T04:38:54.0279346Z   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+2026-07-18T04:38:54.2475557Z 
+2026-07-18T04:38:54.2476520Z 100 9268k  100 9268k    0     0  27.9M      0 --:--:-- --:--:-- --:--:-- 27.9M
+2026-07-18T04:38:54.2574769Z sccache: Starting the server...
+2026-07-18T04:38:54.2614766Z sccache: Listening on address 127.0.0.1:4226
+2026-07-18T04:38:54.2631647Z Statistics zeroed.
+2026-07-18T04:38:54.2675980Z ##[group]Run gacts/run-and-post-run@v1
+2026-07-18T04:38:54.2676259Z with:
+2026-07-18T04:38:54.2676662Z   run: sccache -s
+2026-07-18T04:38:54.2676877Z   post: sccache -s
+2026-07-18T04:38:54.2677082Z   shell: bash
+2026-07-18T04:38:54.2677265Z env:
+2026-07-18T04:38:54.2677565Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:38:54.2678081Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:38:54.2678468Z   MAVEN_ARGS: -ntp
+2026-07-18T04:38:54.2678743Z   pythonLocation: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:54.2679161Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.14.6/x64/lib/pkgconfig
+2026-07-18T04:38:54.2679574Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:54.2679950Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:54.2680336Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:54.2680725Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.14.6/x64/lib
+2026-07-18T04:38:54.2681044Z ##[endgroup]
+2026-07-18T04:38:54.3380463Z [1m$ sccache -s[0m
+2026-07-18T04:38:54.3532829Z Compile requests                      0
+2026-07-18T04:38:54.3533205Z Compile requests executed             0
+2026-07-18T04:38:54.3533511Z Cache hits                            0
+2026-07-18T04:38:54.3533776Z Cache misses                          0
+2026-07-18T04:38:54.3534291Z Cache hits rate                       -
+2026-07-18T04:38:54.3535052Z Cache timeouts                        0
+2026-07-18T04:38:54.3535604Z Cache read errors                     0
+2026-07-18T04:38:54.3536149Z Forced recaches                       0
+2026-07-18T04:38:54.3536665Z Cache write errors                    0
+2026-07-18T04:38:54.3537161Z Cache errors                          0
+2026-07-18T04:38:54.3537667Z Compilations                          0
+2026-07-18T04:38:54.3538179Z Compilation failures                  0
+2026-07-18T04:38:54.3538707Z Non-cacheable compilations            0
+2026-07-18T04:38:54.3539209Z Non-cacheable calls                   0
+2026-07-18T04:38:54.3539735Z Non-compilation calls                 0
+2026-07-18T04:38:54.3540253Z Unsupported compiler calls            0
+2026-07-18T04:38:54.3540812Z Average cache write               0.000 s
+2026-07-18T04:38:54.3541334Z Average compiler                  0.000 s
+2026-07-18T04:38:54.3541848Z Average cache read hit            0.000 s
+2026-07-18T04:38:54.3542388Z Failed distributed compilations       0
+2026-07-18T04:38:54.3543113Z Cache location                  Local disk: "/home/runner/work/FoxMask/FoxMask/.sccache"
+2026-07-18T04:38:54.3543683Z Base directories                (none)
+2026-07-18T04:38:54.3544228Z Use direct/preprocessor mode?   no
+2026-07-18T04:38:54.3544728Z Version (client)                0.16.0
+2026-07-18T04:38:54.3546893Z Max cache size                      300 MiB
+2026-07-18T04:38:54.3655527Z ##[group]Run echo "GRADLE_USER_HOME=$GITHUB_WORKSPACE/.gradle" >> "$GITHUB_ENV"
+2026-07-18T04:38:54.3656573Z [36;1mecho "GRADLE_USER_HOME=$GITHUB_WORKSPACE/.gradle" >> "$GITHUB_ENV"[0m
+2026-07-18T04:38:54.3741826Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-07-18T04:38:54.3742177Z env:
+2026-07-18T04:38:54.3742487Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:38:54.3742997Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:38:54.3743555Z   MAVEN_ARGS: -ntp
+2026-07-18T04:38:54.3743833Z   pythonLocation: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:54.3744256Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.14.6/x64/lib/pkgconfig
+2026-07-18T04:38:54.3744665Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:54.3745328Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:54.3745730Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:54.3746107Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.14.6/x64/lib
+2026-07-18T04:38:54.3746426Z ##[endgroup]
+2026-07-18T04:38:54.4466370Z ##[group]Run actions/cache/restore@v5
+2026-07-18T04:38:54.4466817Z with:
+2026-07-18T04:38:54.4467115Z   path: .gradle/caches
+.gradle/wrapper
+!.gradle/caches/build-cache-*
+
+2026-07-18T04:38:54.4467666Z   key: gradle-cache-327d57f8fbbd25f75ca1a45933e94190fff65387edcf100d4a30eeb8215caa37
+2026-07-18T04:38:54.4468136Z   restore-keys: gradle-cache-
+2026-07-18T04:38:54.4468404Z   enableCrossOsArchive: true
+2026-07-18T04:38:54.4468650Z   fail-on-cache-miss: false
+2026-07-18T04:38:54.4468881Z   lookup-only: false
+2026-07-18T04:38:54.4469079Z env:
+2026-07-18T04:38:54.4469369Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:38:54.4469911Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:38:54.4470291Z   MAVEN_ARGS: -ntp
+2026-07-18T04:38:54.4470561Z   pythonLocation: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:54.4470978Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.14.6/x64/lib/pkgconfig
+2026-07-18T04:38:54.4471391Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:54.4471771Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:54.4472140Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:38:54.4472512Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.14.6/x64/lib
+2026-07-18T04:38:54.4472900Z   GRADLE_USER_HOME: /home/runner/work/FoxMask/FoxMask/.gradle
+2026-07-18T04:38:54.4473211Z ##[endgroup]
+2026-07-18T04:38:54.6284625Z Cache hit for: gradle-cache-327d57f8fbbd25f75ca1a45933e94190fff65387edcf100d4a30eeb8215caa37
+2026-07-18T04:38:55.6939016Z Received 218103808 of 3333572437 (6.5%), 208.0 MBs/sec
+2026-07-18T04:38:56.7009153Z Received 478150656 of 3333572437 (14.3%), 227.2 MBs/sec
+2026-07-18T04:38:57.7017527Z Received 696254464 of 3333572437 (20.9%), 220.7 MBs/sec
+2026-07-18T04:38:58.7023286Z Received 939524096 of 3333572437 (28.2%), 223.5 MBs/sec
+2026-07-18T04:38:59.7036060Z Received 1170210816 of 3333572437 (35.1%), 222.8 MBs/sec
+2026-07-18T04:39:00.7185611Z Received 1342177280 of 3333572437 (40.3%), 212.4 MBs/sec
+2026-07-18T04:39:01.7228228Z Received 1560281088 of 3333572437 (46.8%), 211.8 MBs/sec
+2026-07-18T04:39:02.7219604Z Received 1749024768 of 3333572437 (52.5%), 207.8 MBs/sec
+2026-07-18T04:39:03.7224362Z Received 1946157056 of 3333572437 (58.4%), 205.6 MBs/sec
+2026-07-18T04:39:04.7225388Z Received 2134900736 of 3333572437 (64.0%), 203.0 MBs/sec
+2026-07-18T04:39:05.7224928Z Received 2319450112 of 3333572437 (69.6%), 200.6 MBs/sec
+2026-07-18T04:39:06.7241565Z Received 2537553920 of 3333572437 (76.1%), 201.2 MBs/sec
+2026-07-18T04:39:07.7249519Z Received 2722103296 of 3333572437 (81.7%), 199.2 MBs/sec
+2026-07-18T04:39:08.7254053Z Received 2923429888 of 3333572437 (87.7%), 198.7 MBs/sec
+2026-07-18T04:39:09.7283485Z Received 3120562176 of 3333572437 (93.6%), 197.9 MBs/sec
+2026-07-18T04:39:10.7283094Z Received 3267362816 of 3333572437 (98.0%), 194.3 MBs/sec
+2026-07-18T04:39:11.0052742Z Received 3333572437 of 3333572437 (100.0%), 194.9 MBs/sec
+2026-07-18T04:39:11.0055508Z Cache Size: ~3179 MB (3333572437 B)
+2026-07-18T04:39:11.0123874Z [command]/usr/bin/tar -xf /home/runner/work/_temp/cac32d9e-73a8-4327-82b6-b36715b4e1e3/cache.tzst -P -C /home/runner/work/FoxMask/FoxMask --use-compress-program unzstd
+2026-07-18T04:39:20.9410024Z Cache restored successfully
+2026-07-18T04:39:21.0969356Z Cache restored from key: gradle-cache-327d57f8fbbd25f75ca1a45933e94190fff65387edcf100d4a30eeb8215caa37
+2026-07-18T04:39:21.1137371Z ##[group]Run actions/cache/restore@v5
+2026-07-18T04:39:21.1137646Z with:
+2026-07-18T04:39:21.1137851Z   path: .gradle/caches/build-cache-*
+2026-07-18T04:39:21.1138220Z   key: gradle-build-cache-d8bcc3c16755bc86a7957b2fc80733c4f41b87eb
+2026-07-18T04:39:21.1138608Z   restore-keys: gradle-build-cache-
+2026-07-18T04:39:21.1138893Z   enableCrossOsArchive: true
+2026-07-18T04:39:21.1139148Z   fail-on-cache-miss: false
+2026-07-18T04:39:21.1139384Z   lookup-only: false
+2026-07-18T04:39:21.1139602Z env:
+2026-07-18T04:39:21.1139903Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:39:21.1140847Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:39:21.1142156Z   MAVEN_ARGS: -ntp
+2026-07-18T04:39:21.1142945Z   pythonLocation: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:39:21.1143381Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.14.6/x64/lib/pkgconfig
+2026-07-18T04:39:21.1143840Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:39:21.1144233Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:39:21.1144822Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:39:21.1145515Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.14.6/x64/lib
+2026-07-18T04:39:21.1145918Z   GRADLE_USER_HOME: /home/runner/work/FoxMask/FoxMask/.gradle
+2026-07-18T04:39:21.1146239Z ##[endgroup]
+2026-07-18T04:39:21.3029588Z Cache hit for restore-key: gradle-build-cache-8ab25a1e4d4e1f5a97839ff1e5fe2d0f8219eaeb
+2026-07-18T04:39:22.3786054Z Received 213909504 of 2340858221 (9.1%), 203.6 MBs/sec
+2026-07-18T04:39:23.3806990Z Received 411041792 of 2340858221 (17.6%), 195.7 MBs/sec
+2026-07-18T04:39:24.3816392Z Received 608174080 of 2340858221 (26.0%), 193.1 MBs/sec
+2026-07-18T04:39:25.3852178Z Received 750780416 of 2340858221 (32.1%), 178.8 MBs/sec
+2026-07-18T04:39:26.3804212Z Received 939524096 of 2340858221 (40.1%), 179.0 MBs/sec
+2026-07-18T04:39:27.3866085Z Received 1174405120 of 2340858221 (50.2%), 186.4 MBs/sec
+2026-07-18T04:39:28.3836205Z Received 1400897536 of 2340858221 (59.8%), 190.6 MBs/sec
+2026-07-18T04:39:29.3842210Z Received 1610612736 of 2340858221 (68.8%), 191.8 MBs/sec
+2026-07-18T04:39:30.3876183Z Received 1803550720 of 2340858221 (77.0%), 190.9 MBs/sec
+2026-07-18T04:39:31.3844448Z Received 2013265920 of 2340858221 (86.0%), 191.8 MBs/sec
+2026-07-18T04:39:32.3867112Z Received 2189426688 of 2340858221 (93.5%), 189.6 MBs/sec
+2026-07-18T04:39:33.0586979Z Received 2340858221 of 2340858221 (100.0%), 191.1 MBs/sec
+2026-07-18T04:39:33.0589167Z Cache Size: ~2232 MB (2340858221 B)
+2026-07-18T04:39:33.0704770Z [command]/usr/bin/tar -xf /home/runner/work/_temp/007f1550-f0e7-44ea-8cc9-6b6ab28f1f6d/cache.tzst -P -C /home/runner/work/FoxMask/FoxMask --use-compress-program unzstd
+2026-07-18T04:39:36.5663491Z Cache restored successfully
+2026-07-18T04:39:38.2178388Z Cache restored from key: gradle-build-cache-8ab25a1e4d4e1f5a97839ff1e5fe2d0f8219eaeb
+2026-07-18T04:39:38.2330142Z ##[group]Run python build.py -v ndk
+2026-07-18T04:39:38.2330461Z [36;1mpython build.py -v ndk[0m
+2026-07-18T04:39:38.2388674Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-07-18T04:39:38.2389049Z env:
+2026-07-18T04:39:38.2389379Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:39:38.2389945Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:39:38.2390369Z   MAVEN_ARGS: -ntp
+2026-07-18T04:39:38.2390672Z   pythonLocation: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:39:38.2391141Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.14.6/x64/lib/pkgconfig
+2026-07-18T04:39:38.2391600Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:39:38.2392005Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:39:38.2392412Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:39:38.2393014Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.14.6/x64/lib
+2026-07-18T04:39:38.2393442Z   GRADLE_USER_HOME: /home/runner/work/FoxMask/FoxMask/.gradle
+2026-07-18T04:39:38.2393795Z ##[endgroup]
+2026-07-18T04:40:10.7126202Z [44;39m[0m
+2026-07-18T04:40:10.7126837Z [44;39m* Downloading and extracting ondk-r30.0-linux.tar.xz[0m
+2026-07-18T04:40:10.7127311Z [44;39m[0m
+2026-07-18T04:40:10.7127642Z rm -rf /usr/local/lib/android/sdk/ndk/ondk-r30.0
+2026-07-18T04:40:10.7128054Z rm -rf /usr/local/lib/android/sdk/ndk/magisk
+2026-07-18T04:40:10.7128597Z mv /usr/local/lib/android/sdk/ndk/ondk-r30.0 -> /usr/local/lib/android/sdk/ndk/magisk
+2026-07-18T04:40:10.7335770Z ##[group]Run python build.py -v -c .github/ci.prop all
+2026-07-18T04:40:10.7336310Z [36;1mpython build.py -v -c .github/ci.prop all[0m
+2026-07-18T04:40:10.7394446Z shell: /usr/bin/bash -e {0}
+2026-07-18T04:40:10.7394704Z env:
+2026-07-18T04:40:10.7395512Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:40:10.7396064Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.11-10/x64
+2026-07-18T04:40:10.7396458Z   MAVEN_ARGS: -ntp
+2026-07-18T04:40:10.7396746Z   pythonLocation: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:40:10.7397181Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.14.6/x64/lib/pkgconfig
+2026-07-18T04:40:10.7397611Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:40:10.7398012Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:40:10.7398390Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.6/x64
+2026-07-18T04:40:10.7398805Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.14.6/x64/lib
+2026-07-18T04:40:10.7399206Z   GRADLE_USER_HOME: /home/runner/work/FoxMask/FoxMask/.gradle
+2026-07-18T04:40:10.7399542Z ##[endgroup]
+2026-07-18T04:40:11.7328599Z     Updating git repository `https://github.com/topjohnwu/quick-protobuf.git`
+2026-07-18T04:40:11.9984109Z     Updating crates.io index
+2026-07-18T04:40:12.1045319Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-07-18T04:40:12.1046377Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-07-18T04:40:12.1047028Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-07-18T04:40:12.1047629Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-07-18T04:40:12.1048478Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-07-18T04:40:12.1049511Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-07-18T04:40:12.1050554Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-07-18T04:40:12.1051633Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-07-18T04:40:12.1052758Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-07-18T04:40:12.1053878Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-07-18T04:40:12.1055226Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-07-18T04:40:12.1056355Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-07-18T04:40:12.1057471Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-07-18T04:40:12.1058593Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-07-18T04:40:12.1059713Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-07-18T04:40:13.6418696Z  Downloading crates ...
+2026-07-18T04:40:13.7645681Z   Downloaded num-derive v0.4.2
+2026-07-18T04:40:13.7685827Z   Downloaded autocfg v1.5.0
+2026-07-18T04:40:13.7706728Z   Downloaded cfg_aliases v0.2.1
+2026-07-18T04:40:13.7715954Z   Downloaded cfg-if v1.0.4
+2026-07-18T04:40:13.7797658Z   Downloaded foldhash v0.2.0
+2026-07-18T04:40:13.7818559Z   Downloaded num-traits v0.2.19
+2026-07-18T04:40:13.7845238Z   Downloaded equivalent v1.0.2
+2026-07-18T04:40:13.7864239Z   Downloaded bytemuck v1.25.0
+2026-07-18T04:40:13.7910559Z   Downloaded unicode-xid v0.2.6
+2026-07-18T04:40:13.7996974Z   Downloaded find-msvc-tools v0.1.9
+2026-07-18T04:40:13.8018747Z   Downloaded thiserror-impl v2.0.18
+2026-07-18T04:40:13.8035070Z   Downloaded shlex v1.3.0
+2026-07-18T04:40:13.8049077Z   Downloaded const_format_proc_macros v0.2.34
+2026-07-18T04:40:13.8075329Z   Downloaded thiserror v2.0.18
+2026-07-18T04:40:13.8147678Z   Downloaded termcolor v1.4.1
+2026-07-18T04:40:13.8163001Z   Downloaded unicode-ident v1.0.24
+2026-07-18T04:40:13.8190149Z   Downloaded serde_core v1.0.228
+2026-07-18T04:40:13.8221904Z   Downloaded serde_derive v1.0.228
+2026-07-18T04:40:13.8253511Z   Downloaded serde v1.0.228
+2026-07-18T04:40:13.8291551Z   Downloaded cc v1.2.59
+2026-07-18T04:40:13.8321280Z   Downloaded hashbrown v0.16.1
+2026-07-18T04:40:13.8374155Z   Downloaded indexmap v2.13.1
+2026-07-18T04:40:13.8418235Z   Downloaded const_format v0.2.35
+2026-07-18T04:40:13.8466903Z   Downloaded codespan-reporting v0.13.1
+2026-07-18T04:40:13.8544000Z   Downloaded proc-macro2 v1.0.106
+2026-07-18T04:40:13.8575319Z   Downloaded bitflags v2.11.0
+2026-07-18T04:40:13.8618744Z   Downloaded syn v2.0.117
+2026-07-18T04:40:13.8723976Z   Downloaded quote v1.0.45
+2026-07-18T04:40:13.8753464Z   Downloaded unicode-width v0.2.2
+2026-07-18T04:40:13.8808977Z   Downloaded nix v0.31.2
+2026-07-18T04:40:13.8933902Z   Downloaded libc v0.2.184
+2026-07-18T04:40:13.9410225Z     Updating crates.io index
+2026-07-18T04:40:13.9808971Z  Downloading crates ...
+2026-07-18T04:40:14.0258751Z   Downloaded rustc-demangle v0.1.27
+2026-07-18T04:40:14.0277291Z   Downloaded rustc-literal-escaper v0.0.7
+2026-07-18T04:40:14.0291951Z   Downloaded getopts v0.2.24
+2026-07-18T04:40:14.0649747Z   Downloaded libc v0.2.178
+2026-07-18T04:40:14.1604597Z    Compiling compiler_builtins v0.1.160 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/compiler-builtins/compiler-builtins)
+2026-07-18T04:40:14.1606898Z    Compiling core v0.0.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/core)
+2026-07-18T04:40:14.1607880Z    Compiling proc-macro2 v1.0.106
+2026-07-18T04:40:14.1608410Z    Compiling libc v0.2.178
+2026-07-18T04:40:14.5150383Z    Compiling quote v1.0.45
+2026-07-18T04:40:14.5337715Z    Compiling unicode-ident v1.0.24
+2026-07-18T04:40:14.6496592Z    Compiling std v0.0.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/std)
+2026-07-18T04:40:14.7366316Z    Compiling hashbrown v0.16.1
+2026-07-18T04:40:14.8416808Z    Compiling syn v2.0.117
+2026-07-18T04:40:14.8442731Z    Compiling equivalent v1.0.2
+2026-07-18T04:40:14.9026278Z    Compiling indexmap v2.13.1
+2026-07-18T04:40:14.9055547Z    Compiling termcolor v1.4.1
+2026-07-18T04:40:15.0017518Z    Compiling cxx-gen v0.7.189 (/home/runner/work/FoxMask/FoxMask/native/src/external/cxx-rs/gen/lib)
+2026-07-18T04:40:15.0526240Z    Compiling unicode-width v0.2.2
+2026-07-18T04:40:15.1711127Z    Compiling find-msvc-tools v0.1.9
+2026-07-18T04:40:15.2390620Z    Compiling shlex v1.3.0
+2026-07-18T04:40:15.2656711Z    Compiling codespan-reporting v0.13.1
+2026-07-18T04:40:15.3104752Z    Compiling cc v1.2.59
+2026-07-18T04:40:15.3199973Z    Compiling autocfg v1.5.0
+2026-07-18T04:40:15.3891987Z    Compiling cxxbridge-macro v1.0.189 (/home/runner/work/FoxMask/FoxMask/native/src/external/cxx-rs/macro)
+2026-07-18T04:40:15.4566691Z    Compiling cxxbridge-flags v1.0.189 (/home/runner/work/FoxMask/FoxMask/native/src/external/cxx-rs/flags)
+2026-07-18T04:40:15.5110447Z    Compiling libc v0.2.184
+2026-07-18T04:40:15.5431620Z    Compiling cfg_aliases v0.2.1
+2026-07-18T04:40:15.6138046Z    Compiling nix v0.31.2
+2026-07-18T04:40:15.6218162Z    Compiling cxx v1.0.189 (/home/runner/work/FoxMask/FoxMask/native/src/external/cxx-rs)
+2026-07-18T04:40:15.9234599Z    Compiling num-traits v0.2.19
+2026-07-18T04:40:15.9319897Z    Compiling thiserror v2.0.18
+2026-07-18T04:40:16.0276025Z    Compiling unicode-xid v0.2.6
+2026-07-18T04:40:16.1166458Z    Compiling const_format_proc_macros v0.2.34
+2026-07-18T04:40:16.3346828Z    Compiling base v0.0.0 (/home/runner/work/FoxMask/FoxMask/native/src/base)
+2026-07-18T04:40:16.9245119Z    Compiling thiserror-impl v2.0.18
+2026-07-18T04:40:17.0446396Z    Compiling magiskpolicy v0.0.0 (/home/runner/work/FoxMask/FoxMask/native/src/sepolicy)
+2026-07-18T04:40:17.5596087Z    Compiling num-derive v0.4.2
+2026-07-18T04:40:18.5366997Z    Compiling derive v0.0.0 (/home/runner/work/FoxMask/FoxMask/native/src/base/derive)
+2026-07-18T04:40:18.9716184Z    Compiling magiskinit v0.0.0 (/home/runner/work/FoxMask/FoxMask/native/src/init)
+2026-07-18T04:40:19.1146805Z    Compiling rustc-std-workspace-core v1.99.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/rustc-std-workspace-core)
+2026-07-18T04:40:19.4219577Z    Compiling alloc v0.0.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/alloc)
+2026-07-18T04:40:19.8725986Z    Compiling cfg-if v1.0.4
+2026-07-18T04:40:20.3917504Z    Compiling rustc-std-workspace-alloc v1.99.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/rustc-std-workspace-alloc)
+2026-07-18T04:40:20.4207149Z    Compiling rustc-demangle v0.1.27
+2026-07-18T04:40:20.4258970Z    Compiling unwind v0.0.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/unwind)
+2026-07-18T04:40:20.4745664Z    Compiling std_detect v0.1.5 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/std_detect)
+2026-07-18T04:40:20.5800005Z    Compiling panic_abort v0.0.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/panic_abort)
+2026-07-18T04:40:20.6825829Z    Compiling rustc-literal-escaper v0.0.7
+2026-07-18T04:40:20.8302787Z    Compiling panic_unwind v0.0.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/panic_unwind)
+2026-07-18T04:40:21.3553462Z    Compiling proc_macro v0.0.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/proc_macro)
+2026-07-18T04:40:21.4721879Z    Compiling foldhash v0.2.0
+2026-07-18T04:40:21.4722315Z    Compiling bitflags v2.11.0
+2026-07-18T04:40:21.7857926Z    Compiling const_format v0.2.35
+2026-07-18T04:40:21.8090737Z    Compiling bytemuck v1.25.0
+2026-07-18T04:40:22.6851637Z warning: variant `HP` is never constructed
+2026-07-18T04:40:22.6852719Z   --> sepolicy/statement.rs:33:5
+2026-07-18T04:40:22.6853218Z    |
+2026-07-18T04:40:22.6853580Z 11 | pub enum Token<'a> {
+2026-07-18T04:40:22.6854114Z    |          ----- variant in this enum
+2026-07-18T04:40:22.6854593Z ...
+2026-07-18T04:40:22.6865163Z 33 |     HP,
+2026-07-18T04:40:22.6865508Z    |     ^^
+2026-07-18T04:40:22.6865847Z    |
+2026-07-18T04:40:22.6866325Z    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+2026-07-18T04:40:22.6866800Z 
+2026-07-18T04:40:22.6868823Z warning: `magiskpolicy` (lib) generated 1 warning
+2026-07-18T04:40:22.8248358Z     Finished `dev` profile [optimized] target(s) in 11.92s
+2026-07-18T04:40:22.9448121Z  Downloading crates ...
+2026-07-18T04:40:22.9905513Z   Downloaded bytemuck_derive v1.10.2
+2026-07-18T04:40:22.9969312Z   Downloaded base16ct v1.0.0
+2026-07-18T04:40:22.9994446Z   Downloaded block-buffer v0.10.4
+2026-07-18T04:40:23.0124284Z   Downloaded version_check v0.9.5
+2026-07-18T04:40:23.0141241Z   Downloaded base64ct v1.8.3
+2026-07-18T04:40:23.0168804Z   Downloaded cmov v0.5.3
+2026-07-18T04:40:23.0189680Z   Downloaded byteorder v1.5.0
+2026-07-18T04:40:23.0208789Z   Downloaded primefield v0.14.0-rc.8
+2026-07-18T04:40:23.0223457Z   Downloaded bzip2 v0.6.1
+2026-07-18T04:40:23.0242772Z   Downloaded hybrid-array v0.4.10
+2026-07-18T04:40:23.0265434Z   Downloaded sha1 v0.11.0
+2026-07-18T04:40:23.0288226Z   Downloaded zeroize v1.8.2
+2026-07-18T04:40:23.0301856Z   Downloaded crypto-common v0.1.7
+2026-07-18T04:40:23.0312320Z   Downloaded cpufeatures v0.2.17
+2026-07-18T04:40:23.0328519Z   Downloaded bumpalo v3.20.2
+2026-07-18T04:40:23.0357979Z   Downloaded zopfli v0.8.3
+2026-07-18T04:40:23.0382481Z   Downloaded digest v0.11.2
+2026-07-18T04:40:23.0412467Z   Downloaded crc32fast v1.5.0
+2026-07-18T04:40:23.0433067Z   Downloaded cpubits v0.1.0
+2026-07-18T04:40:23.0443507Z   Downloaded digest v0.10.7
+2026-07-18T04:40:23.0466170Z   Downloaded block-buffer v0.12.0
+2026-07-18T04:40:23.0493037Z   Downloaded generic-array v0.14.7
+2026-07-18T04:40:23.0515399Z   Downloaded crypto-common v0.2.1
+2026-07-18T04:40:23.0527882Z   Downloaded cpufeatures v0.3.0
+2026-07-18T04:40:23.0557370Z   Downloaded zeroize_derive v1.4.3
+2026-07-18T04:40:23.0583734Z   Downloaded sec1 v0.8.1
+2026-07-18T04:40:23.0603113Z   Downloaded rfc6979 v0.5.0-rc.5
+2026-07-18T04:40:23.0614450Z   Downloaded rustcrypto-group v0.14.0-rc.1
+2026-07-18T04:40:23.0636940Z   Downloaded subtle v2.6.1
+2026-07-18T04:40:23.0650131Z   Downloaded signature v3.0.0-rc.10
+2026-07-18T04:40:23.0664992Z   Downloaded tls_codec v0.4.2
+2026-07-18T04:40:23.0688858Z   Downloaded spki v0.8.0
+2026-07-18T04:40:23.0710987Z   Downloaded simd-adler32 v0.3.9
+2026-07-18T04:40:23.0735066Z   Downloaded once_cell v1.21.4
+2026-07-18T04:40:23.0765061Z   Downloaded sha2 v0.11.0
+2026-07-18T04:40:23.0812177Z   Downloaded tls_codec_derive v0.4.2
+2026-07-18T04:40:23.0829808Z   Downloaded log v0.4.29
+2026-07-18T04:40:23.0859183Z   Downloaded p384 v0.14.0-rc.8
+2026-07-18T04:40:23.0889025Z   Downloaded typenum v1.19.0
+2026-07-18T04:40:23.0924728Z   Downloaded p256 v0.14.0-rc.8
+2026-07-18T04:40:23.0964798Z   Downloaded rsa v0.10.0-rc.17
+2026-07-18T04:40:23.1031325Z   Downloaded nom v7.1.3
+2026-07-18T04:40:23.1084985Z   Downloaded x509-cert v0.3.0-rc.4
+2026-07-18T04:40:23.1160443Z   Downloaded lzma-rust2 v0.16.2
+2026-07-18T04:40:23.1244083Z   Downloaded libm v0.2.16
+2026-07-18T04:40:23.1355355Z   Downloaded crypto-primes v0.7.0
+2026-07-18T04:40:23.1399319Z   Downloaded zlib-rs v0.6.3
+2026-07-18T04:40:23.1452798Z   Downloaded p521 v0.14.0-rc.8
+2026-07-18T04:40:23.1483809Z   Downloaded minimal-lexical v0.2.1
+2026-07-18T04:40:23.1529826Z   Downloaded crypto-bigint v0.7.3
+2026-07-18T04:40:23.1695062Z   Downloaded flate2 v1.1.9
+2026-07-18T04:40:23.1744353Z   Downloaded der v0.8.0
+2026-07-18T04:40:23.1803622Z   Downloaded memchr v2.8.0
+2026-07-18T04:40:23.1857394Z   Downloaded hmac v0.13.0
+2026-07-18T04:40:23.1878329Z   Downloaded elliptic-curve v0.14.0-rc.29
+2026-07-18T04:40:23.1910046Z   Downloaded libbz2-rs-sys v0.2.2
+2026-07-18T04:40:23.1928334Z   Downloaded getrandom v0.4.2
+2026-07-18T04:40:23.1966436Z   Downloaded ecdsa v0.17.0-rc.16
+2026-07-18T04:40:23.1985268Z   Downloaded ctutils v0.4.2
+2026-07-18T04:40:23.2004442Z   Downloaded pkcs1 v0.8.0-rc.4
+2026-07-18T04:40:23.2028872Z   Downloaded der_derive v0.8.0
+2026-07-18T04:40:23.2047882Z   Downloaded serdect v0.4.2
+2026-07-18T04:40:23.2062918Z   Downloaded const-oid v0.10.2
+2026-07-18T04:40:23.2086595Z   Downloaded size v0.5.0
+2026-07-18T04:40:23.2103780Z   Downloaded sha2 v0.10.9
+2026-07-18T04:40:23.2128949Z   Downloaded rustcrypto-ff v0.14.0-rc.1
+2026-07-18T04:40:23.2143971Z   Downloaded fiat-crypto v0.3.0
+2026-07-18T04:40:23.2250799Z   Downloaded rand_core v0.10.0
+2026-07-18T04:40:23.2266588Z   Downloaded pkcs8 v0.11.0-rc.11
+2026-07-18T04:40:23.2297344Z   Downloaded lz4 v1.28.1
+2026-07-18T04:40:23.2312525Z   Downloaded fdt v0.1.5
+2026-07-18T04:40:23.2332700Z   Downloaded primeorder v0.14.0-rc.8
+2026-07-18T04:40:23.2345502Z   Downloaded pem-rfc7468 v1.0.0
+2026-07-18T04:40:23.2365423Z   Downloaded flagset v0.4.7
+2026-07-18T04:40:23.2943069Z    Compiling core v0.0.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/core)
+2026-07-18T04:40:23.2944677Z    Compiling typenum v1.19.0
+2026-07-18T04:40:23.2969315Z    Compiling syn v2.0.117
+2026-07-18T04:40:23.2970153Z    Compiling getrandom v0.4.2
+2026-07-18T04:40:23.4655936Z    Compiling version_check v0.9.5
+2026-07-18T04:40:23.5518962Z    Compiling minimal-lexical v0.2.1
+2026-07-18T04:40:26.0247971Z    Compiling der_derive v0.8.0
+2026-07-18T04:40:26.0697264Z    Compiling generic-array v0.14.7
+2026-07-18T04:40:26.0925765Z    Compiling cxx-gen v0.7.189 (/home/runner/work/FoxMask/FoxMask/native/src/external/cxx-rs/gen/lib)
+2026-07-18T04:40:26.2006590Z    Compiling compiler_builtins v0.1.160 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/compiler-builtins/compiler-builtins)
+2026-07-18T04:40:26.2480518Z    Compiling libm v0.2.16
+2026-07-18T04:40:26.3376510Z    Compiling memchr v2.8.0
+2026-07-18T04:40:26.5333620Z    Compiling crc32fast v1.5.0
+2026-07-18T04:40:26.6227293Z    Compiling rustc-std-workspace-core v1.99.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/rustc-std-workspace-core)
+2026-07-18T04:40:26.7528989Z    Compiling alloc v0.0.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/alloc)
+2026-07-18T04:40:26.7936059Z    Compiling nom v7.1.3
+2026-07-18T04:40:26.8851623Z    Compiling libc v0.2.178
+2026-07-18T04:40:27.1553413Z    Compiling rustc-demangle v0.1.27
+2026-07-18T04:40:27.3826026Z    Compiling rustc-std-workspace-alloc v1.99.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/rustc-std-workspace-alloc)
+2026-07-18T04:40:27.3839791Z    Compiling cfg-if v1.0.4
+2026-07-18T04:40:27.5725899Z    Compiling unwind v0.0.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/unwind)
+2026-07-18T04:40:27.5745367Z    Compiling panic_abort v0.0.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/panic_abort)
+2026-07-18T04:40:27.6500457Z    Compiling hashbrown v0.16.1
+2026-07-18T04:40:27.6616984Z    Compiling std_detect v0.1.5 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/std_detect)
+2026-07-18T04:40:27.7464132Z    Compiling rustc-literal-escaper v0.0.7
+2026-07-18T04:40:27.7586398Z    Compiling panic_unwind v0.0.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/panic_unwind)
+2026-07-18T04:40:27.9375791Z    Compiling log v0.4.29
+2026-07-18T04:40:27.9486616Z    Compiling std v0.0.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/std)
+2026-07-18T04:40:28.0440095Z    Compiling cxxbridge-macro v1.0.189 (/home/runner/work/FoxMask/FoxMask/native/src/external/cxx-rs/macro)
+2026-07-18T04:40:28.0503182Z    Compiling base v0.0.0 (/home/runner/work/FoxMask/FoxMask/native/src/base)
+2026-07-18T04:40:28.4943059Z    Compiling pb-rs v0.10.0 (https://github.com/topjohnwu/quick-protobuf.git#980b0fb0)
+2026-07-18T04:40:28.5706579Z    Compiling proc_macro v0.0.0 (/usr/local/lib/android/sdk/ndk/magisk/toolchains/rust/lib/rustlib/src/rust/library/proc_macro)
+2026-07-18T04:40:28.6536381Z    Compiling bytemuck_derive v1.10.2
+2026-07-18T04:40:28.9285982Z    Compiling libc v0.2.184
+2026-07-18T04:40:29.2202481Z    Compiling zeroize v1.8.2
+2026-07-18T04:40:29.7976530Z    Compiling subtle v2.6.1
+2026-07-18T04:40:29.8663799Z    Compiling rand_core v0.10.0
+2026-07-18T04:40:29.9575967Z    Compiling hybrid-array v0.4.10
+2026-07-18T04:40:30.0356433Z    Compiling const-oid v0.10.2
+2026-07-18T04:40:30.0460307Z    Compiling cmov v0.5.3
+2026-07-18T04:40:30.2855354Z    Compiling base64ct v1.8.3
+2026-07-18T04:40:30.2973515Z    Compiling ctutils v0.4.2
+2026-07-18T04:40:30.3793018Z    Compiling crypto-common v0.2.1
+2026-07-18T04:40:30.5035889Z    Compiling pem-rfc7468 v1.0.0
+2026-07-18T04:40:30.5151429Z    Compiling block-buffer v0.12.0
+2026-07-18T04:40:30.6157132Z    Compiling flagset v0.4.7
+2026-07-18T04:40:30.7189117Z    Compiling num-traits v0.2.19
+2026-07-18T04:40:30.7328069Z    Compiling digest v0.11.2
+2026-07-18T04:40:30.8082731Z    Compiling der v0.8.0
+2026-07-18T04:40:31.0206118Z    Compiling cpubits v0.1.0
+2026-07-18T04:40:31.0346501Z    Compiling rustcrypto-ff v0.14.0-rc.1
+2026-07-18T04:40:31.2732822Z    Compiling spki v0.8.0
+2026-07-18T04:40:31.4416117Z    Compiling crypto-bigint v0.7.3
+2026-07-18T04:40:31.5086099Z    Compiling base16ct v1.0.0
+2026-07-18T04:40:31.6999138Z    Compiling pkcs8 v0.11.0-rc.11
+2026-07-18T04:40:32.2084625Z    Compiling sec1 v0.8.1
+2026-07-18T04:40:32.2234792Z    Compiling rustcrypto-group v0.14.0-rc.1
+2026-07-18T04:40:32.2929904Z    Compiling cpufeatures v0.3.0
+2026-07-18T04:40:32.4031496Z    Compiling signature v3.0.0-rc.10
+2026-07-18T04:40:32.4179712Z    Compiling elliptic-curve v0.14.0-rc.29
+2026-07-18T04:40:32.4960546Z    Compiling hmac v0.13.0
+2026-07-18T04:40:32.6239314Z    Compiling sha2 v0.11.0
+2026-07-18T04:40:32.6390333Z    Compiling primeorder v0.14.0-rc.8
+2026-07-18T04:40:32.7712690Z    Compiling rfc6979 v0.5.0-rc.5
+2026-07-18T04:40:32.7858631Z    Compiling block-buffer v0.10.4
+2026-07-18T04:40:32.9489265Z    Compiling crypto-common v0.1.7
+2026-07-18T04:40:32.9604540Z    Compiling primefield v0.14.0-rc.8
+2026-07-18T04:40:33.0609385Z    Compiling ecdsa v0.17.0-rc.16
+2026-07-18T04:40:33.0736838Z    Compiling cpufeatures v0.2.17
+2026-07-18T04:40:33.1836871Z    Compiling digest v0.10.7
+2026-07-18T04:40:33.1978991Z    Compiling foldhash v0.2.0
+2026-07-18T04:40:33.3308062Z    Compiling bitflags v2.11.0
+2026-07-18T04:40:33.4438412Z    Compiling thiserror-impl v2.0.18
+2026-07-18T04:40:33.4556897Z    Compiling cxx v1.0.189 (/home/runner/work/FoxMask/FoxMask/native/src/external/cxx-rs)
+2026-07-18T04:40:33.6642947Z    Compiling crypto-primes v0.7.0
+2026-07-18T04:40:33.6759114Z    Compiling nix v0.31.2
+2026-07-18T04:40:33.8051541Z    Compiling sha2 v0.10.9
+2026-07-18T04:40:34.1146692Z    Compiling pkcs1 v0.8.0-rc.4
+2026-07-18T04:40:34.1377652Z    Compiling bytemuck v1.25.0
+2026-07-18T04:40:34.4786562Z    Compiling lz4-sys v1.11.1+lz4-1.10.0 (/home/runner/work/FoxMask/FoxMask/native/src/external/lz4-sys)
+2026-07-18T04:40:34.5146068Z    Compiling const_format v0.2.35
+2026-07-18T04:40:34.7118574Z    Compiling zlib-rs v0.6.3
+2026-07-18T04:40:34.7282047Z    Compiling libbz2-rs-sys v0.2.2
+2026-07-18T04:40:34.8081246Z    Compiling thiserror v2.0.18
+2026-07-18T04:40:34.8107536Z    Compiling bumpalo v3.20.2
+2026-07-18T04:40:35.0350626Z    Compiling byteorder v1.5.0
+2026-07-18T04:40:35.0465994Z    Compiling fiat-crypto v0.3.0
+2026-07-18T04:40:35.1533368Z    Compiling magiskboot v0.0.0 (/home/runner/work/FoxMask/FoxMask/native/src/boot)
+2026-07-18T04:40:35.1691674Z    Compiling num-derive v0.4.2
+2026-07-18T04:40:36.1036522Z    Compiling derive v0.0.0 (/home/runner/work/FoxMask/FoxMask/native/src/base/derive)
+2026-07-18T04:40:36.3386079Z    Compiling p384 v0.14.0-rc.8
+2026-07-18T04:40:36.5076336Z    Compiling quick-protobuf v0.8.1 (https://github.com/topjohnwu/quick-protobuf.git#980b0fb0)
+2026-07-18T04:40:36.6293244Z    Compiling zopfli v0.8.3
+2026-07-18T04:40:36.7796498Z    Compiling bzip2 v0.6.1
+2026-07-18T04:40:36.8065900Z    Compiling flate2 v1.1.9
+2026-07-18T04:40:37.0926811Z    Compiling lz4 v1.28.1
+2026-07-18T04:40:37.1113411Z    Compiling rsa v0.10.0-rc.17
+2026-07-18T04:40:37.2098684Z    Compiling lzma-rust2 v0.16.2
+2026-07-18T04:40:37.3297292Z    Compiling p521 v0.14.0-rc.8
+2026-07-18T04:40:37.3784489Z    Compiling p256 v0.14.0-rc.8
+2026-07-18T04:40:37.5055158Z    Compiling sha1 v0.11.0
+2026-07-18T04:40:37.6528474Z    Compiling x509-cert v0.3.0-rc.4
+2026-07-18T04:40:37.6651631Z    Compiling fdt v0.1.5
+2026-07-18T04:40:37.8333485Z    Compiling size v0.5.0
+2026-07-18T04:40:38.2770371Z     Finished `dev` profile [optimized] target(s) in 15.41s
+2026-07-18T04:40:38.3816540Z  Downloading crates ...
+2026-07-18T04:40:38.4305153Z   Downloaded bit-set v0.10.0
+2026-07-18T04:40:38.4334219Z   Downloaded bit-vec v0.9.1
+2026-07-18T04:40:38.4767004Z    Compiling nix v0.31.2
+2026-07-18T04:40:38.4770847Z    Compiling base v0.0.0 (/home/runner/work/FoxMask/FoxMask/native/src/base)
+2026-07-18T04:40:38.4795282Z    Compiling bytemuck_derive v1.10.2
+2026-07-18T04:40:38.4808730Z    Compiling thiserror v2.0.18
+2026-07-18T04:40:38.6131357Z    Compiling cxx v1.0.189 (/home/runner/work/FoxMask/FoxMask/native/src/external/cxx-rs)
+2026-07-18T04:40:38.8622267Z    Compiling magisk v0.0.0 (/home/runner/work/FoxMask/FoxMask/native/src/core)
+2026-07-18T04:40:39.0287443Z    Compiling bit-vec v0.9.1
+2026-07-18T04:40:39.3949967Z    Compiling byteorder v1.5.0
+2026-07-18T04:40:39.7197550Z    Compiling bit-set v0.10.0
+2026-07-18T04:40:39.7356690Z    Compiling quick-protobuf v0.8.1 (https://github.com/topjohnwu/quick-protobuf.git#980b0fb0)
+2026-07-18T04:40:39.9168304Z    Compiling bytemuck v1.25.0
+2026-07-18T04:40:40.3236849Z warning: function `sc_call1` is never used
+2026-07-18T04:40:40.3237658Z   --> core/kpcall.rs:65:11
+2026-07-18T04:40:40.3238411Z    |
+2026-07-18T04:40:40.3239071Z 65 | unsafe fn sc_call1(cmd: i64, arg1: *const libc::c_void) -> libc::c_long {
+2026-07-18T04:40:40.3240137Z    |           ^^^^^^^^
+2026-07-18T04:40:40.3240660Z    |
+2026-07-18T04:40:40.3241186Z    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+2026-07-18T04:40:40.3241660Z 
+2026-07-18T04:40:40.3255053Z warning: `magisk` (lib) generated 1 warning
+2026-07-18T04:40:40.3255878Z     Finished `dev` profile [optimized] target(s) in 2.02s
+2026-07-18T04:40:40.4509063Z    Compiling magiskpolicy v0.0.0 (/home/runner/work/FoxMask/FoxMask/native/src/sepolicy)
+2026-07-18T04:40:40.8867527Z warning: variant `HP` is never constructed
+2026-07-18T04:40:40.8868157Z   --> sepolicy/statement.rs:33:5
+2026-07-18T04:40:40.8868655Z    |
+2026-07-18T04:40:40.8869033Z 11 | pub enum Token<'a> {
+2026-07-18T04:40:40.8869392Z    |          ----- variant in this enum
+2026-07-18T04:40:40.8869679Z ...
+2026-07-18T04:40:40.8869872Z 33 |     HP,
+2026-07-18T04:40:40.8870068Z    |     ^^
+2026-07-18T04:40:40.8870259Z    |
+2026-07-18T04:40:40.8870552Z    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+2026-07-18T04:40:40.8870872Z 
+2026-07-18T04:40:40.8884441Z warning: `magiskpolicy` (lib) generated 1 warning
+2026-07-18T04:40:40.8885183Z     Finished `dev` profile [optimized] target(s) in 0.54s
+2026-07-18T04:40:41.3073954Z [arm64-v8a] Compile        : init-ld <= preload.c
+2026-07-18T04:40:41.4656936Z [arm64-v8a] Compile++      : magisk <= applets.cpp
+2026-07-18T04:40:41.6333216Z [arm64-v8a] Compile++      : magisk <= sqlite.cpp
+2026-07-18T04:40:41.7863221Z [arm64-v8a] Compile++      : magisk <= scripting.cpp
+2026-07-18T04:40:41.9566412Z [arm64-v8a] Compile++      : magisk <= utils.cpp
+2026-07-18T04:40:42.1091245Z [arm64-v8a] Compile++      : magisk <= core-rs.cpp
+2026-07-18T04:40:42.2636272Z [arm64-v8a] Compile++      : magisk <= sys.cpp
+2026-07-18T04:40:42.4352580Z [arm64-v8a] Compile++      : magisk <= su.cpp
+2026-07-18T04:40:42.5883379Z [arm64-v8a] Compile++      : magisk <= entry.cpp
+2026-07-18T04:40:42.7532169Z [arm64-v8a] Compile++      : magisk <= module.cpp
+2026-07-18T04:40:42.9152645Z [arm64-v8a] Compile++      : magisk <= hook.cpp
+2026-07-18T04:40:43.0652833Z [arm64-v8a] Compile++      : magisk <= cli.cpp
+2026-07-18T04:40:43.2274750Z [arm64-v8a] Compile++      : magisk <= utils.cpp
+2026-07-18T04:40:43.3860495Z [arm64-v8a] Compile++      : magisk <= logcat.cpp
+2026-07-18T04:40:43.5413244Z [arm64-v8a] Compile++      : base <= base.cpp
+2026-07-18T04:40:43.6882610Z [arm64-v8a] Compile++      : base <= base-rs.cpp
+2026-07-18T04:40:43.8542429Z [arm64-v8a] Compile++      : base <= cxx.cc
+2026-07-18T04:40:43.9052126Z [arm64-v8a] Compile++      : systemproperties <= context_node.cpp
+2026-07-18T04:40:43.9587369Z [arm64-v8a] Compile++      : systemproperties <= contexts_serialized.cpp
+2026-07-18T04:40:44.0133732Z [arm64-v8a] Compile++      : systemproperties <= contexts_split.cpp
+2026-07-18T04:40:44.0655474Z [arm64-v8a] Compile++      : systemproperties <= prop_area.cpp
+2026-07-18T04:40:44.1141347Z [arm64-v8a] Compile++      : systemproperties <= prop_info.cpp
+2026-07-18T04:40:44.1701658Z [arm64-v8a] Compile++      : systemproperties <= system_properties.cpp
+2026-07-18T04:40:44.2267191Z [arm64-v8a] Compile++      : systemproperties <= system_property_api.cpp
+2026-07-18T04:40:44.2772206Z [arm64-v8a] Compile++      : systemproperties <= system_property_set.cpp
+2026-07-18T04:40:44.3001743Z [arm64-v8a] Compile++      : systemproperties <= property_info_parser.cpp
+2026-07-18T04:40:44.4473097Z [arm64-v8a] Compile++      : lsplt <= elf_util.cc
+2026-07-18T04:40:44.6183053Z [arm64-v8a] Compile++      : lsplt <= lsplt.cc
+2026-07-18T04:40:44.6953883Z [arm64-v8a] Compile++      : cxx <= algorithm.cpp
+2026-07-18T04:40:44.7275748Z [arm64-v8a] Compile++      : cxx <= any.cpp
+2026-07-18T04:40:44.8642393Z [arm64-v8a] Compile++      : cxx <= atomic.cpp
+2026-07-18T04:40:44.9882083Z [arm64-v8a] Compile++      : cxx <= barrier.cpp
+2026-07-18T04:40:45.0832128Z [arm64-v8a] Compile++      : cxx <= bind.cpp
+2026-07-18T04:40:45.1341973Z [arm64-v8a] Compile++      : cxx <= call_once.cpp
+2026-07-18T04:40:45.1752250Z [arm64-v8a] Compile++      : cxx <= charconv.cpp
+2026-07-18T04:40:45.2922798Z [arm64-v8a] Compile++      : cxx <= chrono.cpp
+2026-07-18T04:40:45.4047093Z [arm64-v8a] Compile++      : cxx <= condition_variable.cpp
+2026-07-18T04:40:45.4268433Z [arm64-v8a] Compile++      : cxx <= condition_variable_destructor.cpp
+2026-07-18T04:40:45.4853976Z [arm64-v8a] Compile++      : cxx <= error_category.cpp
+2026-07-18T04:40:45.5055772Z [arm64-v8a] Compile++      : cxx <= exception.cpp
+2026-07-18T04:40:45.6202370Z [arm64-v8a] Compile++      : cxx <= fstream.cpp
+2026-07-18T04:40:45.7218185Z [arm64-v8a] Compile++      : cxx <= functional.cpp
+2026-07-18T04:40:45.8374400Z [arm64-v8a] Compile++      : cxx <= future.cpp
+2026-07-18T04:40:45.9262410Z [arm64-v8a] Compile++      : cxx <= hash.cpp
+2026-07-18T04:40:46.0273710Z [arm64-v8a] Compile++      : cxx <= ios.cpp
+2026-07-18T04:40:46.1428797Z [arm64-v8a] Compile++      : cxx <= ios.instantiations.cpp
+2026-07-18T04:40:46.2505515Z [arm64-v8a] Compile++      : cxx <= iostream.cpp
+2026-07-18T04:40:46.2955729Z [arm64-v8a] Compile++      : cxx <= legacy_pointer_safety.cpp
+2026-07-18T04:40:46.4352892Z [arm64-v8a] Compile++      : cxx <= locale.cpp
+2026-07-18T04:40:46.5538917Z [arm64-v8a] Compile++      : cxx <= memory.cpp
+2026-07-18T04:40:46.6242204Z [arm64-v8a] Compile++      : cxx <= memory_resource.cpp
+2026-07-18T04:40:46.6951697Z [arm64-v8a] Compile++      : cxx <= mutex.cpp
+2026-07-18T04:40:46.7177726Z [arm64-v8a] Compile++      : cxx <= mutex_destructor.cpp
+2026-07-18T04:40:46.7362193Z [arm64-v8a] Compile++      : cxx <= new.cpp
+2026-07-18T04:40:46.7833033Z [arm64-v8a] Compile++      : cxx <= new_handler.cpp
+2026-07-18T04:40:46.7981913Z [arm64-v8a] Compile++      : cxx <= new_helpers.cpp
+2026-07-18T04:40:46.8294497Z [arm64-v8a] Compile++      : cxx <= optional.cpp
+2026-07-18T04:40:46.9542329Z [arm64-v8a] Compile++      : cxx <= ostream.cpp
+2026-07-18T04:40:47.0672411Z [arm64-v8a] Compile++      : cxx <= print.cpp
+2026-07-18T04:40:47.1753369Z [arm64-v8a] Compile++      : cxx <= random.cpp
+2026-07-18T04:40:47.3009808Z [arm64-v8a] Compile++      : cxx <= random_shuffle.cpp
+2026-07-18T04:40:47.4214429Z [arm64-v8a] Compile++      : cxx <= regex.cpp
+2026-07-18T04:40:47.4907269Z [arm64-v8a] Compile++      : cxx <= shared_mutex.cpp
+2026-07-18T04:40:47.5597477Z [arm64-v8a] Compile++      : cxx <= stdexcept.cpp
+2026-07-18T04:40:47.6172275Z [arm64-v8a] Compile++      : cxx <= string.cpp
+2026-07-18T04:40:47.7484784Z [arm64-v8a] Compile++      : cxx <= strstream.cpp
+2026-07-18T04:40:47.8059604Z [arm64-v8a] Compile++      : cxx <= system_error.cpp
+2026-07-18T04:40:47.9222481Z [arm64-v8a] Compile++      : cxx <= thread.cpp
+2026-07-18T04:40:47.9382327Z [arm64-v8a] Compile++      : cxx <= typeinfo.cpp
+2026-07-18T04:40:47.9842644Z [arm64-v8a] Compile++      : cxx <= valarray.cpp
+2026-07-18T04:40:48.0162599Z [arm64-v8a] Compile++      : cxx <= variant.cpp
+2026-07-18T04:40:48.0953090Z [arm64-v8a] Compile++      : cxx <= vector.cpp
+2026-07-18T04:40:48.2262196Z [arm64-v8a] Compile++      : cxx <= directory_entry.cpp
+2026-07-18T04:40:48.3593473Z [arm64-v8a] Compile++      : cxx <= directory_iterator.cpp
+2026-07-18T04:40:48.4803293Z [arm64-v8a] Compile++      : cxx <= filesystem_clock.cpp
+2026-07-18T04:40:48.6006511Z [arm64-v8a] Compile++      : cxx <= filesystem_error.cpp
+2026-07-18T04:40:48.6142834Z [arm64-v8a] Compile++      : cxx <= int128_builtins.cpp
+2026-07-18T04:40:48.7561863Z [arm64-v8a] Compile++      : cxx <= operations.cpp
+2026-07-18T04:40:48.8722807Z [arm64-v8a] Compile++      : cxx <= path.cpp
+2026-07-18T04:40:48.8859894Z [arm64-v8a] Compile++      : cxx <= abort_message.cpp
+2026-07-18T04:40:48.9063538Z [arm64-v8a] Compile++      : cxx <= cxa_aux_runtime.cpp
+2026-07-18T04:40:48.9558390Z [arm64-v8a] Compile++      : cxx <= cxa_default_handlers.cpp
+2026-07-18T04:40:48.9823142Z [arm64-v8a] Compile++      : cxx <= cxa_exception_storage.cpp
+2026-07-18T04:40:49.0368658Z [arm64-v8a] Compile++      : cxx <= cxa_guard.cpp
+2026-07-18T04:40:49.0891620Z [arm64-v8a] Compile++      : cxx <= cxa_handlers.cpp
+2026-07-18T04:40:49.1103345Z [arm64-v8a] Compile++      : cxx <= cxa_noexception.cpp
+2026-07-18T04:40:49.1357195Z [arm64-v8a] Compile++      : cxx <= cxa_thread_atexit.cpp
+2026-07-18T04:40:49.1561986Z [arm64-v8a] Compile++      : cxx <= cxa_vector.cpp
+2026-07-18T04:40:49.1700731Z [arm64-v8a] Compile++      : cxx <= cxa_virtual.cpp
+2026-07-18T04:40:49.1902616Z [arm64-v8a] Compile++      : cxx <= stdlib_exception.cpp
+2026-07-18T04:40:49.2080720Z [arm64-v8a] Compile++      : cxx <= stdlib_new_delete.cpp
+2026-07-18T04:40:49.2560361Z [arm64-v8a] Compile++      : cxx <= stdlib_stdexcept.cpp
+2026-07-18T04:40:49.2714321Z [arm64-v8a] Compile++      : cxx <= stdlib_typeinfo.cpp
+2026-07-18T04:40:49.4337487Z [arm64-v8a] Compile++      : policy <= api.cpp
+2026-07-18T04:40:49.5942409Z [arm64-v8a] Compile++      : policy <= sepolicy.cpp
+2026-07-18T04:40:49.7565822Z [arm64-v8a] Compile++      : policy <= policydb.cpp
+2026-07-18T04:40:49.9328177Z [arm64-v8a] Compile++      : policy <= policy-rs.cpp
+2026-07-18T04:40:49.9522873Z [arm64-v8a] Compile        : sepol <= assertion.c
+2026-07-18T04:40:49.9711267Z [arm64-v8a] Compile        : sepol <= avrule_block.c
+2026-07-18T04:40:49.9898555Z [arm64-v8a] Compile        : sepol <= avtab.c
+2026-07-18T04:40:50.0068545Z [arm64-v8a] Compile        : sepol <= boolean_record.c
+2026-07-18T04:40:50.0258971Z [arm64-v8a] Compile        : sepol <= booleans.c
+2026-07-18T04:40:50.0450948Z [arm64-v8a] Compile        : sepol <= conditional.c
+2026-07-18T04:40:50.0633872Z [arm64-v8a] Compile        : sepol <= constraint.c
+2026-07-18T04:40:50.0829599Z [arm64-v8a] Compile        : sepol <= context.c
+2026-07-18T04:40:50.1021067Z [arm64-v8a] Compile        : sepol <= context_record.c
+2026-07-18T04:40:50.1202291Z [arm64-v8a] Compile        : sepol <= debug.c
+2026-07-18T04:40:50.1366752Z [arm64-v8a] Compile        : sepol <= ebitmap.c
+2026-07-18T04:40:50.1599787Z [arm64-v8a] Compile        : sepol <= expand.c
+2026-07-18T04:40:50.1748138Z [arm64-v8a] Compile        : sepol <= handle.c
+2026-07-18T04:40:50.1929617Z [arm64-v8a] Compile        : sepol <= hashtab.c
+2026-07-18T04:40:50.2121540Z [arm64-v8a] Compile        : sepol <= hierarchy.c
+2026-07-18T04:40:50.2323124Z [arm64-v8a] Compile        : sepol <= ibendport_record.c
+2026-07-18T04:40:50.2529644Z [arm64-v8a] Compile        : sepol <= ibendports.c
+2026-07-18T04:40:50.2719930Z [arm64-v8a] Compile        : sepol <= ibpkey_record.c
+2026-07-18T04:40:50.2942584Z [arm64-v8a] Compile        : sepol <= ibpkeys.c
+2026-07-18T04:40:50.3122212Z [arm64-v8a] Compile        : sepol <= iface_record.c
+2026-07-18T04:40:50.3312352Z [arm64-v8a] Compile        : sepol <= interfaces.c
+2026-07-18T04:40:50.3540954Z [arm64-v8a] Compile        : sepol <= kernel_to_cil.c
+2026-07-18T04:40:50.3766432Z [arm64-v8a] Compile        : sepol <= kernel_to_common.c
+2026-07-18T04:40:50.4028076Z [arm64-v8a] Compile        : sepol <= kernel_to_conf.c
+2026-07-18T04:40:50.4245749Z [arm64-v8a] Compile        : sepol <= link.c
+2026-07-18T04:40:50.4442084Z [arm64-v8a] Compile        : sepol <= mls.c
+2026-07-18T04:40:50.4633711Z [arm64-v8a] Compile        : sepol <= module.c
+2026-07-18T04:40:50.4913897Z [arm64-v8a] Compile        : sepol <= module_to_cil.c
+2026-07-18T04:40:50.5099991Z [arm64-v8a] Compile        : sepol <= node_record.c
+2026-07-18T04:40:50.5306651Z [arm64-v8a] Compile        : sepol <= nodes.c
+2026-07-18T04:40:50.5494216Z [arm64-v8a] Compile        : sepol <= optimize.c
+2026-07-18T04:40:50.5634304Z [arm64-v8a] Compile        : sepol <= polcaps.c
+2026-07-18T04:40:50.5865777Z [arm64-v8a] Compile        : sepol <= policydb.c
+2026-07-18T04:40:50.6062327Z [arm64-v8a] Compile        : sepol <= policydb_convert.c
+2026-07-18T04:40:50.6233759Z [arm64-v8a] Compile        : sepol <= policydb_public.c
+2026-07-18T04:40:50.6440009Z [arm64-v8a] Compile        : sepol <= policydb_validate.c
+2026-07-18T04:40:50.6604108Z [arm64-v8a] Compile        : sepol <= port_record.c
+2026-07-18T04:40:50.6817150Z [arm64-v8a] Compile        : sepol <= ports.c
+2026-07-18T04:40:50.7049244Z [arm64-v8a] Compile        : sepol <= services.c
+2026-07-18T04:40:50.7246929Z [arm64-v8a] Compile        : sepol <= sidtab.c
+2026-07-18T04:40:50.7416461Z [arm64-v8a] Compile        : sepol <= symtab.c
+2026-07-18T04:40:50.7609951Z [arm64-v8a] Compile        : sepol <= user_record.c
+2026-07-18T04:40:50.7804329Z [arm64-v8a] Compile        : sepol <= users.c
+2026-07-18T04:40:50.7993218Z [arm64-v8a] Compile        : sepol <= util.c
+2026-07-18T04:40:50.8206311Z [arm64-v8a] Compile        : sepol <= write.c
+2026-07-18T04:40:50.8440846Z [arm64-v8a] Compile        : sepol <= cil.c
+2026-07-18T04:40:50.8711594Z [arm64-v8a] Compile        : sepol <= cil_binary.c
+2026-07-18T04:40:50.8959769Z [arm64-v8a] Compile        : sepol <= cil_build_ast.c
+2026-07-18T04:40:50.9177112Z [arm64-v8a] Compile        : sepol <= cil_copy_ast.c
+2026-07-18T04:40:50.9398954Z [arm64-v8a] Compile        : sepol <= cil_deny.c
+2026-07-18T04:40:50.9626701Z [arm64-v8a] Compile        : sepol <= cil_find.c
+2026-07-18T04:40:50.9831730Z [arm64-v8a] Compile        : sepol <= cil_fqn.c
+2026-07-18T04:40:51.0088036Z [arm64-v8a] Compile        : sepol <= cil_lexer.c
+2026-07-18T04:40:51.0288718Z [arm64-v8a] Compile        : sepol <= cil_list.c
+2026-07-18T04:40:51.0475996Z [arm64-v8a] Compile        : sepol <= cil_log.c
+2026-07-18T04:40:51.0658635Z [arm64-v8a] Compile        : sepol <= cil_mem.c
+2026-07-18T04:40:51.0877102Z [arm64-v8a] Compile        : sepol <= cil_parser.c
+2026-07-18T04:40:51.1136905Z [arm64-v8a] Compile        : sepol <= cil_policy.c
+2026-07-18T04:40:51.1394399Z [arm64-v8a] Compile        : sepol <= cil_post.c
+2026-07-18T04:40:51.1615696Z [arm64-v8a] Compile        : sepol <= cil_reset_ast.c
+2026-07-18T04:40:51.1858335Z [arm64-v8a] Compile        : sepol <= cil_resolve_ast.c
+2026-07-18T04:40:51.2087208Z [arm64-v8a] Compile        : sepol <= cil_stack.c
+2026-07-18T04:40:51.2268606Z [arm64-v8a] Compile        : sepol <= cil_strpool.c
+2026-07-18T04:40:51.2494332Z [arm64-v8a] Compile        : sepol <= cil_symtab.c
+2026-07-18T04:40:51.2726370Z [arm64-v8a] SharedLibrary  : libinit-ld.so
+2026-07-18T04:40:51.2739641Z [arm64-v8a] Compile        : sepol <= cil_tree.c
+2026-07-18T04:40:51.2833952Z [arm64-v8a] StaticLibrary  : libbase.a
+2026-07-18T04:40:51.2855623Z [arm64-v8a] StaticLibrary  : libsystemproperties.a
+2026-07-18T04:40:51.2908719Z [arm64-v8a] StaticLibrary  : liblsplt.a
+2026-07-18T04:40:51.2982883Z [arm64-v8a] StaticLibrary  : libpolicy.a
+2026-07-18T04:40:51.3017035Z [arm64-v8a] Install        : libinit-ld.so => libs/arm64-v8a/libinit-ld.so
+2026-07-18T04:40:51.3103227Z [arm64-v8a] Compile        : sepol <= cil_verify.c
+2026-07-18T04:40:51.3203336Z [arm64-v8a] StaticLibrary  : libcxx.a
+2026-07-18T04:40:51.3332431Z [arm64-v8a] Compile        : sepol <= cil_write_ast.c
+2026-07-18T04:40:51.3649057Z [arm64-v8a] StaticLibrary  : libsepol.a
+2026-07-18T04:40:57.6523941Z [arm64-v8a] Executable     : magiskpolicy
+2026-07-18T04:40:57.6559191Z [arm64-v8a] Install        : magiskpolicy => libs/arm64-v8a/magiskpolicy
+2026-07-18T04:40:59.4253256Z [arm64-v8a] Executable     : magisk
+2026-07-18T04:40:59.4293487Z [arm64-v8a] Install        : magisk => libs/arm64-v8a/magisk
+2026-07-18T04:40:59.5394460Z Android NDK: WARNING: Building static executable but APP_PLATFORM android-23 is not the latest API level android-36. Build may not succeed.    
+2026-07-18T04:40:59.5396341Z Android NDK: WARNING: Building static executable but APP_PLATFORM android-23 is not the latest API level android-36. Build may not succeed.    
+2026-07-18T04:40:59.7139533Z [arm64-v8a] Compile++      : magiskboot <= bootimg.cpp
+2026-07-18T04:40:59.8640951Z [arm64-v8a] Compile++      : base <= base.cpp
+2026-07-18T04:41:00.0143129Z [arm64-v8a] Compile++      : magiskboot <= boot-rs.cpp
+2026-07-18T04:41:00.1737897Z [arm64-v8a] Compile++      : base <= base-rs.cpp
+2026-07-18T04:41:00.3391300Z [arm64-v8a] Compile++      : base <= cxx.cc
+2026-07-18T04:41:00.3553728Z [arm64-v8a] Compile        : lz4 <= lz4.c
+2026-07-18T04:41:00.3741769Z [arm64-v8a] Compile        : lz4 <= lz4frame.c
+2026-07-18T04:41:00.3902258Z [arm64-v8a] Compile        : lz4 <= lz4hc.c
+2026-07-18T04:41:00.4058617Z [arm64-v8a] Compile        : lz4 <= xxhash.c
+2026-07-18T04:41:00.4182926Z [arm64-v8a] Compile        : crt0 <= crtbegin.c
+2026-07-18T04:41:00.4330670Z [arm64-v8a] Compile        : crt0 <= fmt.c
+2026-07-18T04:41:00.4509114Z [arm64-v8a] Compile        : crt0 <= malloc.c
+2026-07-18T04:41:00.4652279Z [arm64-v8a] Compile        : crt0 <= mem.c
+2026-07-18T04:41:00.4830995Z [arm64-v8a] Compile        : crt0 <= misc.c
+2026-07-18T04:41:00.5010433Z [arm64-v8a] Compile        : crt0 <= stdio.c
+2026-07-18T04:41:00.5272124Z [arm64-v8a] Compile        : crt0 <= syscalls.c
+2026-07-18T04:41:00.5380239Z [arm64-v8a] Compile        : crt0 <= printf.c
+2026-07-18T04:41:00.5501185Z [arm64-v8a] Compile        : crt0 <= syscall-arm64.S
+2026-07-18T04:41:00.5658081Z [arm64-v8a] Compile        : crt0 <= floatscan.c
+2026-07-18T04:41:00.5798862Z [arm64-v8a] Compile        : crt0 <= intscan.c
+2026-07-18T04:41:00.5940107Z [arm64-v8a] Compile        : crt0 <= memmem.c
+2026-07-18T04:41:00.6112365Z [arm64-v8a] Compile        : crt0 <= qsort.c
+2026-07-18T04:41:00.6225220Z [arm64-v8a] Compile        : crt0 <= strcasecmp.c
+2026-07-18T04:41:00.6359577Z [arm64-v8a] Compile        : crt0 <= strspn.c
+2026-07-18T04:41:00.6486407Z [arm64-v8a] Compile        : crt0 <= strtok_r.c
+2026-07-18T04:41:00.6673945Z [arm64-v8a] Compile        : crt0 <= vfprintf.c
+2026-07-18T04:41:00.6841072Z [arm64-v8a] Compile        : crt0 <= vfscanf.c
+2026-07-18T04:41:00.7008841Z [arm64-v8a] Compile        : crt0 <= getenv.c
+2026-07-18T04:41:00.7186606Z [arm64-v8a] Compile        : crt0 <= setenv.c
+2026-07-18T04:41:00.7348390Z [arm64-v8a] Compile        : crt0 <= strlcpy.c
+2026-07-18T04:41:00.7520908Z [arm64-v8a] Compile++      : crt0 <= abort.cpp
+2026-07-18T04:41:00.7673114Z [arm64-v8a] Compile++      : crt0 <= bionic_time_conversions.cpp
+2026-07-18T04:41:00.7824055Z [arm64-v8a] Compile++      : crt0 <= clock_nanosleep.cpp
+2026-07-18T04:41:00.8002578Z [arm64-v8a] Compile++      : crt0 <= dirent.cpp
+2026-07-18T04:41:00.8168261Z [arm64-v8a] Compile++      : crt0 <= faccessat.cpp
+2026-07-18T04:41:00.8307106Z [arm64-v8a] Compile++      : crt0 <= fcntl.cpp
+2026-07-18T04:41:00.8482407Z [arm64-v8a] Compile++      : crt0 <= poll.cpp
+2026-07-18T04:41:00.8621929Z [arm64-v8a] Compile++      : crt0 <= strerror.cpp
+2026-07-18T04:41:00.8787304Z [arm64-v8a] Compile++      : crt0 <= usleep.cpp
+2026-07-18T04:41:00.9571412Z [arm64-v8a] Compile++      : cxx <= algorithm.cpp
+2026-07-18T04:41:00.9881640Z [arm64-v8a] Compile++      : cxx <= any.cpp
+2026-07-18T04:41:01.1110383Z [arm64-v8a] Compile++      : cxx <= atomic.cpp
+2026-07-18T04:41:01.2341937Z [arm64-v8a] Compile++      : cxx <= barrier.cpp
+2026-07-18T04:41:01.3292273Z [arm64-v8a] Compile++      : cxx <= bind.cpp
+2026-07-18T04:41:01.3788552Z [arm64-v8a] Compile++      : cxx <= call_once.cpp
+2026-07-18T04:41:01.4219230Z [arm64-v8a] Compile++      : cxx <= charconv.cpp
+2026-07-18T04:41:01.5468372Z [arm64-v8a] Compile++      : cxx <= chrono.cpp
+2026-07-18T04:41:01.6680720Z [arm64-v8a] Compile++      : cxx <= condition_variable.cpp
+2026-07-18T04:41:01.6908809Z [arm64-v8a] Compile++      : cxx <= condition_variable_destructor.cpp
+2026-07-18T04:41:01.7448800Z [arm64-v8a] Compile++      : cxx <= error_category.cpp
+2026-07-18T04:41:01.7645971Z [arm64-v8a] Compile++      : cxx <= exception.cpp
+2026-07-18T04:41:01.8790436Z [arm64-v8a] Compile++      : cxx <= fstream.cpp
+2026-07-18T04:41:01.9803421Z [arm64-v8a] Compile++      : cxx <= functional.cpp
+2026-07-18T04:41:02.0982659Z [arm64-v8a] Compile++      : cxx <= future.cpp
+2026-07-18T04:41:02.1903570Z [arm64-v8a] Compile++      : cxx <= hash.cpp
+2026-07-18T04:41:02.2874214Z [arm64-v8a] Compile++      : cxx <= ios.cpp
+2026-07-18T04:41:02.4157612Z [arm64-v8a] Compile++      : cxx <= ios.instantiations.cpp
+2026-07-18T04:41:02.5229198Z [arm64-v8a] Compile++      : cxx <= iostream.cpp
+2026-07-18T04:41:02.5683809Z [arm64-v8a] Compile++      : cxx <= legacy_pointer_safety.cpp
+2026-07-18T04:41:02.6988119Z [arm64-v8a] Compile++      : cxx <= locale.cpp
+2026-07-18T04:41:02.8172737Z [arm64-v8a] Compile++      : cxx <= memory.cpp
+2026-07-18T04:41:02.8933067Z [arm64-v8a] Compile++      : cxx <= memory_resource.cpp
+2026-07-18T04:41:02.9613426Z [arm64-v8a] Compile++      : cxx <= mutex.cpp
+2026-07-18T04:41:02.9857025Z [arm64-v8a] Compile++      : cxx <= mutex_destructor.cpp
+2026-07-18T04:41:03.0016586Z [arm64-v8a] Compile++      : cxx <= new.cpp
+2026-07-18T04:41:03.0462954Z [arm64-v8a] Compile++      : cxx <= new_handler.cpp
+2026-07-18T04:41:03.0607651Z [arm64-v8a] Compile++      : cxx <= new_helpers.cpp
+2026-07-18T04:41:03.0919774Z [arm64-v8a] Compile++      : cxx <= optional.cpp
+2026-07-18T04:41:03.2111498Z [arm64-v8a] Compile++      : cxx <= ostream.cpp
+2026-07-18T04:41:03.3298232Z [arm64-v8a] Compile++      : cxx <= print.cpp
+2026-07-18T04:41:03.4360484Z [arm64-v8a] Compile++      : cxx <= random.cpp
+2026-07-18T04:41:03.5713604Z [arm64-v8a] Compile++      : cxx <= random_shuffle.cpp
+2026-07-18T04:41:03.7051204Z [arm64-v8a] Compile++      : cxx <= regex.cpp
+2026-07-18T04:41:03.7689872Z [arm64-v8a] Compile++      : cxx <= shared_mutex.cpp
+2026-07-18T04:41:03.8299322Z [arm64-v8a] Compile++      : cxx <= stdexcept.cpp
+2026-07-18T04:41:03.8922515Z [arm64-v8a] Compile++      : cxx <= string.cpp
+2026-07-18T04:41:04.0292626Z [arm64-v8a] Compile++      : cxx <= strstream.cpp
+2026-07-18T04:41:04.0857146Z [arm64-v8a] Compile++      : cxx <= system_error.cpp
+2026-07-18T04:41:04.2007610Z [arm64-v8a] Compile++      : cxx <= thread.cpp
+2026-07-18T04:41:04.2152068Z [arm64-v8a] Compile++      : cxx <= typeinfo.cpp
+2026-07-18T04:41:04.2600947Z [arm64-v8a] Compile++      : cxx <= valarray.cpp
+2026-07-18T04:41:04.2906434Z [arm64-v8a] Compile++      : cxx <= variant.cpp
+2026-07-18T04:41:04.3737540Z [arm64-v8a] Compile++      : cxx <= vector.cpp
+2026-07-18T04:41:04.4982155Z [arm64-v8a] Compile++      : cxx <= directory_entry.cpp
+2026-07-18T04:41:04.6277864Z [arm64-v8a] Compile++      : cxx <= directory_iterator.cpp
+2026-07-18T04:41:04.7580736Z [arm64-v8a] Compile++      : cxx <= filesystem_clock.cpp
+2026-07-18T04:41:04.8835287Z [arm64-v8a] Compile++      : cxx <= filesystem_error.cpp
+2026-07-18T04:41:04.8960625Z [arm64-v8a] Compile++      : cxx <= int128_builtins.cpp
+2026-07-18T04:41:05.0346576Z [arm64-v8a] Compile++      : cxx <= operations.cpp
+2026-07-18T04:41:05.1502504Z [arm64-v8a] Compile++      : cxx <= path.cpp
+2026-07-18T04:41:05.1627469Z [arm64-v8a] Compile++      : cxx <= abort_message.cpp
+2026-07-18T04:41:05.1841904Z [arm64-v8a] Compile++      : cxx <= cxa_aux_runtime.cpp
+2026-07-18T04:41:05.2308883Z [arm64-v8a] Compile++      : cxx <= cxa_default_handlers.cpp
+2026-07-18T04:41:05.2582694Z [arm64-v8a] Compile++      : cxx <= cxa_exception_storage.cpp
+2026-07-18T04:41:05.3172075Z [arm64-v8a] Compile++      : cxx <= cxa_guard.cpp
+2026-07-18T04:41:05.3633360Z [arm64-v8a] Compile++      : cxx <= cxa_handlers.cpp
+2026-07-18T04:41:05.3832477Z [arm64-v8a] Compile++      : cxx <= cxa_noexception.cpp
+2026-07-18T04:41:05.4067818Z [arm64-v8a] Compile++      : cxx <= cxa_thread_atexit.cpp
+2026-07-18T04:41:05.4281543Z [arm64-v8a] Compile++      : cxx <= cxa_vector.cpp
+2026-07-18T04:41:05.4442501Z [arm64-v8a] Compile++      : cxx <= cxa_virtual.cpp
+2026-07-18T04:41:05.4641877Z [arm64-v8a] Compile++      : cxx <= stdlib_exception.cpp
+2026-07-18T04:41:05.4803227Z [arm64-v8a] Compile++      : cxx <= stdlib_new_delete.cpp
+2026-07-18T04:41:05.5283036Z [arm64-v8a] Compile++      : cxx <= stdlib_stdexcept.cpp
+2026-07-18T04:41:05.5432685Z [arm64-v8a] Compile++      : cxx <= stdlib_typeinfo.cpp
+2026-07-18T04:41:05.7149594Z [arm64-v8a] Compile++      : magiskinit <= mount.cpp
+2026-07-18T04:41:05.8752504Z [arm64-v8a] Compile++      : magiskinit <= rootdir.cpp
+2026-07-18T04:41:06.0358165Z [arm64-v8a] Compile++      : magiskinit <= getinfo.cpp
+2026-07-18T04:41:06.2070633Z [arm64-v8a] Compile++      : magiskinit <= init-rs.cpp
+2026-07-18T04:41:06.3818349Z [arm64-v8a] Compile++      : policy <= api.cpp
+2026-07-18T04:41:06.5542993Z [arm64-v8a] Compile++      : policy <= sepolicy.cpp
+2026-07-18T04:41:06.7176921Z [arm64-v8a] Compile++      : policy <= policydb.cpp
+2026-07-18T04:41:06.8927509Z [arm64-v8a] Compile++      : policy <= policy-rs.cpp
+2026-07-18T04:41:06.9073173Z [arm64-v8a] Compile        : xz <= xz_crc32.c
+2026-07-18T04:41:06.9241948Z [arm64-v8a] Compile        : xz <= xz_dec_lzma2.c
+2026-07-18T04:41:06.9432535Z [arm64-v8a] Compile        : xz <= xz_dec_stream.c
+2026-07-18T04:41:06.9591302Z [arm64-v8a] Compile        : sepol <= assertion.c
+2026-07-18T04:41:06.9763310Z [arm64-v8a] Compile        : sepol <= avrule_block.c
+2026-07-18T04:41:06.9942713Z [arm64-v8a] Compile        : sepol <= avtab.c
+2026-07-18T04:41:07.0111947Z [arm64-v8a] Compile        : sepol <= boolean_record.c
+2026-07-18T04:41:07.0292066Z [arm64-v8a] Compile        : sepol <= booleans.c
+2026-07-18T04:41:07.0487642Z [arm64-v8a] Compile        : sepol <= conditional.c
+2026-07-18T04:41:07.0667550Z [arm64-v8a] Compile        : sepol <= constraint.c
+2026-07-18T04:41:07.0861568Z [arm64-v8a] Compile        : sepol <= context.c
+2026-07-18T04:41:07.1051183Z [arm64-v8a] Compile        : sepol <= context_record.c
+2026-07-18T04:41:07.1232595Z [arm64-v8a] Compile        : sepol <= debug.c
+2026-07-18T04:41:07.1412696Z [arm64-v8a] Compile        : sepol <= ebitmap.c
+2026-07-18T04:41:07.1632887Z [arm64-v8a] Compile        : sepol <= expand.c
+2026-07-18T04:41:07.1783935Z [arm64-v8a] Compile        : sepol <= handle.c
+2026-07-18T04:41:07.1965456Z [arm64-v8a] Compile        : sepol <= hashtab.c
+2026-07-18T04:41:07.2158748Z [arm64-v8a] Compile        : sepol <= hierarchy.c
+2026-07-18T04:41:07.2356949Z [arm64-v8a] Compile        : sepol <= ibendport_record.c
+2026-07-18T04:41:07.2570028Z [arm64-v8a] Compile        : sepol <= ibendports.c
+2026-07-18T04:41:07.2758380Z [arm64-v8a] Compile        : sepol <= ibpkey_record.c
+2026-07-18T04:41:07.2963501Z [arm64-v8a] Compile        : sepol <= ibpkeys.c
+2026-07-18T04:41:07.3151862Z [arm64-v8a] Compile        : sepol <= iface_record.c
+2026-07-18T04:41:07.3321852Z [arm64-v8a] Compile        : sepol <= interfaces.c
+2026-07-18T04:41:07.3567123Z [arm64-v8a] Compile        : sepol <= kernel_to_cil.c
+2026-07-18T04:41:07.3781209Z [arm64-v8a] Compile        : sepol <= kernel_to_common.c
+2026-07-18T04:41:07.4034317Z [arm64-v8a] Compile        : sepol <= kernel_to_conf.c
+2026-07-18T04:41:07.4241358Z [arm64-v8a] Compile        : sepol <= link.c
+2026-07-18T04:41:07.4442126Z [arm64-v8a] Compile        : sepol <= mls.c
+2026-07-18T04:41:07.4629152Z [arm64-v8a] Compile        : sepol <= module.c
+2026-07-18T04:41:07.4902050Z [arm64-v8a] Compile        : sepol <= module_to_cil.c
+2026-07-18T04:41:07.5126784Z [arm64-v8a] Compile        : sepol <= node_record.c
+2026-07-18T04:41:07.5352419Z [arm64-v8a] Compile        : sepol <= nodes.c
+2026-07-18T04:41:07.5546860Z [arm64-v8a] Compile        : sepol <= optimize.c
+2026-07-18T04:41:07.5693478Z [arm64-v8a] Compile        : sepol <= polcaps.c
+2026-07-18T04:41:07.5900739Z [arm64-v8a] Compile        : sepol <= policydb.c
+2026-07-18T04:41:07.6077727Z [arm64-v8a] Compile        : sepol <= policydb_convert.c
+2026-07-18T04:41:07.6258181Z [arm64-v8a] Compile        : sepol <= policydb_public.c
+2026-07-18T04:41:07.6461601Z [arm64-v8a] Compile        : sepol <= policydb_validate.c
+2026-07-18T04:41:07.6625921Z [arm64-v8a] Compile        : sepol <= port_record.c
+2026-07-18T04:41:07.6830907Z [arm64-v8a] Compile        : sepol <= ports.c
+2026-07-18T04:41:07.7072784Z [arm64-v8a] Compile        : sepol <= services.c
+2026-07-18T04:41:07.7251769Z [arm64-v8a] Compile        : sepol <= sidtab.c
+2026-07-18T04:41:07.7443100Z [arm64-v8a] Compile        : sepol <= symtab.c
+2026-07-18T04:41:07.7625542Z [arm64-v8a] Compile        : sepol <= user_record.c
+2026-07-18T04:41:07.7831868Z [arm64-v8a] Compile        : sepol <= users.c
+2026-07-18T04:41:07.8002241Z [arm64-v8a] Compile        : sepol <= util.c
+2026-07-18T04:41:07.8205647Z [arm64-v8a] Compile        : sepol <= write.c
+2026-07-18T04:41:07.8462596Z [arm64-v8a] Compile        : sepol <= cil.c
+2026-07-18T04:41:07.8680796Z [arm64-v8a] Compile        : sepol <= cil_binary.c
+2026-07-18T04:41:07.8934238Z [arm64-v8a] Compile        : sepol <= cil_build_ast.c
+2026-07-18T04:41:07.9151591Z [arm64-v8a] Compile        : sepol <= cil_copy_ast.c
+2026-07-18T04:41:07.9365852Z [arm64-v8a] Compile        : sepol <= cil_deny.c
+2026-07-18T04:41:07.9577594Z [arm64-v8a] Compile        : sepol <= cil_find.c
+2026-07-18T04:41:07.9793603Z [arm64-v8a] Compile        : sepol <= cil_fqn.c
+2026-07-18T04:41:08.0012336Z [arm64-v8a] Compile        : sepol <= cil_lexer.c
+2026-07-18T04:41:08.0224353Z [arm64-v8a] Compile        : sepol <= cil_list.c
+2026-07-18T04:41:08.0408044Z [arm64-v8a] Compile        : sepol <= cil_log.c
+2026-07-18T04:41:08.0592859Z [arm64-v8a] Compile        : sepol <= cil_mem.c
+2026-07-18T04:41:08.0803189Z [arm64-v8a] Compile        : sepol <= cil_parser.c
+2026-07-18T04:41:08.1056857Z [arm64-v8a] Compile        : sepol <= cil_policy.c
+2026-07-18T04:41:08.1305612Z [arm64-v8a] Compile        : sepol <= cil_post.c
+2026-07-18T04:41:08.1552790Z [arm64-v8a] Compile        : sepol <= cil_reset_ast.c
+2026-07-18T04:41:08.1773034Z [arm64-v8a] Compile        : sepol <= cil_resolve_ast.c
+2026-07-18T04:41:08.1976124Z [arm64-v8a] Compile        : sepol <= cil_stack.c
+2026-07-18T04:41:08.2187402Z [arm64-v8a] Compile        : sepol <= cil_strpool.c
+2026-07-18T04:41:08.2386935Z [arm64-v8a] Compile        : sepol <= cil_symtab.c
+2026-07-18T04:41:08.2484720Z [arm64-v8a] StaticLibrary  : libbase.a
+2026-07-18T04:41:08.2565149Z [arm64-v8a] StaticLibrary  : liblz4.a
+2026-07-18T04:41:08.2614107Z [arm64-v8a] Compile        : sepol <= cil_tree.c
+2026-07-18T04:41:08.2703677Z [arm64-v8a] StaticLibrary  : libcrt0.a
+2026-07-18T04:41:08.2784359Z [arm64-v8a] StaticLibrary  : libpolicy.a
+2026-07-18T04:41:08.2851842Z [arm64-v8a] StaticLibrary  : libxz.a
+2026-07-18T04:41:08.2956830Z [arm64-v8a] Compile        : sepol <= cil_verify.c
+2026-07-18T04:41:08.3007797Z [arm64-v8a] StaticLibrary  : libcxx.a
+2026-07-18T04:41:08.3182696Z [arm64-v8a] Compile        : sepol <= cil_write_ast.c
+2026-07-18T04:41:08.3498505Z [arm64-v8a] StaticLibrary  : libsepol.a
+2026-07-18T04:41:15.2610132Z [arm64-v8a] Executable     : magiskinit
+2026-07-18T04:41:15.2662391Z [arm64-v8a] Install        : magiskinit => libs/arm64-v8a/magiskinit
+2026-07-18T04:41:24.9215353Z [arm64-v8a] Executable     : magiskboot
+2026-07-18T04:41:24.9256611Z [arm64-v8a] Install        : magiskboot => libs/arm64-v8a/magiskboot
+2026-07-18T04:41:25.0121769Z     Updating crates.io index
+2026-07-18T04:41:25.1173656Z  Downloading crates ...
+2026-07-18T04:41:25.2341266Z   Downloaded cfg-if v1.0.0
+2026-07-18T04:41:25.2507079Z   Downloaded adler2 v2.0.0
+2026-07-18T04:41:25.2539911Z   Downloaded anyhow v1.0.97
+2026-07-18T04:41:25.2607510Z   Downloaded foldhash v0.1.5
+2026-07-18T04:41:25.2656607Z   Downloaded static_assertions v1.1.0
+2026-07-18T04:41:25.2674081Z   Downloaded twox-hash v1.6.3
+2026-07-18T04:41:25.2693629Z   Downloaded crc32fast v1.4.2
+2026-07-18T04:41:25.2721194Z   Downloaded miniz_oxide v0.8.5
+2026-07-18T04:41:25.2746680Z   Downloaded indexmap v2.8.0
+2026-07-18T04:41:25.2788241Z   Downloaded memchr v2.7.4
+2026-07-18T04:41:25.2844574Z   Downloaded ruzstd v0.7.3
+2026-07-18T04:41:25.2884689Z   Downloaded flate2 v1.1.0
+2026-07-18T04:41:25.2943197Z   Downloaded hashbrown v0.15.2
+2026-07-18T04:41:25.2994958Z   Downloaded object v0.36.7
+2026-07-18T04:41:25.3396164Z    Compiling cfg-if v1.0.0
+2026-07-18T04:41:25.3396736Z    Compiling adler2 v2.0.0
+2026-07-18T04:41:25.3398033Z    Compiling static_assertions v1.1.0
+2026-07-18T04:41:25.3398806Z    Compiling foldhash v0.1.5
+2026-07-18T04:41:25.4942726Z    Compiling crc32fast v1.4.2
+2026-07-18T04:41:25.5076395Z    Compiling twox-hash v1.6.3
+2026-07-18T04:41:25.5163262Z    Compiling miniz_oxide v0.8.5
+2026-07-18T04:41:25.5306632Z    Compiling hashbrown v0.15.2
+2026-07-18T04:41:25.7136344Z    Compiling anyhow v1.0.97
+2026-07-18T04:41:25.8055686Z    Compiling object v0.36.7
+2026-07-18T04:41:25.8184072Z    Compiling equivalent v1.0.2
+2026-07-18T04:41:25.8486484Z    Compiling flate2 v1.1.0
+2026-07-18T04:41:25.9251452Z    Compiling indexmap v2.8.0
+2026-07-18T04:41:26.0356230Z    Compiling ruzstd v0.7.3
+2026-07-18T04:41:26.0999845Z    Compiling memchr v2.7.4
+2026-07-18T04:41:26.8723402Z    Compiling elf-cleaner v0.0.0 (/home/runner/work/FoxMask/FoxMask/tools/elf-cleaner)
+2026-07-18T04:41:33.3106883Z     Finished `release` profile [optimized] target(s) in 8.37s
+2026-07-18T04:41:33.3139198Z      Running `tools/elf-cleaner/target/release/elf-cleaner native/out/arm64-v8a/magisk native/out/arm64-v8a/magiskpolicy`
+2026-07-18T04:41:33.3184664Z Replacing unsupported DT_FLAGS_1 0x8000001 with 0x1 in 'native/out/arm64-v8a/magisk'
+2026-07-18T04:41:33.3250075Z Replacing unsupported DT_FLAGS_1 0x8000001 with 0x1 in 'native/out/arm64-v8a/magiskpolicy'
+2026-07-18T04:41:38.4987272Z 
+2026-07-18T04:41:38.4989053Z Welcome to Gradle 9.5.0-rc-2!
+2026-07-18T04:41:38.4989418Z 
+2026-07-18T04:41:38.4991493Z Here are the highlights of this release:
+2026-07-18T04:41:38.5000370Z  - Task provenance in reports and failure messages
+2026-07-18T04:41:38.5001112Z  - Type-safe accessors for precompiled Kotlin Settings plugins
+2026-07-18T04:41:38.5001794Z  - Build authoring improvements
+2026-07-18T04:41:38.5002109Z 
+2026-07-18T04:41:38.5002492Z For more details see https://docs.gradle.org/9.5.0-rc-2/release-notes.html
+2026-07-18T04:41:38.5003027Z 
+2026-07-18T04:41:38.6980934Z Starting a Gradle Daemon (subsequent builds will be faster)
+2026-07-18T04:41:46.8016435Z > Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+2026-07-18T04:41:47.5989948Z > Task :build-logic:pluginDescriptors
+2026-07-18T04:41:47.6997633Z > Task :build-logic:processResources
+2026-07-18T04:41:54.9984496Z 
+2026-07-18T04:41:54.9986416Z > Task :build-logic:compileKotlin FAILED
+2026-07-18T04:41:54.9989424Z e: file:///home/runner/work/FoxMask/FoxMask/app/build-logic/src/main/java/Setup.kt:315:10 Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+2026-07-18T04:41:54.9991389Z fun ExtensionContainer.get(name: String): Any
+2026-07-18T04:41:54.9992801Z e: file:///home/runner/work/FoxMask/FoxMask/app/build-logic/src/main/java/Setup.kt:315:16 Unresolved reference 'asFile'.
+2026-07-18T04:41:55.0980165Z 
+2026-07-18T04:41:55.0986119Z FAILURE: Build failed with an exception.
+2026-07-18T04:41:55.0986765Z 
+2026-07-18T04:41:55.0987872Z * What went wrong:
+2026-07-18T04:41:55.0990130Z Execution failed for task ':build-logic:compileKotlin' (registered by plugin class 'org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper').
+2026-07-18T04:41:55.0992930Z > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
+2026-07-18T04:41:55.0994058Z 3 actionable tasks: 3 executed
+2026-07-18T04:41:55.0994743Z    > Compilation error. See log for more details
+2026-07-18T04:41:55.0995551Z 
+2026-07-18T04:41:55.0995718Z * Try:
+2026-07-18T04:41:55.0996214Z > Run with --stacktrace option to get the stack trace.
+2026-07-18T04:41:55.0996883Z > Run with --info or --debug option to get more log output.
+2026-07-18T04:41:55.0997688Z > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+2026-07-18T04:41:55.0998475Z > Get more help at https://help.gradle.org.
+2026-07-18T04:41:55.0998852Z 
+2026-07-18T04:41:55.0999008Z BUILD FAILED in 17s
+2026-07-18T04:41:55.8072878Z [44;39m[0m
+2026-07-18T04:41:55.8073347Z [44;39m* Building: magiskinit magiskboot magisk magiskpolicy[0m
+2026-07-18T04:41:55.8073731Z [44;39m[0m
+2026-07-18T04:41:55.8074213Z mv native/out/rust/aarch64-linux-android/debug/libmagiskinit.a -> native/out/arm64-v8a/libmagiskinit-rs.a
+2026-07-18T04:41:55.8075619Z mv native/out/rust/aarch64-linux-android/debug/libmagiskboot.a -> native/out/arm64-v8a/libmagiskboot-rs.a
+2026-07-18T04:41:55.8076371Z mv native/out/rust/aarch64-linux-android/debug/libmagisk.a -> native/out/arm64-v8a/libmagisk-rs.a
+2026-07-18T04:41:55.8077121Z mv native/out/rust/aarch64-linux-android/debug/libmagiskpolicy.a -> native/out/arm64-v8a/libmagiskpolicy-rs.a
+2026-07-18T04:41:55.8077774Z mv native/libs/arm64-v8a/magiskpolicy -> native/out/arm64-v8a/magiskpolicy
+2026-07-18T04:41:55.8078468Z mv native/libs/arm64-v8a/libinit-ld.so -> native/out/arm64-v8a/libinit-ld.so
+2026-07-18T04:41:55.8078957Z mv native/libs/arm64-v8a/magisk -> native/out/arm64-v8a/magisk
+2026-07-18T04:41:55.8079408Z mv native/libs/arm64-v8a/magiskinit -> native/out/arm64-v8a/magiskinit
+2026-07-18T04:41:55.8079874Z mv native/libs/arm64-v8a/magiskboot -> native/out/arm64-v8a/magiskboot
+2026-07-18T04:41:55.8080284Z [44;39m[0m
+2026-07-18T04:41:55.8080544Z [44;39m* Building the Magisk app[0m
+2026-07-18T04:41:55.8080831Z [44;39m[0m
+2026-07-18T04:41:55.8081033Z [41;39m[0m
+2026-07-18T04:41:55.8081276Z [41;39m! Build :apk-ng failed![0m
+2026-07-18T04:41:55.8081567Z [41;39m[0m
+2026-07-18T04:41:55.8216888Z ##[error]Process completed with exit code 1.
+2026-07-18T04:41:55.8380037Z Post job cleanup.
+2026-07-18T04:41:55.8408423Z Post job cleanup.
+2026-07-18T04:41:55.9131143Z [1m$ sccache -s[0m
+2026-07-18T04:41:55.9240129Z Compile requests                     586
+2026-07-18T04:41:55.9240918Z Compile requests executed            522
+2026-07-18T04:41:55.9241648Z Cache hits                           521
+2026-07-18T04:41:55.9242312Z Cache hits (Assembler)                 1
+2026-07-18T04:41:55.9242962Z Cache hits (C/C++)                   345
+2026-07-18T04:41:55.9243591Z Cache hits (Rust)                    175
+2026-07-18T04:41:55.9244200Z Cache misses                           0
+2026-07-18T04:41:55.9244787Z Cache hits rate                   100.00 %
+2026-07-18T04:41:55.9245798Z Cache hits rate (Assembler)       100.00 %
+2026-07-18T04:41:55.9246475Z Cache hits rate (C/C++)           100.00 %
+2026-07-18T04:41:55.9247105Z Cache hits rate (Rust)            100.00 %
+2026-07-18T04:41:55.9247768Z Cache timeouts                         0
+2026-07-18T04:41:55.9248556Z Cache read errors                      0
+2026-07-18T04:41:55.9249247Z Forced recaches                        0
+2026-07-18T04:41:55.9249881Z Cache write errors                     0
+2026-07-18T04:41:55.9250564Z Cache errors                           1
+2026-07-18T04:41:55.9251380Z Cache errors (Rust)                    1
+2026-07-18T04:41:55.9252084Z Compilations                           0
+2026-07-18T04:41:55.9252866Z Compilation failures                   0
+2026-07-18T04:41:55.9253491Z Non-cacheable compilations             0
+2026-07-18T04:41:55.9254071Z Non-cacheable calls                   53
+2026-07-18T04:41:55.9254627Z Non-compilation calls                 11
+2026-07-18T04:41:55.9255472Z Unsupported compiler calls             0
+2026-07-18T04:41:55.9256018Z Average cache write                0.000 s
+2026-07-18T04:41:55.9256594Z Average compiler                   0.000 s
+2026-07-18T04:41:55.9257142Z Average cache read hit             0.000 s
+2026-07-18T04:41:55.9257717Z Failed distributed compilations        0
+2026-07-18T04:41:55.9258101Z 
+2026-07-18T04:41:55.9258294Z Non-cacheable reasons:
+2026-07-18T04:41:55.9258765Z crate-type                            41
+2026-07-18T04:41:55.9259288Z -                                      6
+2026-07-18T04:41:55.9259820Z missing input                          6
+2026-07-18T04:41:55.9260162Z 
+2026-07-18T04:41:55.9260584Z Cache location                  Local disk: "/home/runner/work/FoxMask/FoxMask/.sccache"
+2026-07-18T04:41:55.9261393Z Base directories                (none)
+2026-07-18T04:41:55.9261939Z Use direct/preprocessor mode?   no
+2026-07-18T04:41:55.9262464Z Version (client)                0.16.0
+2026-07-18T04:41:55.9263018Z Cache size                           300 MiB
+2026-07-18T04:41:55.9264087Z Max cache size                       300 MiB
+2026-07-18T04:41:55.9428778Z Post job cleanup.
+2026-07-18T04:41:56.0832834Z Post job cleanup.
+2026-07-18T04:41:56.1765793Z [command]/usr/bin/git version
+2026-07-18T04:41:56.1801589Z git version 2.54.0
+2026-07-18T04:41:56.1848896Z Temporarily overriding HOME='/home/runner/work/_temp/1a18aa38-53d0-44fc-a186-63f03b8d51e2' before making global git config changes
+2026-07-18T04:41:56.1850241Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-18T04:41:56.1854787Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/FoxMask/FoxMask
+2026-07-18T04:41:56.1888193Z Removing SSH command configuration
+2026-07-18T04:41:56.1895487Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-18T04:41:56.1932965Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-18T04:41:56.2167821Z Entering 'native/src/external/crt0'
+2026-07-18T04:41:56.2213596Z Entering 'native/src/external/cxx-rs'
+2026-07-18T04:41:56.2258921Z Entering 'native/src/external/libcxx'
+2026-07-18T04:41:56.2311272Z Entering 'native/src/external/lsplt'
+2026-07-18T04:41:56.2359539Z Entering 'native/src/external/lz4'
+2026-07-18T04:41:56.2415768Z Entering 'native/src/external/selinux'
+2026-07-18T04:41:56.2463758Z Entering 'native/src/external/system_properties'
+2026-07-18T04:41:56.2532488Z Removing HTTP extra header
+2026-07-18T04:41:56.2538438Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-18T04:41:56.2576406Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-18T04:41:56.2821893Z Entering 'native/src/external/crt0'
+2026-07-18T04:41:56.2864744Z Entering 'native/src/external/cxx-rs'
+2026-07-18T04:41:56.2911376Z Entering 'native/src/external/libcxx'
+2026-07-18T04:41:56.2959572Z Entering 'native/src/external/lsplt'
+2026-07-18T04:41:56.3004416Z Entering 'native/src/external/lz4'
+2026-07-18T04:41:56.3049305Z Entering 'native/src/external/selinux'
+2026-07-18T04:41:56.3096462Z Entering 'native/src/external/system_properties'
+2026-07-18T04:41:56.3153089Z Removing includeIf entries pointing to credentials config files
+2026-07-18T04:41:56.3163818Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-18T04:41:56.3199207Z includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git.path
+2026-07-18T04:41:56.3200033Z includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/worktrees/*.path
+2026-07-18T04:41:56.3200514Z includeif.gitdir:/github/workspace/.git.path
+2026-07-18T04:41:56.3200918Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-07-18T04:41:56.3208479Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git.path
+2026-07-18T04:41:56.3233971Z /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.3245288Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.3288137Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/worktrees/*.path
+2026-07-18T04:41:56.3320456Z /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.3332542Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.3371580Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-07-18T04:41:56.3398007Z /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.3408142Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.3444969Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-07-18T04:41:56.3472932Z /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.3482644Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.3520752Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-18T04:41:56.3746042Z Entering 'native/src/external/crt0'
+2026-07-18T04:41:56.3765705Z file:/home/runner/work/FoxMask/FoxMask/.git/modules/crt0/config	remote.origin.url
+2026-07-18T04:41:56.3785137Z Entering 'native/src/external/cxx-rs'
+2026-07-18T04:41:56.3804604Z file:/home/runner/work/FoxMask/FoxMask/.git/modules/cxx-rs/config	remote.origin.url
+2026-07-18T04:41:56.3824385Z Entering 'native/src/external/libcxx'
+2026-07-18T04:41:56.3843958Z file:/home/runner/work/FoxMask/FoxMask/.git/modules/libcxx/config	remote.origin.url
+2026-07-18T04:41:56.3865264Z Entering 'native/src/external/lsplt'
+2026-07-18T04:41:56.3885336Z file:/home/runner/work/FoxMask/FoxMask/.git/modules/lsplt/config	remote.origin.url
+2026-07-18T04:41:56.3907136Z Entering 'native/src/external/lz4'
+2026-07-18T04:41:56.3928161Z file:/home/runner/work/FoxMask/FoxMask/.git/modules/lz4/config	remote.origin.url
+2026-07-18T04:41:56.3951773Z Entering 'native/src/external/selinux'
+2026-07-18T04:41:56.3971371Z file:/home/runner/work/FoxMask/FoxMask/.git/modules/selinux/config	remote.origin.url
+2026-07-18T04:41:56.3992795Z Entering 'native/src/external/system_properties'
+2026-07-18T04:41:56.4012950Z file:/home/runner/work/FoxMask/FoxMask/.git/modules/system_properties/config	remote.origin.url
+2026-07-18T04:41:56.4055410Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/crt0/config --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-18T04:41:56.4082336Z includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/crt0.path
+2026-07-18T04:41:56.4083212Z includeif.gitdir:/github/workspace/.git/modules/crt0.path
+2026-07-18T04:41:56.4090268Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/crt0/config --get-all includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/crt0.path
+2026-07-18T04:41:56.4113922Z /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4122595Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/crt0/config --unset includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/crt0.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4159245Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/crt0/config --get-all includeif.gitdir:/github/workspace/.git/modules/crt0.path
+2026-07-18T04:41:56.4183597Z /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4192436Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/crt0/config --unset includeif.gitdir:/github/workspace/.git/modules/crt0.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4226866Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/cxx-rs/config --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-18T04:41:56.4250904Z includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/cxx-rs.path
+2026-07-18T04:41:56.4251877Z includeif.gitdir:/github/workspace/.git/modules/cxx-rs.path
+2026-07-18T04:41:56.4260979Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/cxx-rs/config --get-all includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/cxx-rs.path
+2026-07-18T04:41:56.4289864Z /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4298080Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/cxx-rs/config --unset includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/cxx-rs.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4332037Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/cxx-rs/config --get-all includeif.gitdir:/github/workspace/.git/modules/cxx-rs.path
+2026-07-18T04:41:56.4355148Z /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4362394Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/cxx-rs/config --unset includeif.gitdir:/github/workspace/.git/modules/cxx-rs.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4396352Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/libcxx/config --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-18T04:41:56.4422089Z includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/libcxx.path
+2026-07-18T04:41:56.4423012Z includeif.gitdir:/github/workspace/.git/modules/libcxx.path
+2026-07-18T04:41:56.4431374Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/libcxx/config --get-all includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/libcxx.path
+2026-07-18T04:41:56.4454682Z /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4463578Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/libcxx/config --unset includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/libcxx.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4498554Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/libcxx/config --get-all includeif.gitdir:/github/workspace/.git/modules/libcxx.path
+2026-07-18T04:41:56.4522024Z /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4563727Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/libcxx/config --unset includeif.gitdir:/github/workspace/.git/modules/libcxx.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4602786Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/lsplt/config --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-18T04:41:56.4630672Z includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/lsplt.path
+2026-07-18T04:41:56.4631862Z includeif.gitdir:/github/workspace/.git/modules/lsplt.path
+2026-07-18T04:41:56.4641516Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/lsplt/config --get-all includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/lsplt.path
+2026-07-18T04:41:56.4667688Z /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4677617Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/lsplt/config --unset includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/lsplt.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4716564Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/lsplt/config --get-all includeif.gitdir:/github/workspace/.git/modules/lsplt.path
+2026-07-18T04:41:56.4744266Z /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4752741Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/lsplt/config --unset includeif.gitdir:/github/workspace/.git/modules/lsplt.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4786558Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/lz4/config --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-18T04:41:56.4809970Z includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/lz4.path
+2026-07-18T04:41:56.4810841Z includeif.gitdir:/github/workspace/.git/modules/lz4.path
+2026-07-18T04:41:56.4819479Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/lz4/config --get-all includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/lz4.path
+2026-07-18T04:41:56.4843051Z /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4850092Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/lz4/config --unset includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/lz4.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4884449Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/lz4/config --get-all includeif.gitdir:/github/workspace/.git/modules/lz4.path
+2026-07-18T04:41:56.4908884Z /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4918128Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/lz4/config --unset includeif.gitdir:/github/workspace/.git/modules/lz4.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.4954065Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/selinux/config --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-18T04:41:56.4978678Z includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/selinux.path
+2026-07-18T04:41:56.4979469Z includeif.gitdir:/github/workspace/.git/modules/selinux.path
+2026-07-18T04:41:56.4986547Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/selinux/config --get-all includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/selinux.path
+2026-07-18T04:41:56.5012130Z /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.5019507Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/selinux/config --unset includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/selinux.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.5054702Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/selinux/config --get-all includeif.gitdir:/github/workspace/.git/modules/selinux.path
+2026-07-18T04:41:56.5079262Z /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.5086235Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/selinux/config --unset includeif.gitdir:/github/workspace/.git/modules/selinux.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.5119708Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/system_properties/config --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-18T04:41:56.5144191Z includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/system_properties.path
+2026-07-18T04:41:56.5145305Z includeif.gitdir:/github/workspace/.git/modules/system_properties.path
+2026-07-18T04:41:56.5151737Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/system_properties/config --get-all includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/system_properties.path
+2026-07-18T04:41:56.5175570Z /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.5185987Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/system_properties/config --unset includeif.gitdir:/home/runner/work/FoxMask/FoxMask/.git/modules/system_properties.path /home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.5220653Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/system_properties/config --get-all includeif.gitdir:/github/workspace/.git/modules/system_properties.path
+2026-07-18T04:41:56.5244214Z /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.5252851Z [command]/usr/bin/git config --file /home/runner/work/FoxMask/FoxMask/.git/modules/system_properties/config --unset includeif.gitdir:/github/workspace/.git/modules/system_properties.path /github/runner_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config
+2026-07-18T04:41:56.5283761Z Removing credentials config '/home/runner/work/_temp/git-credentials-1cfc59c3-7839-4360-b8fa-a27d34beea36.config'
+2026-07-18T04:41:56.5453068Z Cleaning up orphan processes
+2026-07-18T04:41:56.5805248Z Terminate orphan process: pid (2816) (sccache)
+2026-07-18T04:41:56.5837831Z Terminate orphan process: pid (12711) (java)
+2026-07-18T04:41:56.5875996Z Terminate orphan process: pid (12773) (java)
