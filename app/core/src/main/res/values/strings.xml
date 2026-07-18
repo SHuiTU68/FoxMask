@@ -249,6 +249,8 @@
     <string name="settings_app_background_summary">Pick an image from your gallery and set it as the in-app background</string>
     <string name="settings_app_background_clear">Clear app background</string>
     <string name="app_background_applied">App background set</string>
+    <string name="settings_transparent_background_title">Transparent background</string>
+    <string name="settings_transparent_background_summary">Make screens transparent so the custom wallpaper shows through</string>
     <string name="color_mode_system">System</string>
     <string name="color_mode_light">Light</string>
     <string name="color_mode_dark">Dark</string>

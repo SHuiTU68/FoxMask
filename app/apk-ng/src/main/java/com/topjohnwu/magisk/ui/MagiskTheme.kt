@@ -40,6 +40,8 @@ object ThemeState {
     var keyColor by mutableIntStateOf(Config.keyColor)
     /** 用户选择的应用内背景图 Uri 字符串；空串 = 无背景。变更后主题会重新解码。 */
     var appBackgroundUri by mutableStateOf(Config.appBackgroundUri)
+    /** 透明背景开关：开启后主屏幕 Scaffold 背景变透明，露出自定义壁纸。默认关。 */
+    var transparentBackground by mutableStateOf(Config.transparentBackground)
 }
 
 /// 通过 CompositionLocal 向下层组件暴露悬浮底栏开关，
@@ -58,6 +60,9 @@ val LocalMd2Style = staticCompositionLocalOf { false }
 
 /// 当前应用内背景图（用户从相册选的图）。null = 无背景，用主题色。
 val LocalAppBackground = staticCompositionLocalOf<ImageBitmap?> { null }
+
+/// 是否启用透明背景（让自定义壁纸透出）。默认关。
+val LocalTransparentBackground = staticCompositionLocalOf { false }
 
 /// Magisk 原始 md2 主题的视觉常量（已弃用，保留兼容旧引用）。
 object MagiskMd2 {
@@ -136,6 +141,7 @@ fun MagiskTheme(
         LocalFloatingNavGlass provides useFloatingNavGlass,
         LocalMd2Style provides false,
         LocalAppBackground provides bgBitmap,
+        LocalTransparentBackground provides ThemeState.transparentBackground,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // 背景图层：填满 + 裁剪，绘在内容之下

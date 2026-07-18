@@ -79,7 +79,7 @@ import com.topjohnwu.magisk.core.ktx.toast
 import com.topjohnwu.magisk.core.tasks.AppMigration
 import com.topjohnwu.magisk.core.tasks.MagiskInstaller
 import com.topjohnwu.magisk.ui.MainActivity
-import com.topjohnwu.magisk.ui.LocalAppBackground
+import com.topjohnwu.magisk.ui.LocalTransparentBackground
 import androidx.compose.ui.graphics.Color
 import com.topjohnwu.magisk.ui.component.LoadingDialogHandle
 import com.topjohnwu.magisk.ui.component.MarkdownTextAsync
@@ -202,7 +202,7 @@ fun HomeScreen(viewModel: HomeViewModel, installVm: InstallViewModel) {
     }
 
     Scaffold(
-        containerColor = if (LocalAppBackground.current != null) Color.Transparent else MaterialTheme.colorScheme.background,
+        containerColor = if (LocalTransparentBackground.current) Color.Transparent else MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(CoreR.string.section_home)) },

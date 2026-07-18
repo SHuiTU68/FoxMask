@@ -70,7 +70,7 @@ import com.topjohnwu.magisk.core.di.ServiceLocator
 import com.topjohnwu.magisk.core.download.DownloadEngine
 import com.topjohnwu.magisk.core.model.module.OnlineModule
 import com.topjohnwu.magisk.ui.MainActivity
-import com.topjohnwu.magisk.ui.LocalAppBackground
+import com.topjohnwu.magisk.ui.LocalTransparentBackground
 import androidx.compose.ui.graphics.Color
 import com.topjohnwu.magisk.ui.component.ConfirmResult
 import com.topjohnwu.magisk.ui.component.MarkdownTextAsync
@@ -134,7 +134,7 @@ fun ModuleScreen(viewModel: ModuleViewModel) {
     }
 
     Scaffold(
-        containerColor = if (LocalAppBackground.current != null) Color.Transparent else MaterialTheme.colorScheme.background,
+        containerColor = if (LocalTransparentBackground.current) Color.Transparent else MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(CoreR.string.modules)) },

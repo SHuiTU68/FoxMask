@@ -49,7 +49,7 @@ import com.topjohnwu.magisk.core.isRunningAsStub
 import com.topjohnwu.magisk.core.utils.LocaleSetting
 import com.topjohnwu.magisk.core.utils.MediaStoreUtils
 import com.topjohnwu.magisk.ui.ThemeState
-import com.topjohnwu.magisk.ui.LocalAppBackground
+import com.topjohnwu.magisk.ui.LocalTransparentBackground
 import com.topjohnwu.magisk.ui.component.AppBackground
 import com.topjohnwu.magisk.ui.component.SettingsArrow
 import com.topjohnwu.magisk.ui.component.SettingsDropdown
@@ -78,7 +78,7 @@ private fun Context.findActivity(): Activity? {
 fun SettingsScreen(viewModel: SettingsViewModel) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
-        containerColor = if (LocalAppBackground.current != null) Color.Transparent else MaterialTheme.colorScheme.background,
+        containerColor = if (LocalTransparentBackground.current) Color.Transparent else MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(CoreR.string.settings)) },
@@ -139,6 +139,9 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
         val uriStr = uri.toString()
         Config.appBackgroundUri = uriStr
         ThemeState.appBackgroundUri = uriStr
+        // 选定新背景时自动开启透明背景，让壁纸立刻可见（用户可在开关里关掉）
+        Config.transparentBackground = true
+        ThemeState.transparentBackground = true
         Toast.makeText(
             appContext,
             appContext.getString(CoreR.string.app_background_applied),
@@ -305,6 +308,9 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
                     val oldUri = runCatching { android.net.Uri.parse(Config.appBackgroundUri) }.getOrNull()
                     Config.appBackgroundUri = ""
                     ThemeState.appBackgroundUri = ""
+                    // 关闭透明背景以恢复主题色背景
+                    Config.transparentBackground = false
+                    ThemeState.transparentBackground = false
                     oldUri?.let {
                         scope.launch {
                             withContext(Dispatchers.IO) {
@@ -312,6 +318,20 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
                             }
                         }
                     }
+                }
+            )
+
+            // 透明背景开关：开启后主屏幕 Scaffold 背景变透明，露出自定义壁纸。
+            // 仅在已设背景时显示；关掉后即使有背景图也用主题色背景。
+            var transparentBg by remember { mutableStateOf(Config.transparentBackground) }
+            SettingsSwitch(
+                title = stringResource(CoreR.string.settings_transparent_background_title),
+                summary = stringResource(CoreR.string.settings_transparent_background_summary),
+                checked = transparentBg,
+                onCheckedChange = {
+                    transparentBg = it
+                    Config.transparentBackground = it
+                    ThemeState.transparentBackground = it
                 }
             )
         }
