@@ -15,7 +15,7 @@ compose-m3 = "1.4.0"
 navigation3 = "1.1.0"
 navigationevent = "1.0.2"
 wire = "6.2.0"
-miuix = "0.9.3"
+materialKolor = "4.1.1"
 
 [libraries]
 bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version = "1.84" }
@@ -81,12 +81,8 @@ navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", ver
 navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 navigationevent-compose = { module = "androidx.navigationevent:navigationevent-compose", version.ref = "navigationevent" }
 
-# Miuix (MIUI 风格 Compose 组件库，0.9.3 拆分模块)
-# 注: 不引入 miuix-blur-android，因其 minSdk=33 与本工程 minSdk=23 冲突；
-# 本工程不使用毛玻璃特性，无需该模块。
-miuix-ui = { module = "top.yukonga.miuix.kmp:miuix-ui-android", version.ref = "miuix" }
-miuix-preference = { module = "top.yukonga.miuix.kmp:miuix-preference-android", version.ref = "miuix" }
-miuix-icons = { module = "top.yukonga.miuix.kmp:miuix-icons-android", version.ref = "miuix" }
+# MaterialKolor: 从种子色生成 Material3 ColorScheme（用于 Monet 自定义种子色模式）
+materialKolor = { module = "com.materialkolor:material-kolor", version.ref = "materialKolor" }
 
 # For build-logic
 android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "android" }

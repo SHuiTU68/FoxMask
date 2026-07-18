@@ -51,12 +51,8 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.compose.material3)
 
-    // Miuix UI library (0.9.3 拆分模块)
-    // 注: 不引入 miuix-blur，因其 minSdk=33 与本工程 minSdk=23 冲突；
-    // 本工程不使用毛玻璃特性，无需 miuix-blur 的 MiuiBlurHost/BackStop 等高版本 API。
-    implementation(libs.miuix.ui)
-    implementation(libs.miuix.preference)
-    implementation(libs.miuix.icons)
+    // MaterialKolor: 从种子色生成 Material3 ColorScheme（Monet 自定义种子色模式用）
+    implementation(libs.materialKolor)
 
     // Splash screen
     implementation(libs.core.splashscreen)

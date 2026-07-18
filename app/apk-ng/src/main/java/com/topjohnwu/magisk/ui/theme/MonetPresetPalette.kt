@@ -3,11 +3,9 @@ package com.topjohnwu.magisk.ui.theme
 /// Monet 预设种子色调色板 — 移植自 WeaveMask (github.com/Seyud/WeaveMask)
 /// 的 MonetPresetPalette.kt。
 ///
-/// 15 个预设 keyColor，选中后由 miuix 库的 ThemeController 通过
-/// MaterialKolor (HCT) 生成整套配色。keyColor=0 表示使用系统壁纸动态色。
-///
-/// WeaveMask 原版还包含每个预设对应的 splash XML 主题资源，
-/// 此处仅保留 keyColor 列表用于 UI 下拉选择和 ThemeController 种子色。
+/// 15 个预设 keyColor，选中后由 Material Kolor 库通过
+/// HCT (Hue-Chroma-Tone) 算法生成整套 Material3 ColorScheme。
+/// keyColor=0 表示使用系统壁纸动态色（Android 12+ 走原生 Material You）。
 internal object MonetPresetPalette {
     /// 15 个预设种子色（ARGB），顺序与 UI 下拉一致
     val presetKeyColors: List<Int> = listOf(
