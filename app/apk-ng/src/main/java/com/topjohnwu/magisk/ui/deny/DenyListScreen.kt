@@ -53,7 +53,11 @@ import com.topjohnwu.magisk.core.R as CoreR
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DenyListScreen(viewModel: DenyListViewModel, onBack: () -> Unit) {
+fun DenyListScreen(
+    viewModel: AppListViewModel,
+    titleRes: Int,
+    onBack: () -> Unit
+) {
     val loading by viewModel.loading.collectAsState()
     val apps by viewModel.filteredApps.collectAsState()
     val query by viewModel.query.collectAsState()
@@ -69,7 +73,7 @@ fun DenyListScreen(viewModel: DenyListViewModel, onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(CoreR.string.denylist)) },
+                title = { Text(stringResource(titleRes)) },
                 navigationIcon = {
                     IconButton(
                         modifier = Modifier.padding(start = 16.dp),

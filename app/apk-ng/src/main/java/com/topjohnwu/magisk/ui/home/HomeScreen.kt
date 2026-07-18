@@ -640,7 +640,7 @@ private fun StatusCard() {
         ),
         StatusInfo(
             label = stringResource(CoreR.string.home_sulist),
-            status = stringResource(if (Config.suList) CoreR.string.enabled else CoreR.string.disabled)
+            status = stringResource(if (Info.isSuListEnabled) CoreR.string.enabled else CoreR.string.disabled)
         )
     )
 

@@ -243,7 +243,9 @@ static void process_events_buffer(struct log_msg *msg) {
 
         struct log_msg msg{};
         while (true) {
-            if (!denylist_enforced) {
+            // logcat 线程同时服务于 denylist 和 sulist（无 zygisk 时的回退路径），
+            // 只要其中之一处于 enforced 状态就继续运行。
+            if (!denylist_enforced && !sulist_enforced) {
                 break;
             }
 
@@ -262,7 +264,7 @@ static void process_events_buffer(struct log_msg *msg) {
             }
         }
 
-        if (!denylist_enforced) {
+        if (!denylist_enforced && !sulist_enforced) {
             break;
         }
 

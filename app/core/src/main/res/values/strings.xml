@@ -9,6 +9,7 @@
     <string name="section_home">Home</string>
     <string name="section_theme">Themes</string>
     <string name="denylist">DenyList</string>
+    <string name="sulist">SuList</string>
 
     <!--Home-->
     <string name="no_connection">No connection available</string>
@@ -175,6 +176,8 @@
     <string name="settings_zygisk_summary">Run parts of FoxMask in the Zygote daemon</string>
     <string name="settings_sulist_title">SuList Whitelist</string>
     <string name="settings_sulist_summary">Only whitelisted apps get root; others are silently denied and su is hidden from PATH</string>
+    <string name="settings_sulist_config_title">Configure SuList</string>
+    <string name="settings_sulist_config_summary">Select the apps to be included in the SuList whitelist</string>
     <string name="settings_mount_modules_title">Module Mount</string>
     <string name="settings_mount_modules_summary">Mount module file overlays (supports priority-based ordering via module.prop)</string>
     <string name="home_mount_modules">Module Mount</string>

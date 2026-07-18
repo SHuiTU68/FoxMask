@@ -6,6 +6,7 @@ use crate::consts::{
 use crate::db::Sqlite3;
 use crate::ffi::{
     ModuleInfo, RequestCode, RespondCode, denylist_handler, get_magisk_tmp, scan_deny_apps,
+    scan_sulist_apps, sulist_handler,
 };
 use crate::logging::{android_logging, magisk_logging, setup_logfile, start_log_daemon};
 use crate::module::remove_modules;
@@ -124,6 +125,9 @@ impl MagiskD {
             RequestCode::DENYLIST => {
                 denylist_handler(client.into_raw_fd());
             }
+            RequestCode::SULIST => {
+                sulist_handler(client.into_raw_fd());
+            }
             RequestCode::SUPERUSER => {
                 self.su_daemon_handler(client, cred);
             }
@@ -131,6 +135,7 @@ impl MagiskD {
                 info!("** zygote restarted");
                 self.prune_su_access();
                 scan_deny_apps();
+                scan_sulist_apps();
                 if self.zygisk_enabled.load(Ordering::Relaxed) {
                     self.zygisk.lock().reset(false);
                 }
@@ -228,6 +233,7 @@ impl MagiskD {
             | RequestCode::ZYGOTE_RESTART
             | RequestCode::SQLITE_CMD
             | RequestCode::DENYLIST
+            | RequestCode::SULIST
             | RequestCode::STOP_DAEMON => {
                 if !is_root {
                     client.write_pod(&RespondCode::ROOT_REQUIRED.repr).log_ok();

@@ -31,6 +31,34 @@ static pthread_mutex_t data_lock = PTHREAD_MUTEX_INITIALIZER;
 
 atomic<bool> denylist_enforced = false;
 
+// =============================================================================
+// SuList (KitsuneMask-style independent whitelist)
+//
+// 与 DenyList 完全解耦的独立白名单表 `sulist`，schema 与 denylist 相同。
+// 语义反转：sulist_enforced 时，仅 sulist 中的 (uid, process) 才能拿 root
+// 并加载 zygisk 模块；不在 sulist 中的进程走 revert_unmount 路径隐藏 magisk。
+// 反转通过 update_deny_flags 搭车 UNMOUNT_MASK 实现，避免在 zygisk 端分叉逻辑。
+// =============================================================================
+
+static unique_ptr<map<string, set<string, StringCmp>, StringCmp>> sulist_pkg_to_procs_;
+#define sulist_pkg_to_procs (*sulist_pkg_to_procs_)
+
+static unique_ptr<map<int, set<string_view>>> sulist_app_id_to_pkgs_;
+#define sulist_app_id_to_pkgs (*sulist_app_id_to_pkgs_)
+
+static pthread_mutex_t sulist_data_lock = PTHREAD_MUTEX_INITIALIZER;
+
+atomic<bool> sulist_enforced = false;
+
+// Forward declarations for SuList functions defined later in this file
+// (used by update_deny_flags, which inverts SuList semantics onto UNMOUNT_MASK)
+bool is_sulist_target(int uid, string_view process);
+bool is_sulist_uid(int uid);
+void scan_sulist_apps();
+int enable_sulist();
+int disable_sulist();
+void initialize_sulist();
+
 static int get_app_id(const vector<int> &users, const string &pkg) {
     struct stat st{};
     char buf[PATH_MAX];
@@ -437,4 +465,303 @@ void update_deny_flags(int uid, rust::Str process, uint32_t &flags) {
     if (denylist_enforced) {
         flags |= +ZygiskStateFlags::DenyListEnforced;
     }
+    // SuList 白名单反转：sulist_enforced 时，不在 sulist 中的进程
+    // 直接搭车 UNMOUNT_MASK 走 revert_unmount 路径，对 zygisk 端透明。
+    // 同时设置 SuListEnforced 标志位，方便 zygisk 模块查询。
+    if (sulist_enforced) {
+        flags |= +ZygiskStateFlags::SuListEnforced;
+        if (!is_sulist_target(uid, { process.begin(), process.end() })) {
+            flags |= +ZygiskStateFlags::ProcessOnDenyList;
+            flags |= +ZygiskStateFlags::DenyListEnforced;
+        }
+    }
+}
+
+// =============================================================================
+// SuList 实现
+// =============================================================================
+
+static void sulist_update_app_id(int app_id, const string &pkg, bool remove) {
+    if (app_id <= 0)
+        return;
+    if (remove) {
+        if (auto it = sulist_app_id_to_pkgs.find(app_id); it != sulist_app_id_to_pkgs.end()) {
+            it->second.erase(pkg);
+            if (it->second.empty()) {
+                sulist_app_id_to_pkgs.erase(it);
+            }
+        }
+    } else {
+        sulist_app_id_to_pkgs[app_id].emplace(pkg);
+    }
+}
+
+static bool add_sulist_set(const char *pkg, const char *proc) {
+    auto p = sulist_pkg_to_procs[pkg].emplace(proc);
+    if (!p.second)
+        return false;
+    LOGI("sulist add: [%s/%s]\n", pkg, proc);
+    return true;
+}
+
+void scan_sulist_apps() {
+    if (!sulist_app_id_to_pkgs_)
+        return;
+
+    sulist_app_id_to_pkgs.clear();
+
+    char sql[4096];
+    vector<int> users;
+    collect_users(users);
+    for (auto it = sulist_pkg_to_procs.begin(); it != sulist_pkg_to_procs.end();) {
+        if (it->first == ISOLATED_MAGIC) {
+            it++;
+            continue;
+        }
+        int app_id = get_app_id(users, it->first);
+        if (app_id == 0) {
+            LOGI("sulist rm: [%s] (app not installed)\n", it->first.data());
+            ssprintf(sql, sizeof(sql), "DELETE FROM sulist WHERE package_name='%s'",
+                     it->first.data());
+            db_exec(sql);
+            it = sulist_pkg_to_procs.erase(it);
+        } else {
+            sulist_update_app_id(app_id, it->first, false);
+            it++;
+        }
+    }
+}
+
+static void sulist_clear_data() {
+    sulist_pkg_to_procs_.reset(nullptr);
+    sulist_app_id_to_pkgs_.reset(nullptr);
+}
+
+static bool ensure_sulist_data() {
+    if (sulist_pkg_to_procs_)
+        return true;
+
+    LOGI("sulist: initializing internal data structures\n");
+
+    default_new(sulist_pkg_to_procs_);
+    bool res = db_exec("SELECT * FROM sulist", {}, [](StringSlice columns, const DbValues &values) {
+        const char *package_name = nullptr;
+        const char *process = nullptr;
+        for (int i = 0; i < columns.size(); ++i) {
+            const auto &name = columns[i];
+            if (name == "package_name") {
+                package_name = values.get_text(i);
+            } else if (name == "process") {
+                process = values.get_text(i);
+            }
+        }
+        if (package_name && process)
+            add_sulist_set(package_name, process);
+    });
+    if (!res)
+        goto error;
+
+    default_new(sulist_app_id_to_pkgs_);
+    scan_sulist_apps();
+
+    return true;
+
+error:
+    sulist_clear_data();
+    return false;
+}
+
+static int add_sulist_list(const char *pkg, const char *proc) {
+    if (proc[0] == '\0')
+        proc = pkg;
+
+    if (!validate(pkg, proc))
+        return DenyResponse::INVALID_PKG;
+
+    {
+        mutex_guard lock(sulist_data_lock);
+        if (!ensure_sulist_data())
+            return DenyResponse::ERROR;
+        int app_id = get_app_id(pkg);
+        if (app_id == 0)
+            return DenyResponse::INVALID_PKG;
+        if (!add_sulist_set(pkg, proc))
+            return DenyResponse::ITEM_EXIST;
+        auto it = sulist_pkg_to_procs.find(pkg);
+        sulist_update_app_id(app_id, it->first, false);
+    }
+
+    // Add to database
+    char sql[4096];
+    ssprintf(sql, sizeof(sql),
+            "INSERT INTO sulist (package_name, process) VALUES('%s', '%s')", pkg, proc);
+    return db_exec(sql) ? DenyResponse::OK : DenyResponse::ERROR;
+}
+
+int add_sulist(int client) {
+    string pkg = read_string(client);
+    string proc = read_string(client);
+    return add_sulist_list(pkg.data(), proc.data());
+}
+
+static int rm_sulist_list(const char *pkg, const char *proc) {
+    {
+        mutex_guard lock(sulist_data_lock);
+        if (!ensure_sulist_data())
+            return DenyResponse::ERROR;
+
+        bool remove = false;
+
+        auto it = sulist_pkg_to_procs.find(pkg);
+        if (it != sulist_pkg_to_procs.end()) {
+            if (proc[0] == '\0') {
+                sulist_update_app_id(get_app_id(pkg), it->first, true);
+                sulist_pkg_to_procs.erase(it);
+                remove = true;
+                LOGI("sulist rm: [%s]\n", pkg);
+            } else if (it->second.erase(proc) != 0) {
+                remove = true;
+                LOGI("sulist rm: [%s/%s]\n", pkg, proc);
+                if (it->second.empty()) {
+                    sulist_update_app_id(get_app_id(pkg), it->first, true);
+                    sulist_pkg_to_procs.erase(it);
+                }
+            }
+        }
+
+        if (!remove)
+            return DenyResponse::ITEM_NOT_EXIST;
+    }
+
+    char sql[4096];
+    if (proc[0] == '\0')
+        ssprintf(sql, sizeof(sql), "DELETE FROM sulist WHERE package_name='%s'", pkg);
+    else
+        ssprintf(sql, sizeof(sql),
+                "DELETE FROM sulist WHERE package_name='%s' AND process='%s'", pkg, proc);
+    return db_exec(sql) ? DenyResponse::OK : DenyResponse::ERROR;
+}
+
+int rm_sulist(int client) {
+    string pkg = read_string(client);
+    string proc = read_string(client);
+    return rm_sulist_list(pkg.data(), proc.data());
+}
+
+void ls_sulist(int client) {
+    {
+        mutex_guard lock(sulist_data_lock);
+        if (!ensure_sulist_data()) {
+            write_int(client, static_cast<int>(DenyResponse::ERROR));
+            return;
+        }
+
+        scan_sulist_apps();
+        write_int(client, static_cast<int>(DenyResponse::OK));
+
+        for (const auto &[pkg, procs] : sulist_pkg_to_procs) {
+            for (const auto &proc : procs) {
+                write_int(client, pkg.size() + proc.size() + 1);
+                xwrite(client, pkg.data(), pkg.size());
+                xwrite(client, "|", 1);
+                xwrite(client, proc.data(), proc.size());
+            }
+        }
+    }
+    write_int(client, 0);
+    close(client);
+}
+
+int enable_sulist() {
+    if (sulist_enforced) {
+        return DenyResponse::OK;
+    } else {
+        mutex_guard lock(sulist_data_lock);
+
+        if (access("/proc/self/ns/mnt", F_OK) != 0) {
+            LOGW("The kernel does not support mount namespace\n");
+            return DenyResponse::NO_NS;
+        }
+
+        if (procfp == nullptr && (procfp = opendir("/proc")) == nullptr)
+            return DenyResponse::ERROR;
+
+        LOGI("* Enable SuList (whitelist mode)\n");
+
+        if (!ensure_sulist_data())
+            return DenyResponse::ERROR;
+
+        sulist_enforced = true;
+
+        // SuList 启用时需要清理 zygote 子进程缓存的状态，否则已 fork 的进程
+        // 仍会带着旧的 magisk 痕迹。复用 denylist 的 kill 逻辑（USAP/app zygote）。
+        if (!MagiskD::Get().zygisk_enabled()) {
+            if (new_daemon_thread(&logcat)) {
+                sulist_enforced = false;
+                return DenyResponse::ERROR;
+            }
+        }
+
+        if (SDK_INT >= 29) {
+            kill_process("usap32", true);
+            kill_process("usap64", true);
+            kill_process<&proc_context_match>("u:r:app_zygote:s0", true);
+        }
+    }
+
+    MagiskD::Get().set_db_setting(DbEntryKey::SuListConfig, true);
+    return DenyResponse::OK;
+}
+
+int disable_sulist() {
+    if (sulist_enforced.exchange(false)) {
+        LOGI("* Disable SuList\n");
+    }
+    MagiskD::Get().set_db_setting(DbEntryKey::SuListConfig, false);
+    return DenyResponse::OK;
+}
+
+void initialize_sulist() {
+    if (!sulist_enforced) {
+        if (MagiskD::Get().get_db_setting(DbEntryKey::SuListConfig))
+            enable_sulist();
+    }
+}
+
+bool is_sulist_target(int uid, string_view process) {
+    mutex_guard lock(sulist_data_lock);
+    if (!ensure_sulist_data())
+        return false;
+
+    int app_id = to_app_id(uid);
+    if (app_id >= 90000) {
+        // isolated process：匹配 ISOLATED_MAGIC 下的前缀
+        if (auto it = sulist_pkg_to_procs.find(ISOLATED_MAGIC); it != sulist_pkg_to_procs.end()) {
+            for (const auto &s : it->second) {
+                if (process.starts_with(s))
+                    return true;
+            }
+        }
+        return false;
+    } else {
+        auto it = sulist_app_id_to_pkgs.find(app_id);
+        if (it == sulist_app_id_to_pkgs.end())
+            return false;
+        for (const auto &pkg : it->second) {
+            if (sulist_pkg_to_procs.find(pkg)->second.count(process))
+                return true;
+        }
+    }
+    return false;
+}
+
+bool is_sulist_uid(int uid) {
+    mutex_guard lock(sulist_data_lock);
+    if (!ensure_sulist_data())
+        return false;
+
+    int app_id = to_app_id(uid);
+    if (app_id >= 90000)
+        return false;
+    return sulist_app_id_to_pkgs.find(app_id) != sulist_app_id_to_pkgs.end();
 }

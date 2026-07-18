@@ -81,6 +81,15 @@ bool is_deny_target(int uid, std::string_view process);
 void revert_unmount(int pid = -1) noexcept;
 void update_deny_flags(int uid, rust::Str process, uint32_t &flags);
 
+// SuList (KitsuneMask-style independent whitelist, decoupled from root policy)
+extern std::atomic<bool> sulist_enforced;
+int sulist_cli(rust::Vec<rust::String> &args);
+void sulist_handler(int client);
+void initialize_sulist();
+void scan_sulist_apps();
+bool is_sulist_target(int uid, std::string_view process);
+bool is_sulist_uid(int uid);
+
 // MagiskSU
 void exec_root_shell(int client, int pid, SuRequest &req, MntNsMode mode);
 

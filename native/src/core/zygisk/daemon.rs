@@ -1,5 +1,5 @@
 use crate::consts::MODULEROOT;
-use crate::daemon::{AID_APP_START, MagiskD, to_user_id};
+use crate::daemon::{MagiskD, to_user_id};
 use crate::ffi::{ZygiskRequest, ZygiskStateFlags, get_magisk_tmp, update_deny_flags};
 use crate::resetprop::{get_prop, set_prop};
 use crate::socket::{IpcRead, UnixSocketExt};
@@ -19,14 +19,12 @@ const NBPROP: &Utf8CStr = cstr!("ro.dalvik.vm.native.bridge");
 const ZYGISKLDR: &str = "libzygisk.so";
 const UNMOUNT_MASK: u32 =
     ZygiskStateFlags::ProcessOnDenyList.repr | ZygiskStateFlags::DenyListEnforced.repr;
-const SULIST_MASK: u32 = ZygiskStateFlags::SuListEnforced.repr;
 
 pub fn zygisk_should_load_module(flags: u32) -> bool {
-    // SuList 模式下，非白名单 app（无 GrantedRoot）不加载模块
-    let sulist_hide = flags & SULIST_MASK != 0
-        && flags & ZygiskStateFlags::ProcessGrantedRoot.repr == 0;
+    // SuList 反转逻辑已下放到 update_deny_flags：sulist_enforced 且进程不在白名单时，
+    // 会被设置 ProcessOnDenyList | DenyListEnforced，从而被 UNMOUNT_MASK 命中。
+    // 这里只保留对 denylist/sulist 共用的 unmount 路径检查即可。
     flags & UNMOUNT_MASK != UNMOUNT_MASK
-        && !sulist_hide
         && flags & ZygiskStateFlags::ProcessIsMagiskApp.repr == 0
 }
 
@@ -206,10 +204,9 @@ impl MagiskD {
         if self.uid_granted_root(uid) {
             flags |= ZygiskStateFlags::ProcessGrantedRoot.repr
         }
-        // SuList 模式：仅对普通 app（uid >= AID_APP_START）生效，避免影响系统进程
-        if self.sulist_enabled() && uid >= AID_APP_START {
-            flags |= ZygiskStateFlags::SuListEnforced.repr
-        }
+        // SuList 反转已下放到 update_deny_flags（C++ 侧），
+        // 这里不再需要单独设置 SuListEnforced 或限制 uid >= AID_APP_START，
+        // 系统进程也参与 SuList 白名单语义，避免被探测到痕迹。
 
         // First send flags
         client.write_pod(&flags)?;

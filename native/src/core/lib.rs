@@ -59,6 +59,7 @@ pub mod ffi {
         SUPERUSER,
         ZYGOTE_RESTART,
         DENYLIST,
+        SULIST,
         SQLITE_CMD,
         REMOVE_MODULES,
         ZYGISK,
@@ -172,6 +173,13 @@ pub mod ffi {
         fn denylist_cli(args: &mut Vec<String>) -> i32;
         fn denylist_handler(client: i32);
         fn scan_deny_apps();
+
+        // SuList (KitsuneMask-style independent whitelist)
+        fn sulist_cli(args: &mut Vec<String>) -> i32;
+        fn sulist_handler(client: i32);
+        fn scan_sulist_apps();
+        fn is_sulist_uid(uid: i32) -> bool;
+        fn initialize_sulist();
 
         include!("include/sqlite.hpp");
 
