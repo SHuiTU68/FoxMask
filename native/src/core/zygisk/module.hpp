@@ -127,7 +127,10 @@ static_assert(+ZygiskStateFlags::ProcessOnDenyList == zygisk::StateFlag::PROCESS
 
 enum : uint32_t {
     UNMOUNT_MASK = (+ZygiskStateFlags::ProcessOnDenyList | +ZygiskStateFlags::DenyListEnforced),
-    PRIVATE_MASK = (+ZygiskStateFlags::DenyListEnforced | +ZygiskStateFlags::ProcessIsMagiskApp)
+    // SuListEnforced 与 DenyListEnforced 一样属于内部状态，不暴露给 zygisk 模块
+    PRIVATE_MASK = (+ZygiskStateFlags::DenyListEnforced |
+                    +ZygiskStateFlags::ProcessIsMagiskApp |
+                    +ZygiskStateFlags::SuListEnforced)
 };
 
 struct api_abi_base {

@@ -43,6 +43,7 @@ import com.topjohnwu.magisk.core.tasks.AppMigration
 import com.topjohnwu.magisk.core.wrap
 import com.topjohnwu.magisk.ui.deny.DenyListScreen
 import com.topjohnwu.magisk.ui.deny.DenyListViewModel
+import com.topjohnwu.magisk.ui.deny.SuListViewModel
 import com.topjohnwu.magisk.ui.flash.FlashScreen
 import com.topjohnwu.magisk.ui.flash.FlashUtils
 import com.topjohnwu.magisk.ui.flash.FlashViewModel
@@ -131,7 +132,12 @@ class MainActivity : ComponentActivity(), SplashScreenHost {
                                 entry<Route.DenyList> { _ ->
                                     val vm: DenyListViewModel = viewModel(factory = VMFactory)
                                     LaunchedEffect(Unit) { vm.startLoading() }
-                                    DenyListScreen(vm, onBack = { navigator.pop() })
+                                    DenyListScreen(vm, titleRes = CoreR.string.denylist, onBack = { navigator.pop() })
+                                }
+                                entry<Route.SuList> { _ ->
+                                    val vm: SuListViewModel = viewModel(factory = VMFactory)
+                                    LaunchedEffect(Unit) { vm.startLoading() }
+                                    DenyListScreen(vm, titleRes = CoreR.string.sulist, onBack = { navigator.pop() })
                                 }
                                 entry<Route.Flash> { key ->
                                     val vm: FlashViewModel = viewModel(factory = VMFactory)

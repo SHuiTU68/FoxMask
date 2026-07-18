@@ -1,6 +1,6 @@
 use crate::consts::{APPLET_NAMES, MAGISK_VER_CODE, MAGISK_VERSION, POST_FS_DATA_WAIT_TIME};
 use crate::daemon::connect_daemon;
-use crate::ffi::{RequestCode, denylist_cli, get_magisk_tmp, install_module, unlock_blocks};
+use crate::ffi::{RequestCode, denylist_cli, get_magisk_tmp, install_module, sulist_cli, unlock_blocks};
 use crate::mount::find_preinit_device;
 use crate::selinux::restorecon;
 use crate::socket::{Decodable, Encodable};
@@ -38,6 +38,7 @@ Advanced Options (Internal APIs):
    --sqlite SQL              exec SQL commands to Magisk database
    --path                    print Magisk tmpfs mount path
    --denylist ARGS           denylist config CLI
+   --sulist ARGS             sulist whitelist config CLI (KitsuneMask-style)
    --preinit-device          resolve a device to store preinit files
 
 Available applets:
@@ -75,6 +76,7 @@ enum MagiskAction {
     Sqlite(Sqlite),
     Path(PathCmd),
     DenyList(DenyList),
+    SuList(SuListCmd),
     PreInitDevice(PreInitDevice),
 }
 
@@ -177,6 +179,13 @@ struct DenyList {
 }
 
 #[derive(FromArgs)]
+#[argh(subcommand, name = "--sulist")]
+struct SuListCmd {
+    #[argh(positional, greedy)]
+    args: Vec<String>,
+}
+
+#[derive(FromArgs)]
 #[argh(subcommand, name = "--preinit-device")]
 struct PreInitDevice {}
 
@@ -271,6 +280,9 @@ impl MagiskAction {
             }
             DenyList(self::DenyList { mut args }) => {
                 return Ok(denylist_cli(&mut args));
+            }
+            SuList(self::SuListCmd { mut args }) => {
+                return Ok(sulist_cli(&mut args));
             }
             PreInitDevice(_) => {
                 let name = find_preinit_device();

@@ -2,7 +2,7 @@ use super::connect::SuAppContext;
 use super::db::RootSettings;
 use crate::daemon::{AID_ROOT, AID_SHELL, MagiskD, to_app_id, to_user_id};
 use crate::db::{DbSettings, MultiuserMode, RootAccess};
-use crate::ffi::{SuPolicy, SuRequest, exec_root_shell};
+use crate::ffi::{SuPolicy, SuRequest, exec_root_shell, is_sulist_uid};
 use crate::socket::IpcRead;
 use base::{LoggedResult, ResultExt, WriteExt, debug, error, exit_on_error, libc, warn};
 use std::os::fd::IntoRawFd;
@@ -246,9 +246,11 @@ impl MagiskD {
                 return Ok(Arc::new(SuInfo::allow(uid)));
             }
 
-            // SuList 白名单模式：只有显式 Allow 策略的 uid 才能拿 root，
-            // 其余静默 Deny（不弹 INTERACTIVE 授权框），避免被探测
-            if cfg.sulist && access.policy != SuPolicy::Allow {
+            // SuList 白名单模式（KitsuneMask 风格）：使用独立 sulist 表
+            // 决定 uid 是否能拿 root，与 root_settings.policy 解耦。
+            // 不在 sulist 中的 uid 静默 Deny，避免被探测。
+            // AID_ROOT/AID_SHELL 不受 sulist 限制（已是上面 early-return 处理）。
+            if cfg.sulist && uid != AID_ROOT && uid != AID_SHELL && !is_sulist_uid(uid) {
                 return Ok(Arc::new(SuInfo::deny(uid)));
             }
 

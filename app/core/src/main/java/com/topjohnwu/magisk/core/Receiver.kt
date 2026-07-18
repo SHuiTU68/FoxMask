@@ -54,7 +54,10 @@ open class Receiver : BaseReceiver() {
                 getUid(intent)?.let { rmPolicy(it) }
             }
             Intent.ACTION_PACKAGE_FULLY_REMOVED -> {
-                getPkg(intent)?.let { Shell.cmd("magisk --denylist rm $it").submit() }
+                getPkg(intent)?.let {
+                    Shell.cmd("magisk --denylist rm $it").submit()
+                    Shell.cmd("magisk --sulist rm $it").submit()
+                }
             }
             Intent.ACTION_LOCALE_CHANGED -> Shortcuts.setupDynamic(context)
             Intent.ACTION_MY_PACKAGE_REPLACED -> {

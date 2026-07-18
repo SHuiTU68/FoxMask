@@ -22,6 +22,9 @@ class SettingsViewModel : BaseViewModel() {
     private val _denyListEnabled = MutableStateFlow(Config.denyList)
     val denyListEnabled: StateFlow<Boolean> = _denyListEnabled.asStateFlow()
 
+    private val _suListEnabled = MutableStateFlow(Config.suList)
+    val suListEnabled: StateFlow<Boolean> = _suListEnabled.asStateFlow()
+
     val zygiskMismatch get() = Config.zygisk != Info.isZygiskEnabled
     val suListMismatch get() = Config.suList != Info.isSuListEnabled
     val mountModulesMismatch get() = Config.mountModules != Info.isMountModulesEnabled
@@ -30,6 +33,10 @@ class SettingsViewModel : BaseViewModel() {
 
     fun navigateToDenyList() {
         navigateTo(Route.DenyList)
+    }
+
+    fun navigateToSuList() {
+        navigateTo(Route.SuList)
     }
 
     /** 进入 KernelPatch / KPM 管理页面。 */
@@ -56,6 +63,23 @@ class SettingsViewModel : BaseViewModel() {
                 Config.denyList = enabled
             } else {
                 _denyListEnabled.value = !enabled
+            }
+        }
+    }
+
+    /**
+     * 热切换 SuList。原生侧支持运行时启停（无需重启 zygote）：
+     * enable 会清掉 USAP/app zygote 缓存并立即对后续 fork 生效。
+     * 失败时回滚 UI 状态。
+     */
+    fun toggleSuList(enabled: Boolean) {
+        _suListEnabled.value = enabled
+        val cmd = if (enabled) "enable" else "disable"
+        Shell.cmd("magisk --sulist $cmd").submit { result ->
+            if (result.isSuccess) {
+                Config.suList = enabled
+            } else {
+                _suListEnabled.value = !enabled
             }
         }
     }

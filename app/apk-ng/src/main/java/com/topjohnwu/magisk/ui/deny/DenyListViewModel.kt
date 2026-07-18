@@ -24,7 +24,15 @@ import kotlinx.coroutines.withContext
 
 enum class SortBy { NAME, PACKAGE_NAME, INSTALL_TIME, UPDATE_TIME }
 
-class DenyListViewModel : AsyncLoadViewModel() {
+/**
+ * 应用列表管理 ViewModel 基类，同时服务 DenyList 与 SuList。
+ * 子类通过 [commandPrefix] 注入对应的 magisk CLI 子命令。
+ * 两套列表的 ls/add/rm 输出格式与参数语义完全同构，无需额外分支。
+ */
+abstract class AppListViewModel : AsyncLoadViewModel() {
+
+    /** 例如 "magisk --denylist" 或 "magisk --sulist" */
+    protected abstract val commandPrefix: String
 
     private val _loading = MutableStateFlow(true)
     val loading: StateFlow<Boolean> = _loading.asStateFlow()
@@ -93,14 +101,14 @@ class DenyListViewModel : AsyncLoadViewModel() {
         _loading.value = true
         val apps = withContext(Dispatchers.Default) {
             val pm = AppContext.packageManager
-            val denyList = Shell.cmd("magisk --denylist ls").exec().out
+            val denyList = Shell.cmd("$commandPrefix ls").exec().out
                 .map { CmdlineListItem(it) }
             val apps = pm.getInstalledApplications(MATCH_UNINSTALLED_PACKAGES).run {
                 asFlow()
                     .filter { AppContext.packageName != it.packageName }
                     .concurrentMap { AppProcessInfo(it, pm, denyList) }
                     .filter { it.processes.isNotEmpty() }
-                    .concurrentMap { DenyAppState(it) }
+                    .concurrentMap { DenyAppState(it, commandPrefix) }
                     .toCollection(ArrayList(size))
             }
             apps.sortWith(compareBy(
@@ -114,8 +122,21 @@ class DenyListViewModel : AsyncLoadViewModel() {
     }
 }
 
-class DenyAppState(val info: AppProcessInfo) : Comparable<DenyAppState> {
-    val processes = info.processes.map { DenyProcessState(it) }
+/** DenyList 管理页面 */
+class DenyListViewModel : AppListViewModel() {
+    override val commandPrefix = "magisk --denylist"
+}
+
+/** SuList 白名单管理页面（KitsuneMask 风格独立白名单） */
+class SuListViewModel : AppListViewModel() {
+    override val commandPrefix = "magisk --sulist"
+}
+
+class DenyAppState(
+    val info: AppProcessInfo,
+    private val commandPrefix: String
+) : Comparable<DenyAppState> {
+    val processes = info.processes.map { DenyProcessState(it, commandPrefix) }
     var isExpanded by mutableStateOf(false)
 
     val itemsChecked: Int get() = processes.count { it.isEnabled }
@@ -124,7 +145,7 @@ class DenyAppState(val info: AppProcessInfo) : Comparable<DenyAppState> {
 
     fun toggleAll() {
         if (isChecked) {
-            Shell.cmd("magisk --denylist rm ${info.packageName}").submit()
+            Shell.cmd("$commandPrefix rm ${info.packageName}").submit()
             processes.filter { it.isEnabled }.forEach { proc ->
                 if (proc.process.isIsolated) {
                     proc.toggle()
@@ -147,7 +168,10 @@ class DenyAppState(val info: AppProcessInfo) : Comparable<DenyAppState> {
     }
 }
 
-class DenyProcessState(val process: ProcessInfo) {
+class DenyProcessState(
+    val process: ProcessInfo,
+    private val commandPrefix: String
+) {
     var isEnabled by mutableStateOf(process.isEnabled)
 
     val displayName: String =
@@ -157,6 +181,6 @@ class DenyProcessState(val process: ProcessInfo) {
         isEnabled = !isEnabled
         val arg = if (isEnabled) "add" else "rm"
         val (name, pkg) = process
-        Shell.cmd("magisk --denylist $arg $pkg \'$name\'").submit()
+        Shell.cmd("$commandPrefix $arg $pkg \'$name\'").submit()
     }
 }

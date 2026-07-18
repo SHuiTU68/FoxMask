@@ -9,6 +9,7 @@
     <string name="section_home">主页</string>
     <string name="section_theme">主题</string>
     <string name="denylist">排除列表</string>
+    <string name="sulist">SuList 白名单</string>
 
     <!--Home-->
     <string name="no_connection">无法连接</string>
@@ -145,6 +146,12 @@
     <string name="settings_zygisk_summary">在 Zygote 中运行 Magisk</string>
     <string name="home_mount_modules">模块挂载</string>
     <string name="home_sulist">SuList 模式</string>
+    <string name="settings_sulist_title">SuList 白名单</string>
+    <string name="settings_sulist_summary">仅白名单应用可获得 root，其余静默拒绝并隐藏 su</string>
+    <string name="settings_sulist_config_title">配置 SuList</string>
+    <string name="settings_sulist_config_summary">选择加入 SuList 白名单的应用</string>
+    <string name="settings_mount_modules_title">模块挂载</string>
+    <string name="settings_mount_modules_summary">挂载模块文件覆盖层（支持基于 module.prop 的优先级排序）</string>
     <string name="settings_denylist_title">遵守排除列表</string>
     <string name="settings_denylist_summary">Magisk 不会修改列表中的进程</string>
     <string name="settings_denylist_config_title">配置排除列表</string>

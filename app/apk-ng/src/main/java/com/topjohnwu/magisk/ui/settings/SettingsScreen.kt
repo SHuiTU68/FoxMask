@@ -465,20 +465,23 @@ private fun MagiskSection(viewModel: SettingsViewModel) {
                 }
             )
 
-            // SuList 白名单模式
-            var suList by remember { mutableStateOf(Config.suList) }
+            // SuList 白名单模式（热切换，原生侧支持运行时启停）
+            val suListEnabled by viewModel.suListEnabled.collectAsState()
             SettingsSwitch(
                 title = stringResource(CoreR.string.settings_sulist_title),
                 summary = stringResource(
-                    if (suList != Info.isSuListEnabled) CoreR.string.reboot_apply_change
+                    if (suListEnabled != Info.isSuListEnabled) CoreR.string.reboot_apply_change
                     else CoreR.string.settings_sulist_summary
                 ),
-                checked = suList,
-                onCheckedChange = {
-                    suList = it
-                    Config.suList = it
-                    viewModel.notifySuListChange()
-                }
+                checked = suListEnabled,
+                onCheckedChange = { viewModel.toggleSuList(it) }
+            )
+
+            // SuList Config
+            SettingsArrow(
+                title = stringResource(CoreR.string.settings_sulist_config_title),
+                summary = stringResource(CoreR.string.settings_sulist_config_summary),
+                onClick = { viewModel.navigateToSuList() }
             )
 
             // 可选模块挂载

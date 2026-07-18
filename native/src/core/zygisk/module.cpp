@@ -402,17 +402,12 @@ void ZygiskContext::app_specialize_pre() {
 
     rust::Vec<int> module_fds;
     owned_fd fd = get_module_info(args.app->uid, module_fds);
+    // SuList 反转已在 update_deny_flags 中搭车 UNMOUNT_MASK：
+    // sulist_enforced 且进程不在白名单时，flags 会被设置 ProcessOnDenyList | DenyListEnforced，
+    // 因此 deny_unmount 同时覆盖 denylist 命中和 sulist 未命中两种情形。
     bool deny_unmount = (info_flags & UNMOUNT_MASK) == UNMOUNT_MASK;
-    // SuList 白名单模式：非白名单 app（无 GrantedRoot 且非 MagiskApp）
-    // 隐藏全部 magisk 痕迹，等同于反转 DenyList 语义
-    bool sulist_unmount = (info_flags & +ZygiskStateFlags::SuListEnforced)
-        && !(info_flags & +ZygiskStateFlags::ProcessGrantedRoot)
-        && !(info_flags & +ZygiskStateFlags::ProcessIsMagiskApp);
-    if (deny_unmount || sulist_unmount) {
-        if (deny_unmount)
-            ZLOGI("[%s] is on the denylist\n", process);
-        else
-            ZLOGI("[%s] is not on the sulist\n", process);
+    if (deny_unmount) {
+        ZLOGI("[%s] is on the denylist / not on the sulist\n", process);
         flags |= DO_REVERT_UNMOUNT;
     } else if (fd >= 0) {
         run_modules_pre(module_fds);
@@ -423,6 +418,11 @@ void ZygiskContext::app_specialize_post() {
     run_modules_post();
     if (info_flags & +ZygiskStateFlags::ProcessIsMagiskApp) {
         setenv("ZYGISK_ENABLED", "1", 1);
+        // 让 Magisk app 能检测到 SuList 实际是否处于 enforced 状态，
+        // 用于设置页"重启生效"提示的精确判断（Config.suList vs Info.isSuListEnabled）。
+        if (info_flags & +ZygiskStateFlags::SuListEnforced) {
+            setenv("SULIST_ENABLED", "1", 1);
+        }
     }
 
     // Cleanups
