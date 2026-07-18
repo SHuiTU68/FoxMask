@@ -202,10 +202,14 @@ object KpatchShell {
         val patchOk = result.isSuccess && newBootFile.exists() && newBootFile.length() > 0
 
         // 通过 MediaStore 把 new-boot.img 写到 Downloads 目录（无需 root）
+        // 文件名加时间戳，避免 Downloads 已有同名文件时触发
+        // SQLite UNIQUE constraint (files._data) 错误
         var outUri: String? = null
         if (patchOk) {
             try {
-                val outFile = getFile("patched_boot.img")
+                val ts = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US)
+                    .format(java.util.Date())
+                val outFile = getFile("patched_boot_$ts.img")
                 outFile.uri.outputStream().use { out ->
                     FileInputStream(newBootFile).use { input -> input.copyTo(out) }
                 }
@@ -320,10 +324,14 @@ object KpatchShell {
         val patchOk = result.isSuccess && newBootFile.exists() && newBootFile.length() > 0
 
         // 通过 MediaStore 把 new-boot.img 写到 Downloads 目录（无需 root）
+        // 文件名加时间戳，避免 Downloads 已有同名文件时触发
+        // SQLite UNIQUE constraint (files._data) 错误
         var outUri: String? = null
         if (patchOk) {
             try {
-                val outFile = getFile("embedded_boot.img")
+                val ts = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US)
+                    .format(java.util.Date())
+                val outFile = getFile("embedded_boot_$ts.img")
                 outFile.uri.outputStream().use { out ->
                     FileInputStream(newBootFile).use { input -> input.copyTo(out) }
                 }

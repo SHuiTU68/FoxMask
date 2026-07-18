@@ -189,8 +189,8 @@ fun KpmScreen(
                         embedBootPicker.launch("*/*")
                     },
                     enabled = !busy,
-                    // 嵌入 KPM 需要：已修补 kpatch（已安装）或已有 boot 镜像（修补成功后）
-                    embedEnabled = !busy && (uiState.kpatchInstalled || uiState.hasBoot),
+                    // 嵌入 KPM 不需要前置条件：kptools -p 会同时嵌入 kpatch 和 KPM
+                    embedEnabled = !busy,
                 )
             }
 
