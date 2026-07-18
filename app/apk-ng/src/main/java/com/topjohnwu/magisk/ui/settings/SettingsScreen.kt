@@ -6,7 +6,6 @@ import android.content.ContextWrapper
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -25,6 +24,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -47,8 +47,9 @@ import com.topjohnwu.magisk.core.isRunningAsStub
 import com.topjohnwu.magisk.core.utils.LocaleSetting
 import com.topjohnwu.magisk.core.utils.MediaStoreUtils
 import com.topjohnwu.magisk.ui.ThemeState
+import com.topjohnwu.magisk.ui.LocalAppBackground
+import com.topjohnwu.magisk.ui.component.AppBackground
 import com.topjohnwu.magisk.ui.component.SettingsArrow
-import com.topjohnwu.magisk.ui.component.WallpaperUtil
 import com.topjohnwu.magisk.ui.component.SettingsDropdown
 import com.topjohnwu.magisk.ui.component.SettingsSectionCard
 import com.topjohnwu.magisk.ui.component.SettingsSwitch
@@ -75,6 +76,7 @@ private fun Context.findActivity(): Activity? {
 fun SettingsScreen(viewModel: SettingsViewModel) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
+        containerColor = if (LocalAppBackground.current != null) Color.Transparent else MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(CoreR.string.settings)) },
@@ -115,35 +117,31 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // 自定义壁纸：用系统 Photo Picker 选图（API 33+ 原生，低版本自动回退 ACTION_OPEN_DOCUMENT）。
-    // 选完图弹对话框让用户选作用范围（主屏 / 锁屏 / 两者），再渲染 centerCrop 并 setBitmap。
-    // 整个解码+写入在 IO 线程。
-    var pendingWallpaperUri by remember { mutableStateOf<android.net.Uri?>(null) }
-    val wallpaperPicker = rememberLauncherForActivityResult(
-        ActivityResultContracts.PickVisualMedia()
+    // 自定义应用背景：用 OpenDocument 选图（返回的 content Uri 支持 takePersistableUriPermission，
+    // 重启后仍可访问）。把 Uri 字符串存进 Config + ThemeState，
+    // MagiskTheme 会通过 LaunchedEffect 解码并绘制在内容之下。
+    var pendingBgUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    val bgPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
     ) { uri ->
-        if (uri != null) pendingWallpaperUri = uri
+        if (uri != null) pendingBgUri = uri
     }
 
-    pendingWallpaperUri?.let { uri ->
-        WallpaperTargetDialog(
-            onDismiss = { pendingWallpaperUri = null },
-            onSelect = { target ->
-                val appContext = context.applicationContext
-                val pickedUri = uri
-                pendingWallpaperUri = null
-                scope.launch {
-                    val ok = withContext(Dispatchers.IO) {
-                        WallpaperUtil.applyFromUri(appContext, pickedUri, target)
-                    }
-                    val msg = if (ok)
-                        appContext.getString(CoreR.string.custom_wallpaper_applied)
-                    else
-                        appContext.getString(CoreR.string.custom_wallpaper_failed)
-                    Toast.makeText(appContext, msg, Toast.LENGTH_SHORT).show()
-                }
-            }
-        )
+    LaunchedEffect(pendingBgUri) {
+        val uri = pendingBgUri ?: return@LaunchedEffect
+        pendingBgUri = null
+        val appContext = context.applicationContext
+        withContext(Dispatchers.IO) {
+            AppBackground.takePersistablePermission(appContext, uri)
+        }
+        val uriStr = uri.toString()
+        Config.appBackgroundUri = uriStr
+        ThemeState.appBackgroundUri = uriStr
+        Toast.makeText(
+            appContext,
+            appContext.getString(CoreR.string.app_background_applied),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     AdaptiveSmallTitle(text = stringResource(CoreR.string.settings_customization))
@@ -287,45 +285,35 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
             )
         }
 
-        // 自定义壁纸 — 调起系统 Photo Picker 让用户从相册选图设为桌面壁纸。
+        // 自定义应用背景 — 调起系统文件选择器让用户从相册选图设为 app 内背景。
         SettingsArrow(
-            title = stringResource(CoreR.string.settings_custom_wallpaper_title),
-            summary = stringResource(CoreR.string.settings_custom_wallpaper_summary),
+            title = stringResource(CoreR.string.settings_app_background_title),
+            summary = stringResource(CoreR.string.settings_app_background_summary),
             onClick = {
-                wallpaperPicker.launch(
-                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                )
+                bgPicker.launch(arrayOf("image/*"))
             }
         )
-    }
-}
 
-/// 壁纸作用范围选择对话框：主屏 / 锁屏 / 两者
-@Composable
-private fun WallpaperTargetDialog(
-    onDismiss: () -> Unit,
-    onSelect: (WallpaperUtil.Target) -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(CoreR.string.wallpaper_target_title)) },
-        text = { Text(stringResource(CoreR.string.wallpaper_target_message)) },
-        confirmButton = {
-            TextButton(onClick = { onSelect(WallpaperUtil.Target.SYSTEM) }) {
-                Text(stringResource(CoreR.string.wallpaper_target_home))
-            }
-        },
-        dismissButton = {
-            androidx.compose.foundation.layout.Row {
-                TextButton(onClick = { onSelect(WallpaperUtil.Target.LOCK) }) {
-                    Text(stringResource(CoreR.string.wallpaper_target_lock))
+        // 已设背景时显示“清除背景”入口
+        if (Config.appBackgroundUri.isNotBlank()) {
+            SettingsArrow(
+                title = stringResource(CoreR.string.settings_app_background_clear),
+                summary = Config.appBackgroundUri,
+                onClick = {
+                    val oldUri = runCatching { android.net.Uri.parse(Config.appBackgroundUri) }.getOrNull()
+                    Config.appBackgroundUri = ""
+                    ThemeState.appBackgroundUri = ""
+                    oldUri?.let {
+                        scope.launch {
+                            withContext(Dispatchers.IO) {
+                                AppBackground.releasePersistablePermission(context.applicationContext, it)
+                            }
+                        }
+                    }
                 }
-                TextButton(onClick = { onSelect(WallpaperUtil.Target.BOTH) }) {
-                    Text(stringResource(CoreR.string.wallpaper_target_both))
-                }
-            }
+            )
         }
-    )
+    }
 }
 
 // --- App Settings ---

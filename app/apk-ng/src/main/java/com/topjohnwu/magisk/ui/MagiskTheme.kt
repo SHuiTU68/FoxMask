@@ -1,7 +1,11 @@
 package com.topjohnwu.magisk.ui
 
+import android.net.Uri
 import android.os.Build
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -9,22 +13,33 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.materialkolor.dynamicColorScheme
 import com.topjohnwu.magisk.core.Config
+import com.topjohnwu.magisk.ui.component.AppBackground
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object ThemeState {
     var colorMode by mutableIntStateOf(Config.colorMode)
     var floatingNav by mutableStateOf(Config.floatingNav)
     var floatingNavGlass by mutableStateOf(Config.floatingNavGlass)
     var keyColor by mutableIntStateOf(Config.keyColor)
+    /** 用户选择的应用内背景图 Uri 字符串；空串 = 无背景。变更后主题会重新解码。 */
+    var appBackgroundUri by mutableStateOf(Config.appBackgroundUri)
 }
 
 /// 通过 CompositionLocal 向下层组件暴露悬浮底栏开关，
@@ -40,6 +55,9 @@ val LocalFloatingNavGlass = staticCompositionLocalOf { false }
 
 /// 是否使用 Magisk 原始 md2 主题样式（已弃用，保留兼容旧引用，恒为 false）。
 val LocalMd2Style = staticCompositionLocalOf { false }
+
+/// 当前应用内背景图（用户从相册选的图）。null = 无背景，用主题色。
+val LocalAppBackground = staticCompositionLocalOf<ImageBitmap?> { null }
 
 /// Magisk 原始 md2 主题的视觉常量（已弃用，保留兼容旧引用）。
 object MagiskMd2 {
@@ -96,14 +114,44 @@ fun MagiskTheme(
         else -> lightColorScheme()
     }
 
+    // 应用内背景图：从 Config 持久化的 Uri 解码。
+    // 解码在 IO 线程，uri 为空时不加载（bg=null，回退主题色背景）。
+    val bgUriStr = ThemeState.appBackgroundUri
+    var bgBitmap by remember(bgUriStr) { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(bgUriStr) {
+        if (bgUriStr.isNotBlank()) {
+            val appContext = context.applicationContext
+            bgBitmap = withContext(Dispatchers.IO) {
+                runCatching { Uri.parse(bgUriStr) }
+                    .getOrNull()
+                    ?.let { AppBackground.decode(appContext, it) }
+            }
+        } else {
+            bgBitmap = null
+        }
+    }
+
     CompositionLocalProvider(
         LocalFloatingNav provides useFloatingNav,
         LocalFloatingNavGlass provides useFloatingNavGlass,
         LocalMd2Style provides false,
+        LocalAppBackground provides bgBitmap,
     ) {
-        MaterialTheme(
-            colorScheme = colorScheme,
-            content = content
-        )
+        Box(modifier = Modifier.fillMaxSize()) {
+            // 背景图层：填满 + 裁剪，绘在内容之下
+            bgBitmap?.let { bmp ->
+                Image(
+                    bitmap = bmp,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.Center
+                )
+            }
+            MaterialTheme(
+                colorScheme = colorScheme,
+                content = content
+            )
+        }
     }
 }

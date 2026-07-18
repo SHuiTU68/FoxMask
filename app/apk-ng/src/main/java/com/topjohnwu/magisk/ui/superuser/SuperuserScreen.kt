@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.topjohnwu.magisk.ui.navigation.LocalNavigator
 import com.topjohnwu.magisk.ui.navigation.Route
+import com.topjohnwu.magisk.ui.LocalAppBackground
+import androidx.compose.ui.graphics.Color
 import com.topjohnwu.magisk.core.R as CoreR
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,6 +53,7 @@ fun SuperuserScreen(viewModel: SuperuserViewModel) {
     val navigator = LocalNavigator.current
 
     Scaffold(
+        containerColor = if (LocalAppBackground.current != null) Color.Transparent else MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(CoreR.string.superuser)) },

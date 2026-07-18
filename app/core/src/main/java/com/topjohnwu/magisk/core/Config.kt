@@ -46,6 +46,7 @@ object Config : PreferenceConfig, DBConfig {
         const val FLOATING_NAV_GLASS = "floating_nav_glass"
         const val PREDICTIVE_BACK = "predictive_back"
         const val KEY_COLOR = "key_color"
+        const val APP_BACKGROUND_URI = "app_background_uri"
         const val DOWNLOAD_DIR = "download_dir"
         const val SAFETY = "safety_notice"
         const val THEME_ORDINAL = "theme_ordinal"
@@ -121,6 +122,7 @@ object Config : PreferenceConfig, DBConfig {
     var floatingNavGlass by preference(Key.FLOATING_NAV_GLASS, false)
     var predictiveBack by preference(Key.PREDICTIVE_BACK, false)
     var keyColor by preference(Key.KEY_COLOR, 0)
+    var appBackgroundUri by preference(Key.APP_BACKGROUND_URI, "")
 
     private var checkUpdatePrefs by preference(Key.CHECK_UPDATES, true)
     private var localePrefs by preference(Key.LOCALE, "")
