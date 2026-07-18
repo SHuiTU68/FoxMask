@@ -177,6 +177,8 @@
     <string name="settings_sulist_summary">Only whitelisted apps get root; others are silently denied and su is hidden from PATH</string>
     <string name="settings_mount_modules_title">Module Mount</string>
     <string name="settings_mount_modules_summary">Mount module file overlays (supports priority-based ordering via module.prop)</string>
+    <string name="home_mount_modules">Module Mount</string>
+    <string name="home_sulist">SuList Mode</string>
     <string name="settings_denylist_title">Enforce DenyList</string>
     <string name="settings_denylist_summary">Processes on the denylist will have all FoxMask modifications reverted</string>
     <string name="settings_denylist_config_title">Configure DenyList</string>

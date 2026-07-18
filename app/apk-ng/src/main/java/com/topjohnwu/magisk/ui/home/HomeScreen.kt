@@ -633,40 +633,58 @@ private fun StatusCard() {
         StatusInfo(
             label = stringResource(CoreR.string.ramdisk),
             status = stringResource(if (Info.ramdisk) CoreR.string.yes else CoreR.string.no)
+        ),
+        StatusInfo(
+            label = stringResource(CoreR.string.home_mount_modules),
+            status = stringResource(if (Config.mountModules) CoreR.string.enabled else CoreR.string.disabled)
+        ),
+        StatusInfo(
+            label = stringResource(CoreR.string.home_sulist),
+            status = stringResource(if (Config.suList) CoreR.string.enabled else CoreR.string.disabled)
         )
     )
 
     Md2Card(
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            statuses.forEachIndexed { index, info ->
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = info.label,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = info.status,
-                        style = MaterialTheme.typography.bodyMedium
+        Column(modifier = Modifier.fillMaxWidth()) {
+            statuses.chunked(2).forEachIndexed { rowIdx, row ->
+                if (rowIdx > 0) {
+                    HorizontalDivider(
+                        thickness = 0.5.dp,
+                        modifier = Modifier.padding(horizontal = 12.dp)
                     )
                 }
-                if (index < statuses.lastIndex) {
-                    VerticalDivider(
-                        thickness = 0.5.dp,
-                        modifier = Modifier.padding(vertical = 12.dp)
-                    )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    row.forEachIndexed { index, info ->
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = info.label,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = info.status,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                        if (index < row.lastIndex) {
+                            VerticalDivider(
+                                thickness = 0.5.dp,
+                                modifier = Modifier.padding(vertical = 12.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
