@@ -307,12 +307,10 @@ fun Project.setupMainApk() {
     // 在 ZFile 关闭前用源文件覆写 libkptools.so 条目，保证最终 APK 中的字节与
     // 源文件完全一致。stub/test 模块没有该条目，转换会自动跳过。
     //
-    // 注意：kptoolsSourceFile 在配置阶段就求值为 File，避免在 transformations
-    // 闭包内调用 RegularFileProperty.get() 时因 org.gradle.kotlin.dsl.get 导入
-    // 产生 ExtensionContainer.get 的歧义解析（CI 编译错误 Setup.kt:319）。
-    val kptoolsSourceFile = layout.projectDirectory
-        .file("src/main/jniLibs/arm64-v8a/libkptools.so")
-        .get().asFile
+    // 注意：用 Project.file() 直接拿 File，避免在 tasks.withType 闭包内调用
+    // Provider.get() 时因 org.gradle.kotlin.dsl.get 导入产生
+    // ExtensionContainer.get 的歧义解析（CI 编译错误 Setup.kt:315）。
+    val kptoolsSourceFile = file("src/main/jniLibs/arm64-v8a/libkptools.so")
     tasks.withType(TransformApkTask::class) {
         inputs.files(kptoolsSourceFile)
         transformations.add {
