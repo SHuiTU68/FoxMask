@@ -558,6 +558,7 @@ void HookContext::hook_zygote_jni() {
     res = vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6);
     if (res != JNI_OK || env == nullptr) {
         ZLOGW("JNIEnv not found\n");
+        return;
     }
 
     JNINativeMethod missing_method{};
