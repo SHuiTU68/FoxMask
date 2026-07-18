@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.fastRoundToInt
 import androidx.compose.ui.util.lerp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
@@ -254,18 +255,36 @@ fun FloatingBottomBar(
             onDragStarted = {},
             onDragStopped = { committed ->
                 val targetIndex = targetValue.fastRoundToInt().fastCoerceIn(0, tabsCount - 1)
-                if (committed && targetIndex != currentIndex) {
-                    // 真实释放且目标改变：提交到目标 tab 并通知宿主翻页
-                    currentIndex = targetIndex
-                    animateToValue(targetIndex.toFloat())
-                    // 这是 onSelected 唯一应触发的路径
-                    currentOnSelected(targetIndex)
-                } else {
-                    // 手势被取消（如 HorizontalPager 抢走手势并消费了 drag），
-                    // 或目标未变：不通知宿主、不翻页，指示器回弹到当前页。
-                    // 否则会用拖动中间态的 targetValue 错误触发 animateScrollToPage，
-                    // 表现为滑到第 3 个时被拉回到第 2 个画面。
-                    animateToValue(currentIndex.toFloat())
+                when {
+                    committed && targetIndex != currentIndex -> {
+                        // 真实释放且目标改变：提交到目标 tab 并通知宿主翻页
+                        currentIndex = targetIndex
+                        animateToValue(targetIndex.toFloat())
+                        // 这是 onSelected 唯一应触发的路径
+                        currentOnSelected(targetIndex)
+                    }
+                    committed -> {
+                        // 真实释放但目标未变（拖动幅度不够）：回弹到当前页
+                        animateToValue(currentIndex.toFloat())
+                    }
+                    else -> {
+                        // committed=false：手势被 HorizontalPager 抢走（事件被消费）。
+                        // 不立即回弹——pager 会继续滚动并更新 currentPage，
+                        // 由 LaunchedEffect(selectedIndex) 同步 currentIndex 后
+                        // 再由 LaunchedEffect(dampedDragAnimation) 把指示器动画到新页。
+                        // 否则立即回弹到 currentIndex 会先于 pager 同步执行，
+                        // 表现为"滑到第 3 个时指示器先弹回第 2 个再跳到第 3 个"。
+                        //
+                        // 兜底：200ms 内 currentIndex 未变（pager 没滚动，例如已在边界），
+                        // 才回弹到当前页，避免指示器卡在拖动中间态。
+                        val stopIndex = currentIndex
+                        animationScope.launch {
+                            delay(200)
+                            if (currentIndex == stopIndex) {
+                                animateToValue(currentIndex.toFloat())
+                            }
+                        }
+                    }
                 }
                 animationScope.launch {
                     offsetAnimation.animateTo(0f, spring(1f, 300f, 0.5f))
