@@ -5,6 +5,9 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,8 +47,8 @@ import com.topjohnwu.magisk.core.isRunningAsStub
 import com.topjohnwu.magisk.core.utils.LocaleSetting
 import com.topjohnwu.magisk.core.utils.MediaStoreUtils
 import com.topjohnwu.magisk.ui.ThemeState
-import com.topjohnwu.magisk.ui.component.KitsuneWallpaper
 import com.topjohnwu.magisk.ui.component.SettingsArrow
+import com.topjohnwu.magisk.ui.component.WallpaperUtil
 import com.topjohnwu.magisk.ui.component.SettingsDropdown
 import com.topjohnwu.magisk.ui.component.SettingsSectionCard
 import com.topjohnwu.magisk.ui.component.SettingsSwitch
@@ -111,6 +114,25 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 private fun CustomizationSection(viewModel: SettingsViewModel) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    // 自定义壁纸：用系统 Photo Picker 选图（API 33+ 原生，低版本自动回退 ACTION_OPEN_DOCUMENT）
+    // 选中后渲染 centerCrop 并 setBitmap。整个解码+写入在 IO 线程。
+    val wallpaperPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val appContext = context.applicationContext
+        scope.launch {
+            val ok = withContext(Dispatchers.IO) {
+                WallpaperUtil.applyFromUri(appContext, uri)
+            }
+            val msg = if (ok)
+                appContext.getString(CoreR.string.custom_wallpaper_applied)
+            else
+                appContext.getString(CoreR.string.custom_wallpaper_failed)
+            Toast.makeText(appContext, msg, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     AdaptiveSmallTitle(text = stringResource(CoreR.string.settings_customization))
     SettingsSectionCard(modifier = Modifier.fillMaxWidth()) {
@@ -253,23 +275,14 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
             )
         }
 
-        // 设置 Kitsune 壁纸 — 把内置狐面壁纸应用到系统桌面。
-        // 渲染矢量图→bitmap→WallpaperManager.setBitmap，在 IO 线程执行。
+        // 自定义壁纸 — 调起系统 Photo Picker 让用户从相册选图设为桌面壁纸。
         SettingsArrow(
-            title = stringResource(CoreR.string.settings_kitsune_wallpaper_title),
-            summary = stringResource(CoreR.string.settings_kitsune_wallpaper_summary),
+            title = stringResource(CoreR.string.settings_custom_wallpaper_title),
+            summary = stringResource(CoreR.string.settings_custom_wallpaper_summary),
             onClick = {
-                val appContext = context.applicationContext
-                scope.launch {
-                    val ok = withContext(Dispatchers.IO) {
-                        KitsuneWallpaper.apply(appContext)
-                    }
-                    val msg = if (ok)
-                        appContext.getString(CoreR.string.kitsune_wallpaper_applied)
-                    else
-                        appContext.getString(CoreR.string.kitsune_wallpaper_failed)
-                    Toast.makeText(appContext, msg, Toast.LENGTH_SHORT).show()
-                }
+                wallpaperPicker.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                )
             }
         )
     }

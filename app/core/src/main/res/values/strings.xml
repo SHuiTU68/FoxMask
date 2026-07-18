@@ -245,10 +245,10 @@
     <string name="settings_floating_nav_glass_summary">Apply liquid glass (refraction + dispersion + blur) to the floating bottom bar. Requires Android 13+ for full effect</string>
     <string name="settings_predictive_back_title">Predictive back gesture</string>
     <string name="settings_predictive_back_summary">Enable predictive back gesture support (Android 14+). Default off</string>
-    <string name="settings_kitsune_wallpaper_title">Apply Kitsune wallpaper</string>
-    <string name="settings_kitsune_wallpaper_summary">Set the bundled Kitsune mask wallpaper as the home screen background</string>
-    <string name="kitsune_wallpaper_applied">Kitsune wallpaper applied</string>
-    <string name="kitsune_wallpaper_failed">Failed to apply wallpaper</string>
+    <string name="settings_custom_wallpaper_title">Set custom wallpaper</string>
+    <string name="settings_custom_wallpaper_summary">Pick an image from your gallery and set it as the home screen wallpaper</string>
+    <string name="custom_wallpaper_applied">Wallpaper applied</string>
+    <string name="custom_wallpaper_failed">Failed to apply wallpaper</string>
     <string name="color_mode_system">System</string>
     <string name="color_mode_light">Light</string>
     <string name="color_mode_dark">Dark</string>
