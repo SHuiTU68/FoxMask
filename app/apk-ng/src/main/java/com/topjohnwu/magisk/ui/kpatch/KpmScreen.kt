@@ -100,11 +100,6 @@ fun KpmScreen(
 
     // 嵌入 KPM 两步：先选 boot，再选 KPM 模块（模块名由 kptools 自动读取）
     var embedBootUri by remember { mutableStateOf<android.net.Uri?>(null) }
-    val embedBootPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        embedBootUri = uri
-        embedKpmPicker.launch("*/*")
-    }
     val embedKpmPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         val bootUri = embedBootUri
         embedBootUri = null
@@ -116,6 +111,11 @@ fun KpmScreen(
                 viewModel.showSnackbar(context.getString(CoreR.string.failure))
             }
         }
+    }
+    val embedBootPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        embedBootUri = uri
+        embedKpmPicker.launch("*/*")
     }
 
     // 控制 KPM 参数对话框
