@@ -185,7 +185,7 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
         }
 
         // Floating bottom bar — 悬浮底栏开关（圆角胶囊形，悬浮于内容之上）。
-        // 移植自原 miuix 模式，现已在 Original 主题下直接可用。
+        // 移植自 KernelSU miuix 主题的 FloatingBottomBar，在 Original 主题下直接可用。
         var floatingNav by remember { mutableStateOf(Config.floatingNav) }
         SettingsSwitch(
             title = stringResource(CoreR.string.settings_floating_nav_title),
@@ -195,12 +195,15 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
                 floatingNav = it
                 Config.floatingNav = it
                 ThemeState.floatingNav = it
+                // 主题切换需要 recreate 让 backdrop 装配生效
+                context.findActivity()?.recreate()
             }
         )
 
-        // Liquid glass — 悬浮底栏液态玻璃效果开关（仅悬浮底栏开启时显示）。
-        // 开启后底栏背景变为透明 + Haze 模糊（Android 12+ 真模糊，低版本降级半透明）。
-        if (floatingNav) {
+        // Liquid glass — 悬浮底栏液态玻璃开关（仅悬浮底栏开启 且 API 33+ 显示）。
+        // 用 miuix-blur 的 Backdrop + AGSL RuntimeShader 实现真模糊 + 折射 + 色散。
+        // API 33+ (TIRAMISU) 是 RuntimeShader 的硬性下限，低于此版本开关不显示。
+        if (floatingNav && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             var floatingNavGlass by remember { mutableStateOf(Config.floatingNavGlass) }
             SettingsSwitch(
                 title = stringResource(CoreR.string.settings_floating_nav_glass_title),
@@ -210,6 +213,27 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
                     floatingNavGlass = it
                     Config.floatingNavGlass = it
                     ThemeState.floatingNavGlass = it
+                }
+            )
+        }
+
+        // Predictive back gesture — 预测性返回手势开关（仅 Android 14+ / API 34+ 显示）。
+        // 默认关闭。开启后系统返回手势会有动画预览（预测性返回）。
+        // 实现走反射调 ApplicationInfo.setEnableOnBackInvokedCallback(hidden API)，
+        // 用 HiddenApiBypass 解除限制。移植自 KernelSU。
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            var predictiveBack by remember { mutableStateOf(Config.predictiveBack) }
+            SettingsSwitch(
+                title = stringResource(CoreR.string.settings_predictive_back_title),
+                summary = stringResource(CoreR.string.settings_predictive_back_summary),
+                checked = predictiveBack,
+                onCheckedChange = {
+                    predictiveBack = it
+                    Config.predictiveBack = it
+                    // 立即应用 + recreate 让系统重新读取配置
+                    com.topjohnwu.magisk.core.App
+                        .setEnableOnBackInvokedCallback(context.applicationInfo, it)
+                    context.findActivity()?.recreate()
                 }
             )
         }

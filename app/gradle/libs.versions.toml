@@ -16,7 +16,8 @@ navigation3 = "1.1.0"
 navigationevent = "1.0.2"
 wire = "6.2.0"
 materialKolor = "4.1.1"
-haze = "1.7.2"
+miuix = "0.9.3"
+hiddenapibypass = "6.1"
 
 [libraries]
 bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version = "1.84" }
@@ -85,9 +86,14 @@ navigationevent-compose = { module = "androidx.navigationevent:navigationevent-c
 # MaterialKolor: 从种子色生成 Material3 ColorScheme（用于 Monet 自定义种子色模式）
 materialKolor = { module = "com.materialkolor:material-kolor", version.ref = "materialKolor" }
 
-# Haze: Compose 液态玻璃（玻璃拟态模糊）效果库，用于悬浮底栏玻璃质感
-haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
-haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
+# miuix-blur: 悬浮底栏液态玻璃核心库（Backdrop/drawBackdrop/lens 折射/AGSL RuntimeShader）。
+# 仅引入 blur 模块（不引入完整 miuix-ui），保留 Original 主题不变。
+# 移植自 KernelSU miuix 主题的 FloatingBottomBar + liquid glass。
+miuix-blur = { module = "top.yukonga.miuix.kmp:miuix-blur-android", version.ref = "miuix" }
+
+# HiddenApiBypass: 预测性返回手势开关需反射调用 ApplicationInfo.setEnableOnBackInvokedCallback
+# (hidden API, API 34+)，用此库解除 hidden API 访问限制。移植自 KernelSU。
+hiddenapibypass = { module = "org.lsposed.hiddenapibypass:hiddenapibypass", version.ref = "hiddenapibypass" }
 
 # For build-logic
 android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "android" }

@@ -54,9 +54,13 @@ dependencies {
     // MaterialKolor: 从种子色生成 Material3 ColorScheme（Monet 自定义种子色模式用）
     implementation(libs.materialKolor)
 
-    // Haze: 悬浮底栏液态玻璃效果（Android 12+ 真模糊，低版本自动降级半透明）
-    implementation(libs.haze)
-    implementation(libs.haze.materials)
+    // miuix-blur: 悬浮底栏液态玻璃核心库（移植自 KernelSU miuix 主题）。
+    // 仅 blur 模块，提供 Backdrop/drawBackdrop/lens 折射等 API。
+    // Android 12+ RenderEffect 真模糊，13+ RuntimeShader 折射/色散，低版本自动降级。
+    implementation(libs.miuix.blur)
+
+    // HiddenApiBypass: 预测性返回手势开关需反射调用 hidden API（移植自 KernelSU）
+    implementation(libs.hiddenapibypass)
 
     // Splash screen
     implementation(libs.core.splashscreen)

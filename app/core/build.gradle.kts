@@ -70,6 +70,11 @@ dependencies {
     implementation(libs.collection.ktx)
     implementation(libs.profileinstaller)
 
+    // HiddenApiBypass: 预测性返回手势开关需反射调用 ApplicationInfo.setEnableOnBackInvokedCallback
+    // (hidden API, API 34+)。在 core 模块加载，因为 App.onCreate 在这里执行。
+    // 移植自 KernelSU。
+    implementation(libs.hiddenapibypass)
+
     // We also implement all our tests in this module.
     // However, we don't want to bundle test dependencies.
     // That's why we make it compileOnly.

@@ -32,7 +32,10 @@ object ThemeState {
 val LocalFloatingNav = staticCompositionLocalOf { true }
 
 /// 悬浮底栏是否启用液态玻璃效果（玻璃拟态模糊背景）。
-/// 仅在 LocalFloatingNav=true 时有意义；Android 12+ 真模糊，低版本自动降级半透明。
+/// 仅在 LocalFloatingNav=true 时有意义；用 miuix-blur 的 Backdrop + AGSL RuntimeShader
+/// 实现真模糊 + 折射 + 色散。Android 12+ (API 31) 走 RenderEffect 模糊，
+/// Android 13+ (API 33) 走 RuntimeShader 折射/色散，低版本自动降级为实色背景。
+/// 移植自 KernelSU miuix 主题的 FloatingBottomBar。
 val LocalFloatingNavGlass = staticCompositionLocalOf { false }
 
 /// 是否使用 Magisk 原始 md2 主题样式（已弃用，保留兼容旧引用，恒为 false）。
@@ -56,9 +59,11 @@ object MagiskMd2 {
 /// - keyColor != 0（自定义种子色）: 用 Material Kolor 从种子色生成整套 Material3 ColorScheme，
 ///   全 API Level 可用。移植自原 miuix 模式的「Key color」特性。
 ///
-/// 悬浮底栏: 由 ThemeState.floatingNav 控制（默认开启，移植自原 miuix 模式）。
-///   true = 圆角胶囊形悬浮底栏（FloatingNavigationBar）；
+/// 悬浮底栏: 由 ThemeState.floatingNav 控制（默认开启，移植自 KernelSU miuix 主题）。
+///   true = 圆角胶囊形悬浮底栏（FloatingBottomBar，可选液态玻璃）；
 ///   false = 标准 Material3 NavigationBar（贴底无圆角）。
+/// 液态玻璃: 由 ThemeState.floatingNavGlass 控制（默认关闭）。
+///   仅在悬浮底栏开启时显示开关；用 miuix-blur 的 Backdrop + drawBackdrop + lens 实现。
 @Composable
 fun MagiskTheme(
     content: @Composable () -> Unit

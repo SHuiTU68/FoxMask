@@ -242,7 +242,9 @@
     <string name="settings_floating_nav_title">Floating bottom bar</string>
     <string name="settings_floating_nav_summary">Suspend the bottom navigation bar with rounded corners and margins</string>
     <string name="settings_floating_nav_glass_title">Liquid glass bottom bar</string>
-    <string name="settings_floating_nav_glass_summary">Apply frosted glass blur to the floating bottom bar (Android 12+ real blur, lower versions fall back to translucent)</string>
+    <string name="settings_floating_nav_glass_summary">Apply liquid glass (refraction + dispersion + blur) to the floating bottom bar. Requires Android 13+ for full effect</string>
+    <string name="settings_predictive_back_title">Predictive back gesture</string>
+    <string name="settings_predictive_back_summary">Enable predictive back gesture support (Android 14+). Default off</string>
     <string name="color_mode_system">System</string>
     <string name="color_mode_light">Light</string>
     <string name="color_mode_dark">Dark</string>

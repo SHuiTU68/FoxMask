@@ -1,17 +1,10 @@
 package com.topjohnwu.magisk.ui
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -35,13 +27,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.activity.compose.LocalActivity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -49,6 +38,8 @@ import com.topjohnwu.magisk.R
 import com.topjohnwu.magisk.arch.VMFactory
 import com.topjohnwu.magisk.core.Info
 import com.topjohnwu.magisk.core.model.module.LocalModule
+import com.topjohnwu.magisk.ui.component.FloatingBottomBar
+import com.topjohnwu.magisk.ui.component.FloatingBottomBarItem
 import com.topjohnwu.magisk.ui.home.HomeScreen
 import com.topjohnwu.magisk.ui.home.HomeViewModel
 import com.topjohnwu.magisk.ui.install.InstallViewModel
@@ -63,12 +54,9 @@ import com.topjohnwu.magisk.ui.settings.SettingsViewModel
 import com.topjohnwu.magisk.ui.superuser.SuperuserScreen
 import com.topjohnwu.magisk.ui.superuser.SuperuserViewModel
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import com.topjohnwu.magisk.core.R as CoreR
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
-import dev.chrisbanes.haze.rememberHazeState
 
 enum class Tab(val titleRes: Int, val iconRes: Int) {
     MODULES(CoreR.string.modules, R.drawable.ic_module),
@@ -95,18 +83,18 @@ fun MainScreen(initialTab: Int = Tab.HOME.ordinal) {
 
     val useFloatingNav = LocalFloatingNav.current
     val useFloatingNavGlass = LocalFloatingNavGlass.current
-    // 液态玻璃: 给根容器加 hazeSource 作为模糊源，悬浮底栏加 hazeEffect 作为玻璃节点。
-    // Android 12+ 走 RenderEffect 真模糊，低版本由 Haze 自动降级为半透明 tint。
-    val hazeState = rememberHazeState()
+    val scope = rememberCoroutineScope()
+    // 悬浮底栏 backdrop: 捕获 HorizontalPager 内容作为模糊/折射源。
+    // 无条件创建（rememberLayerBackdrop 是 @Composable，不能放在条件分支里），
+    // 仅在悬浮底栏开启时挂到 pager 上；液态玻璃关闭时 backdrop 不被使用，无开销。
+    val floatingBackdrop = rememberLayerBackdrop()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .let { if (useFloatingNav && useFloatingNavGlass) it.hazeSource(state = hazeState) else it }
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .let { if (useFloatingNav) it.layerBackdrop(floatingBackdrop) else it },
             beyondViewportPageCount = visibleTabs.size - 1,
             userScrollEnabled = true,
         ) { page ->
@@ -156,13 +144,43 @@ fun MainScreen(initialTab: Int = Tab.HOME.ordinal) {
         }
 
         if (useFloatingNav) {
-            FloatingNavigationBar(
-                pagerState = pagerState,
-                visibleTabs = visibleTabs,
-                useGlass = useFloatingNavGlass,
-                hazeState = hazeState,
-                modifier = Modifier.align(Alignment.BottomCenter)
-            )
+            // 悬浮底栏（移植自 KernelSU miuix 主题）：圆角胶囊形 + 可选液态玻璃。
+            // isBlurEnabled 控制是否启用 miuix-blur 的 Backdrop + AGSL lens 折射/色散。
+            FloatingBottomBar(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(
+                        bottom = 12.dp + WindowInsets.navigationBars
+                            .asPaddingValues().calculateBottomPadding(),
+                        start = 24.dp,
+                        end = 24.dp,
+                    ),
+                selectedIndex = { pagerState.currentPage },
+                onSelected = { index -> scope.launch { pagerState.animateScrollToPage(index) } },
+                backdrop = floatingBackdrop,
+                tabsCount = visibleTabs.size,
+                isBlurEnabled = useFloatingNavGlass,
+            ) {
+                visibleTabs.forEachIndexed { index, tab ->
+                    FloatingBottomBarItem(
+                        onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
+                        modifier = Modifier.defaultMinSize(minWidth = 76.dp)
+                    ) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(tab.iconRes),
+                            contentDescription = stringResource(tab.titleRes),
+                            modifier = Modifier.size(24.dp),
+                        )
+                        Spacer(Modifier.height(1.dp))
+                        Text(
+                            text = stringResource(tab.titleRes),
+                            fontSize = 11.sp,
+                            maxLines = 1,
+                            softWrap = false,
+                        )
+                    }
+                }
+            }
         } else {
             StandardNavigationBar(
                 pagerState = pagerState,
@@ -170,117 +188,6 @@ fun MainScreen(initialTab: Int = Tab.HOME.ordinal) {
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
         }
-    }
-}
-
-/// 悬浮底栏：圆角胶囊形（移植自原 miuix 模式，Original 主题下默认可用）。
-///
-/// 背景默认用 MaterialTheme.colorScheme.surfaceContainer；
-/// 开启 useGlass 时背景切到透明，转由 Haze 的 hazeEffect 提供液态玻璃质感
-/// （模糊背后内容 + tint + 微噪声），Android 12+ 真模糊，低版本降级半透明。
-@OptIn(ExperimentalHazeMaterialsApi::class)
-@Composable
-private fun FloatingNavigationBar(
-    pagerState: PagerState,
-    visibleTabs: List<Tab>,
-    modifier: Modifier = Modifier,
-    useGlass: Boolean = false,
-    hazeState: dev.chrisbanes.haze.HazeState? = null,
-) {
-    val scope = rememberCoroutineScope()
-    val shape = RoundedCornerShape(28.dp)
-    val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-
-    // 液态玻璃材质（@Composable，需要在函数体内求值后再传给 hazeEffect）。
-    // HazeMaterials.regular = 中等不透明度 tint + 24dp 模糊半径，适配大多数场景。
-    val glassStyle = if (useGlass && hazeState != null) {
-        HazeMaterials.regular(MaterialTheme.colorScheme.surface)
-    } else {
-        null
-    }
-
-    val baseModifier = modifier
-        .padding(bottom = navBarInset + 12.dp, start = 24.dp, end = 24.dp)
-        .shadow(elevation = 6.dp, shape = shape)
-        .clip(shape)
-
-    val styledModifier = if (useGlass && hazeState != null && glassStyle != null) {
-        // 液态玻璃: 透明背景 + Haze 模糊（HazeMaterials.regular 提供适中 tint/噪声）
-        baseModifier
-            .hazeEffect(state = hazeState, style = glassStyle)
-            .fillMaxWidth()
-            .height(64.dp)
-            .padding(horizontal = 4.dp)
-    } else {
-        // 普通悬浮: 实色背景
-        baseModifier
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .fillMaxWidth()
-            .height(64.dp)
-            .padding(horizontal = 4.dp)
-    }
-
-    Row(
-        modifier = styledModifier,
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        visibleTabs.forEachIndexed { index, tab ->
-            FloatingNavItem(
-                icon = ImageVector.vectorResource(tab.iconRes),
-                label = stringResource(tab.titleRes),
-                selected = pagerState.currentPage == index,
-                enabled = true,
-                onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-@Composable
-private fun FloatingNavItem(
-    icon: ImageVector,
-    label: String,
-    selected: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val contentColor by animateColorAsState(
-        targetValue = when {
-            !enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-            selected -> MaterialTheme.colorScheme.primary
-            else -> MaterialTheme.colorScheme.onSurfaceVariant
-        },
-        animationSpec = tween(200),
-        label = "navItemColor"
-    )
-
-    Column(
-        modifier = modifier
-            .clickable(
-                enabled = enabled,
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() },
-                role = Role.Tab,
-                onClick = onClick,
-            ),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            modifier = Modifier.size(24.dp),
-            tint = contentColor,
-        )
-        Spacer(Modifier.height(2.dp))
-        Text(
-            text = label,
-            fontSize = 11.sp,
-            color = contentColor,
-        )
     }
 }
 

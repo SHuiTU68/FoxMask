@@ -44,6 +44,7 @@ object Config : PreferenceConfig, DBConfig {
         const val COLOR_MODE = "color_mode"
         const val FLOATING_NAV = "floating_nav"
         const val FLOATING_NAV_GLASS = "floating_nav_glass"
+        const val PREDICTIVE_BACK = "predictive_back"
         const val KEY_COLOR = "key_color"
         const val DOWNLOAD_DIR = "download_dir"
         const val SAFETY = "safety_notice"
@@ -118,6 +119,7 @@ object Config : PreferenceConfig, DBConfig {
     var colorMode by preference(Key.COLOR_MODE, 0)
     var floatingNav by preference(Key.FLOATING_NAV, true)
     var floatingNavGlass by preference(Key.FLOATING_NAV_GLASS, false)
+    var predictiveBack by preference(Key.PREDICTIVE_BACK, false)
     var keyColor by preference(Key.KEY_COLOR, 0)
 
     private var checkUpdatePrefs by preference(Key.CHECK_UPDATES, true)
