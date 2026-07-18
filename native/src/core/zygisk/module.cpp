@@ -360,8 +360,16 @@ void ZygiskContext::run_modules_pre(rust::Vec<int> &fds) {
         if (void *h = android_dlopen_ext("/jit-cache", RTLD_LAZY, &info)) {
             if (void *e = dlsym(h, "zygisk_module_entry")) {
                 modules.emplace_back(i, h, e);
+            } else {
+                // dlsym 失败：找不到入口符号，关闭 handle 避免泄漏，
+                // 同时标记 fds[i] = -1 让上层（system_server）能正确上报失败模块。
+                ZLOGW("Failed to find zygisk_module_entry: %s\n", dlerror());
+                dlclose(h);
+                fds[i] = -1;
             }
-        } else if (flags & SERVER_FORK_AND_SPECIALIZE) {
+        } else {
+            // dlopen 失败：app 和 server 路径都需要记录并标记失败，
+            // 否则 app 路径静默吞错会导致模块加载异常无法排查。
             ZLOGW("Failed to dlopen zygisk module: %s\n", dlerror());
             fds[i] = -1;
         }
@@ -416,7 +424,11 @@ void ZygiskContext::app_specialize_pre() {
 
 void ZygiskContext::app_specialize_post() {
     run_modules_post();
-    if (info_flags & +ZygiskStateFlags::ProcessIsMagiskApp) {
+    // 仅在 Magisk app 未被 unmount 时设置环境变量。
+    // SuList 未命中时 ProcessIsMagiskApp 仍会被设置，但 mounts 已被 revert_unmount，
+    // 此时若再设置 ZYGISK_ENABLED=1 会导致 app 误判 zygisk 仍生效（与实际 unmount 状态矛盾）。
+    if ((info_flags & +ZygiskStateFlags::ProcessIsMagiskApp) &&
+        !(flags & DO_REVERT_UNMOUNT)) {
         setenv("ZYGISK_ENABLED", "1", 1);
         // 让 Magisk app 能检测到 SuList 实际是否处于 enforced 状态，
         // 用于设置页"重启生效"提示的精确判断（Config.suList vs Info.isSuListEnabled）。
@@ -431,21 +443,34 @@ void ZygiskContext::app_specialize_post() {
 
 void ZygiskContext::server_specialize_pre() {
     rust::Vec<int> module_fds;
-    if (owned_fd fd = get_module_info(1000, module_fds); fd >= 0) {
-        if (module_fds.empty()) {
-            write_int(fd, 0);
-        } else {
-            run_modules_pre(module_fds);
+    owned_fd fd = get_module_info(1000, module_fds);
+    if (fd < 0) return;
 
-            // Find all failed module ids and send it back to magiskd
-            vector<int> failed_ids;
-            for (int i = 0; i < module_fds.size(); ++i) {
-                if (module_fds[i] < 0) {
-                    failed_ids.push_back(i);
-                }
+    // SuList 反转：system_server 不在白名单时同样需要 revert_unmount，
+    // 否则 Magisk 挂载会泄漏到 system_server 及其 fork 出的所有系统服务。
+    // denylist 命中同理（虽然 system_server 通常不在 denylist 上）。
+    bool deny_unmount = (info_flags & UNMOUNT_MASK) == UNMOUNT_MASK;
+    if (deny_unmount) {
+        ZLOGI("[%s] is on the denylist / not on the sulist\n", process);
+        flags |= DO_REVERT_UNMOUNT;
+        // 仍需回写 0 给 daemon 完成 system_server 的协议握手
+        write_int(fd, 0);
+        return;
+    }
+
+    if (module_fds.empty()) {
+        write_int(fd, 0);
+    } else {
+        run_modules_pre(module_fds);
+
+        // Find all failed module ids and send it back to magiskd
+        vector<int> failed_ids;
+        for (int i = 0; i < module_fds.size(); ++i) {
+            if (module_fds[i] < 0) {
+                failed_ids.push_back(i);
             }
-            write_vector(fd, failed_ids);
         }
+        write_vector(fd, failed_ids);
     }
 }
 
