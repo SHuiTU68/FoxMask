@@ -510,19 +510,21 @@ fn inject_magisk_bins(system: &mut FsNode, is_emulator: bool, skip_su: bool) {
     // system tree 里的 product 子树提取为独立 /product 挂载点，所以这里创建的
     // product/bin/su 节点会出现在 /product/bin/su。
     fn inject_su_to_product(system: &mut FsNode) {
-        let product = system
-            .children()
-            .map(|c| c.entry("product".to_string()).or_insert_with(FsNode::new_dir));
-        let Some(FsNode::Directory { children }) = product else {
+        let Some(children) = system.children() else {
+            return;
+        };
+        let product = children
+            .entry("product".to_string())
+            .or_insert_with(FsNode::new_dir);
+        let FsNode::Directory { children } = product else {
             return;
         };
         let bin = children
             .entry("bin".to_string())
             .or_insert_with(FsNode::new_dir);
-        let Some(FsNode::Directory { children }) = bin else {
-            return;
-        };
-        children.insert("su".to_string(), FsNode::MagiskLink);
+        if let FsNode::Directory { children } = bin {
+            children.insert("su".to_string(), FsNode::MagiskLink);
+        }
     }
 
     // Strip /system prefix to insert correct node
