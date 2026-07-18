@@ -900,6 +900,12 @@ impl MagiskD {
 
         let mut paths = ModulePaths::new(&mut buf1, &mut buf2, &mut buf3);
 
+        // 可选模块挂载：关闭时跳过模块文件系统挂载（Step 1），但保留 Magisk 自身的
+        // su/magisk/magiskpolicy/resetprop 注入（Step 2 的 inject_magisk_bins）和
+        // zygisk 注入。否则关闭开关会导致 su 丢失、root 权限不完整、Magisk app
+        // 显示未安装。
+        let mount_modules = self.mount_modules_enabled.load(Ordering::Acquire);
+
         // Step 1: Create virtual filesystem tree
         //
         // In this step, there is zero logic applied during tree construction; we simply collect and
@@ -914,6 +920,10 @@ impl MagiskD {
         sorted.sort_by(|a, b| a.1.cmp(&b.1).then_with(|| a.0.name.cmp(&b.0.name)));
 
         for (info, priority) in sorted {
+            if !mount_modules {
+                // 模块挂载被关闭：跳过所有模块的文件系统收集和 props 加载
+                continue;
+            }
             if priority != 0 {
                 info!("{}: mounting with priority {}", &info.name, priority);
             }
