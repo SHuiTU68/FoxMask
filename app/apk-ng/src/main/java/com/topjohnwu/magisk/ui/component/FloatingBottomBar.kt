@@ -35,6 +35,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -198,6 +199,11 @@ fun FloatingBottomBar(
     val density = LocalDensity.current
     val isLtr = LocalLayoutDirection.current == LayoutDirection.Ltr
     val animationScope = rememberCoroutineScope()
+    // onSelected 仅应在用户拖动指示器时回调通知宿主；
+    // 由 pager 滚动引发的 currentIndex 同步不应再回调 onSelected，
+    // 否则会形成 "pager→currentIndex→onSelected→pager" 反馈环，
+    // 表现为点击第 3 个 tab 时先弹到第 2 个再跳到第 3 个。
+    val currentOnSelected by rememberUpdatedState(onSelected)
 
     var tabWidthPx by remember { mutableFloatStateOf(0f) }
     var totalWidthPx by remember { mutableFloatStateOf(0f) }
@@ -250,6 +256,8 @@ fun FloatingBottomBar(
                 val targetIndex = targetValue.fastRoundToInt().fastCoerceIn(0, tabsCount - 1)
                 currentIndex = targetIndex
                 animateToValue(targetIndex.toFloat())
+                // 拖动结束才通知宿主翻页（这是 onSelected 唯一应触发的路径）
+                currentOnSelected(targetIndex)
                 animationScope.launch {
                     offsetAnimation.animateTo(0f, spring(1f, 300f, 0.5f))
                 }
@@ -272,9 +280,10 @@ fun FloatingBottomBar(
         snapshotFlow { selectedIndex() }.collectLatest { currentIndex = it }
     }
     LaunchedEffect(dampedDragAnimation) {
+        // 仅同步指示器位置（跟随 pager 翻页 / 外部 selectedIndex 变化），
+        // 不回调 onSelected —— 否则会与 pager 形成反馈环。
         snapshotFlow { currentIndex }.drop(1).collectLatest { index ->
             dampedDragAnimation.animateToValue(index.toFloat())
-            onSelected(index)
         }
     }
 
