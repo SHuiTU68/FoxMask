@@ -27,7 +27,7 @@ class DampedDragAnimation(
     val pressedScale: Float,
     val canDrag: (Offset) -> Boolean = { true },
     val onDragStarted: DampedDragAnimation.(position: Offset) -> Unit,
-    val onDragStopped: DampedDragAnimation.() -> Unit,
+    val onDragStopped: DampedDragAnimation.(committed: Boolean) -> Unit,
     val onDrag: DampedDragAnimation.(size: IntSize, dragAmount: Offset) -> Unit,
 ) {
 
@@ -71,11 +71,11 @@ class DampedDragAnimation(
                 press()
             },
             onDragEnd = {
-                onDragStopped()
+                onDragStopped(true)
                 release()
             },
             onDragCancel = {
-                onDragStopped()
+                onDragStopped(false)
                 release()
             }
         ) { change, dragAmount ->

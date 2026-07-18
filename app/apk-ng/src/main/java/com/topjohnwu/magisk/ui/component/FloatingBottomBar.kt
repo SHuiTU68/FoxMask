@@ -252,12 +252,21 @@ fun FloatingBottomBar(
                 globalTouchX in 0f..totalWidthPx
             },
             onDragStarted = {},
-            onDragStopped = {
+            onDragStopped = { committed ->
                 val targetIndex = targetValue.fastRoundToInt().fastCoerceIn(0, tabsCount - 1)
-                currentIndex = targetIndex
-                animateToValue(targetIndex.toFloat())
-                // 拖动结束才通知宿主翻页（这是 onSelected 唯一应触发的路径）
-                currentOnSelected(targetIndex)
+                if (committed && targetIndex != currentIndex) {
+                    // 真实释放且目标改变：提交到目标 tab 并通知宿主翻页
+                    currentIndex = targetIndex
+                    animateToValue(targetIndex.toFloat())
+                    // 这是 onSelected 唯一应触发的路径
+                    currentOnSelected(targetIndex)
+                } else {
+                    // 手势被取消（如 HorizontalPager 抢走手势并消费了 drag），
+                    // 或目标未变：不通知宿主、不翻页，指示器回弹到当前页。
+                    // 否则会用拖动中间态的 targetValue 错误触发 animateScrollToPage，
+                    // 表现为滑到第 3 个时被拉回到第 2 个画面。
+                    animateToValue(currentIndex.toFloat())
+                }
                 animationScope.launch {
                     offsetAnimation.animateTo(0f, spring(1f, 300f, 0.5f))
                 }
