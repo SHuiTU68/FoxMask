@@ -50,11 +50,14 @@ fn exec_zygiskd(is_64_bit: bool, remote: UnixStream) {
     let mut fd_str = cstr::buf::new::<16>();
     write!(fd_str, "{}", remote.as_raw_fd()).ok();
     unsafe {
+        // 反检测：argv 使用 "nb" + "init" 而非 "zygisk" + "companion"，
+        // 避免 zygiskd 子进程的 /proc/<pid>/cmdline 直接暴露 zygisk 字样。
+        // applets.cpp 的 private_applets 入口同步匹配 "nb"。
         libc::execl(
             exe.as_ptr(),
             raw_cstr!(""),
-            raw_cstr!("zygisk"),
-            raw_cstr!("companion"),
+            raw_cstr!("nb"),
+            raw_cstr!("init"),
             fd_str.as_ptr(),
             ptr::null() as *const libc::c_char,
         );

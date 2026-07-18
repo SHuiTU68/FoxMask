@@ -17,7 +17,9 @@ constexpr Applet applets[] = {
 };
 
 constexpr Applet private_applets[] = {
-    { "zygisk", zygisk_main },
+    // 反检测：applet 名从 "zygisk" 改为 "nb"（native bridge 缩写），
+    // 避免 /proc/<pid>/cmdline 直接暴露 zygisk 关键字。
+    { "nb", zygisk_main },
 };
 
 int main(int argc, char *argv[]) {
