@@ -106,7 +106,7 @@ fun MagiskTheme(
     val keyColorInt = ThemeState.keyColor
     val seedColor = if (keyColorInt == 0) null else Color(keyColorInt)
 
-    val colorScheme = when {
+    val baseColorScheme = when {
         // Monet + 自定义种子色: 用 Material Kolor 从种子色生成 ColorScheme（全 API 通用）
         isMonet && seedColor != null -> dynamicColorScheme(
             seedColor = seedColor,
@@ -118,6 +118,24 @@ fun MagiskTheme(
         isDarkTheme -> darkColorScheme()
         else -> lightColorScheme()
     }
+
+    // 透明背景开关：开启时把 surface 系列颜色统一覆盖为透明/半透明，
+    // 让 TopAppBar、Card、Scaffold 等所有读 ColorScheme 的组件都透出底层壁纸。
+    // - background/surface/surfaceContainerLow(Lowest) → 完全透明
+    // - surfaceVariant/surfaceContainer(High/Highest) → 0.6 alpha 半透明（保留 Card 分层可读性）
+    val colorScheme = if (ThemeState.transparentBackground) {
+        baseColorScheme.copy(
+            background = Color.Transparent,
+            surface = Color.Transparent,
+            surfaceVariant = baseColorScheme.surfaceVariant.copy(alpha = 0.6f),
+            surfaceTint = baseColorScheme.surfaceTint.copy(alpha = 0.6f),
+            surfaceContainerLowest = Color.Transparent,
+            surfaceContainerLow = Color.Transparent,
+            surfaceContainer = baseColorScheme.surfaceContainer.copy(alpha = 0.6f),
+            surfaceContainerHigh = baseColorScheme.surfaceContainerHigh.copy(alpha = 0.6f),
+            surfaceContainerHighest = baseColorScheme.surfaceContainerHighest.copy(alpha = 0.6f),
+        )
+    } else baseColorScheme
 
     // 应用内背景图：从 Config 持久化的 Uri 解码。
     // 解码在 IO 线程，uri 为空时不加载（bg=null，回退主题色背景）。
