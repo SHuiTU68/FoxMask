@@ -47,7 +47,6 @@ import com.topjohnwu.magisk.ui.component.SettingsDropdown
 import com.topjohnwu.magisk.ui.component.SettingsSectionCard
 import com.topjohnwu.magisk.ui.component.SettingsSwitch
 import com.topjohnwu.magisk.ui.component.AdaptiveSmallTitle
-import com.topjohnwu.magisk.ui.component.SmallTitle
 import com.topjohnwu.magisk.ui.theme.MonetPresetPalette
 import com.topjohnwu.magisk.core.R as CoreR
 
@@ -148,13 +147,13 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
                 colorMode = index
                 Config.colorMode = index
                 ThemeState.colorMode = index
-                // 主题切换改变整个 MiuixTheme/ThemeController，recreate 确保彻底生效
+                // 主题切换改变整个 ColorScheme，recreate 确保彻底生效
                 context.findActivity()?.recreate()
             }
         )
 
         // Key Color — Monet 种子色（仅 Monet 模式显示）
-        // colorMode 3/4/5 为 Monet 模式，可选择预设种子色生成整套配色。
+        // colorMode 3/4/5 为 Monet 模式，可选择预设种子色作为色调来源。
         // keyColor=0 表示使用系统壁纸动态色。
         if (colorMode in 3..5) {
             val keyColorDefault = stringResource(CoreR.string.settings_key_color_default)
@@ -183,44 +182,18 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
             )
         }
 
-        // UI Style
-        val uiStyleOriginal = stringResource(CoreR.string.settings_ui_style_original)
-        val uiStyleMiuix = stringResource(CoreR.string.settings_ui_style_miuix)
-        val uiStyleEntries = remember {
-            listOf(uiStyleOriginal, uiStyleMiuix)
-        }
-        var uiStyle by remember { mutableIntStateOf(Config.uiStyle) }
-        SettingsDropdown(
-            title = stringResource(CoreR.string.settings_ui_style_title),
-            items = uiStyleEntries,
-            selectedIndex = uiStyle,
-            onSelectedIndexChange = { index ->
-                uiStyle = index
-                Config.uiStyle = index
-                ThemeState.uiStyle = index
-                // UI Style 切换会改变 Compose 树结构（添加/移除 MiuixTheme 包裹），
-                // 单纯的 recompose 可能导致内部子树被复用而无法完全切换。
-                // recreate Activity 确保整个 Compose 树从零重建，主题彻底生效。
-                context.findActivity()?.recreate()
+        // Floating bottom bar — 悬浮底栏开关（圆角胶囊形，悬浮于内容之上）
+        var floatingNav by remember { mutableStateOf(Config.floatingNav) }
+        SettingsSwitch(
+            title = stringResource(CoreR.string.settings_floating_nav_title),
+            summary = stringResource(CoreR.string.settings_floating_nav_summary),
+            checked = floatingNav,
+            onCheckedChange = {
+                floatingNav = it
+                Config.floatingNav = it
+                ThemeState.floatingNav = it
             }
         )
-
-        // 悬浮底栏是 MIUI 模式专属特性，Original 模式不显示此开关。
-        // Original 模式始终用标准 M3 底栏，保持 Magisk 原始观感。
-        if (ThemeState.uiStyle == 1) {
-            // Floating bottom bar — 悬浮底栏开关（圆角胶囊形，悬浮于内容之上）
-            var floatingNav by remember { mutableStateOf(Config.floatingNav) }
-            SettingsSwitch(
-                title = stringResource(CoreR.string.settings_floating_nav_title),
-                summary = stringResource(CoreR.string.settings_floating_nav_summary),
-                checked = floatingNav,
-                onCheckedChange = {
-                    floatingNav = it
-                    Config.floatingNav = it
-                    ThemeState.floatingNav = it
-                }
-            )
-        }
 
         if (isRunningAsStub && ShortcutManagerCompat.isRequestPinShortcutSupported(context)) {
             SettingsArrow(

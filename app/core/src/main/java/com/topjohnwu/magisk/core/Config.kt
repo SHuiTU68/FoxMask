@@ -42,7 +42,6 @@ object Config : PreferenceConfig, DBConfig {
         const val LOCALE = "locale"
         const val DARK_THEME = "dark_theme_extended"
         const val COLOR_MODE = "color_mode"
-        const val UI_STYLE = "ui_style"
         const val FLOATING_NAV = "floating_nav"
         const val COLOR_THEME = "color_theme"
         const val KEY_COLOR = "key_color"
@@ -117,7 +116,6 @@ object Config : PreferenceConfig, DBConfig {
     var darkTheme by preference(Key.DARK_THEME, -1)
     var themeOrdinal by preference(Key.THEME_ORDINAL, 0)
     var colorMode by preference(Key.COLOR_MODE, 0)
-    var uiStyle by preference(Key.UI_STYLE, 0)
     var floatingNav by preference(Key.FLOATING_NAV, true)
     var colorTheme by preference(Key.COLOR_THEME, 0)
     var keyColor by preference(Key.KEY_COLOR, 0)

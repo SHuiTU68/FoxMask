@@ -238,9 +238,6 @@
     <string name="settings_su_restrict_title">Restrict root capabilities</string>
     <string name="settings_su_restrict_summary">Will restrict new Superuser apps by default. Warning: this will break most apps. Don\'t enable it unless you know what you\'re doing.</string>
     <string name="settings_customization">Customization</string>
-    <string name="settings_ui_style_title">UI Style</string>
-    <string name="settings_ui_style_original">Original</string>
-    <string name="settings_ui_style_miuix">MIUI</string>
     <string name="settings_color_mode">Color mode</string>
     <string name="settings_floating_nav_title">Floating bottom bar</string>
     <string name="settings_floating_nav_summary">Suspend the bottom navigation bar with rounded corners and margins</string>

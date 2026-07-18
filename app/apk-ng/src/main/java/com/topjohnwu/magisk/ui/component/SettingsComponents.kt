@@ -114,11 +114,7 @@ fun SmallTitle(text: String) {
 
 @Composable
 fun AdaptiveSmallTitle(text: String) {
-    if (com.topjohnwu.magisk.ui.ThemeState.uiStyle == 1) {
-        top.yukonga.miuix.kmp.basic.SmallTitle(text = text)
-    } else {
-        SmallTitle(text = text)
-    }
+    SmallTitle(text = text)
 }
 
 /// 设置项中的滑块组件（用于调节毛玻璃模糊度等数值参数）
