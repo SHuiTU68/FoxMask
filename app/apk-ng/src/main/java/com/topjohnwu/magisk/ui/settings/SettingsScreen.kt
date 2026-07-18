@@ -198,6 +198,22 @@ private fun CustomizationSection(viewModel: SettingsViewModel) {
             }
         )
 
+        // Liquid glass — 悬浮底栏液态玻璃效果开关（仅悬浮底栏开启时显示）。
+        // 开启后底栏背景变为透明 + Haze 模糊（Android 12+ 真模糊，低版本降级半透明）。
+        if (floatingNav) {
+            var floatingNavGlass by remember { mutableStateOf(Config.floatingNavGlass) }
+            SettingsSwitch(
+                title = stringResource(CoreR.string.settings_floating_nav_glass_title),
+                summary = stringResource(CoreR.string.settings_floating_nav_glass_summary),
+                checked = floatingNavGlass,
+                onCheckedChange = {
+                    floatingNavGlass = it
+                    Config.floatingNavGlass = it
+                    ThemeState.floatingNavGlass = it
+                }
+            )
+        }
+
         if (isRunningAsStub && ShortcutManagerCompat.isRequestPinShortcutSupported(context)) {
             SettingsArrow(
                 title = stringResource(CoreR.string.add_shortcut_title),

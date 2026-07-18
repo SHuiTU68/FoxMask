@@ -241,6 +241,8 @@
     <string name="settings_color_mode">Color mode</string>
     <string name="settings_floating_nav_title">Floating bottom bar</string>
     <string name="settings_floating_nav_summary">Suspend the bottom navigation bar with rounded corners and margins</string>
+    <string name="settings_floating_nav_glass_title">Liquid glass bottom bar</string>
+    <string name="settings_floating_nav_glass_summary">Apply frosted glass blur to the floating bottom bar (Android 12+ real blur, lower versions fall back to translucent)</string>
     <string name="color_mode_system">System</string>
     <string name="color_mode_light">Light</string>
     <string name="color_mode_dark">Dark</string>

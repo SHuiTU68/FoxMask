@@ -23,12 +23,17 @@ import com.topjohnwu.magisk.core.Config
 object ThemeState {
     var colorMode by mutableIntStateOf(Config.colorMode)
     var floatingNav by mutableStateOf(Config.floatingNav)
+    var floatingNavGlass by mutableStateOf(Config.floatingNavGlass)
     var keyColor by mutableIntStateOf(Config.keyColor)
 }
 
 /// 通过 CompositionLocal 向下层组件暴露悬浮底栏开关，
 /// 避免到处直接读 ThemeState，也便于在 Preview 中覆盖。
 val LocalFloatingNav = staticCompositionLocalOf { true }
+
+/// 悬浮底栏是否启用液态玻璃效果（玻璃拟态模糊背景）。
+/// 仅在 LocalFloatingNav=true 时有意义；Android 12+ 真模糊，低版本自动降级半透明。
+val LocalFloatingNavGlass = staticCompositionLocalOf { false }
 
 /// 是否使用 Magisk 原始 md2 主题样式（已弃用，保留兼容旧引用，恒为 false）。
 val LocalMd2Style = staticCompositionLocalOf { false }
@@ -60,6 +65,7 @@ fun MagiskTheme(
 ) {
     val mode = ThemeState.colorMode
     val useFloatingNav = ThemeState.floatingNav
+    val useFloatingNavGlass = ThemeState.floatingNavGlass
 
     val isDark = isSystemInDarkTheme()
     val context = LocalContext.current
@@ -87,6 +93,7 @@ fun MagiskTheme(
 
     CompositionLocalProvider(
         LocalFloatingNav provides useFloatingNav,
+        LocalFloatingNavGlass provides useFloatingNavGlass,
         LocalMd2Style provides false,
     ) {
         MaterialTheme(

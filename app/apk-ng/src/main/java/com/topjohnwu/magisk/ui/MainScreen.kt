@@ -64,6 +64,11 @@ import com.topjohnwu.magisk.ui.superuser.SuperuserScreen
 import com.topjohnwu.magisk.ui.superuser.SuperuserViewModel
 import kotlinx.coroutines.launch
 import com.topjohnwu.magisk.core.R as CoreR
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.rememberHazeState
 
 enum class Tab(val titleRes: Int, val iconRes: Int) {
     MODULES(CoreR.string.modules, R.drawable.ic_module),
@@ -89,8 +94,16 @@ fun MainScreen(initialTab: Int = Tab.HOME.ordinal) {
     val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { visibleTabs.size })
 
     val useFloatingNav = LocalFloatingNav.current
+    val useFloatingNavGlass = LocalFloatingNavGlass.current
+    // 液态玻璃: 给根容器加 hazeSource 作为模糊源，悬浮底栏加 hazeEffect 作为玻璃节点。
+    // Android 12+ 走 RenderEffect 真模糊，低版本由 Haze 自动降级为半透明 tint。
+    val hazeState = rememberHazeState()
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .let { if (useFloatingNav && useFloatingNavGlass) it.hazeSource(state = hazeState) else it }
+    ) {
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize(),
@@ -146,6 +159,8 @@ fun MainScreen(initialTab: Int = Tab.HOME.ordinal) {
             FloatingNavigationBar(
                 pagerState = pagerState,
                 visibleTabs = visibleTabs,
+                useGlass = useFloatingNavGlass,
+                hazeState = hazeState,
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
         } else {
@@ -158,28 +173,55 @@ fun MainScreen(initialTab: Int = Tab.HOME.ordinal) {
     }
 }
 
-/// 悬浮底栏：圆角胶囊形（MIUI 风格，仅 MIUI 模式且 floatingNav=true 时使用）。
+/// 悬浮底栏：圆角胶囊形（移植自原 miuix 模式，Original 主题下默认可用）。
 ///
-/// 背景用 MaterialTheme.colorScheme.surfaceContainer，与主题一致。
+/// 背景默认用 MaterialTheme.colorScheme.surfaceContainer；
+/// 开启 useGlass 时背景切到透明，转由 Haze 的 hazeEffect 提供液态玻璃质感
+/// （模糊背后内容 + tint + 微噪声），Android 12+ 真模糊，低版本降级半透明。
+@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 private fun FloatingNavigationBar(
     pagerState: PagerState,
     visibleTabs: List<Tab>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    useGlass: Boolean = false,
+    hazeState: dev.chrisbanes.haze.HazeState? = null,
 ) {
     val scope = rememberCoroutineScope()
     val shape = RoundedCornerShape(28.dp)
     val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
-    Row(
-        modifier = modifier
-            .padding(bottom = navBarInset + 12.dp, start = 24.dp, end = 24.dp)
-            .shadow(elevation = 6.dp, shape = shape)
-            .clip(shape)
+    // 液态玻璃材质（@Composable，需要在函数体内求值后再传给 hazeEffect）。
+    // HazeMaterials.regular = 中等不透明度 tint + 24dp 模糊半径，适配大多数场景。
+    val glassStyle = if (useGlass && hazeState != null) {
+        HazeMaterials.regular(MaterialTheme.colorScheme.surface)
+    } else {
+        null
+    }
+
+    val baseModifier = modifier
+        .padding(bottom = navBarInset + 12.dp, start = 24.dp, end = 24.dp)
+        .shadow(elevation = 6.dp, shape = shape)
+        .clip(shape)
+
+    val styledModifier = if (useGlass && hazeState != null && glassStyle != null) {
+        // 液态玻璃: 透明背景 + Haze 模糊（HazeMaterials.regular 提供适中 tint/噪声）
+        baseModifier
+            .hazeEffect(state = hazeState, style = glassStyle)
+            .fillMaxWidth()
+            .height(64.dp)
+            .padding(horizontal = 4.dp)
+    } else {
+        // 普通悬浮: 实色背景
+        baseModifier
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .fillMaxWidth()
             .height(64.dp)
-            .padding(horizontal = 4.dp),
+            .padding(horizontal = 4.dp)
+    }
+
+    Row(
+        modifier = styledModifier,
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {

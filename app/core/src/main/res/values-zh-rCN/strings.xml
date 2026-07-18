@@ -204,6 +204,10 @@
     <string name="settings_su_restrict_title">限制超级用户权能</string>
     <string name="settings_su_restrict_summary">默认限制新的超级用户应用。警告，这会破坏大多数应用，不建议启用。</string>
     <string name="settings_customization">个性化</string>
+    <string name="settings_floating_nav_title">悬浮底栏</string>
+    <string name="settings_floating_nav_summary">将底部导航栏改为带圆角和边距的悬浮样式</string>
+    <string name="settings_floating_nav_glass_title">底栏液态玻璃</string>
+    <string name="settings_floating_nav_glass_summary">为悬浮底栏启用毛玻璃模糊背景（Android 12+ 真模糊，低版本降级为半透明）</string>
     <string name="setting_add_shortcut_summary">在隐藏后难以识别名称和图标的情况下，添加快捷方式到桌面</string>
     <string name="settings_doh_title">安全 DNS（DoH）</string>
     <string name="settings_doh_description">解决某些地区的 DNS 污染问题</string>

@@ -54,6 +54,10 @@ dependencies {
     // MaterialKolor: 从种子色生成 Material3 ColorScheme（Monet 自定义种子色模式用）
     implementation(libs.materialKolor)
 
+    // Haze: 悬浮底栏液态玻璃效果（Android 12+ 真模糊，低版本自动降级半透明）
+    implementation(libs.haze)
+    implementation(libs.haze.materials)
+
     // Splash screen
     implementation(libs.core.splashscreen)
 
