@@ -21,15 +21,12 @@ from scripts.env import *
 support_abis = {
     "arm64-v8a": "aarch64-linux-android",
     "armeabi-v7a": "thumbv7neon-linux-androideabi",
-    "x86_64": "x86_64-linux-android",
-    "x86": "i686-linux-android",
     "riscv64": "riscv64-linux-android",
 }
 abi_alias = {
     "arm": "armeabi-v7a",
     "arm32": "armeabi-v7a",
     "arm64": "arm64-v8a",
-    "x64": "x86_64",
 }
 default_abis = support_abis.keys() - {"riscv64"}
 support_targets = {"magisk", "magiskinit", "magiskboot", "magiskpolicy", "resetprop"}
