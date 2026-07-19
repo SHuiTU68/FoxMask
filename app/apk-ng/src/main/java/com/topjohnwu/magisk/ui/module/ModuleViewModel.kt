@@ -1,6 +1,7 @@
 package com.topjohnwu.magisk.ui.module
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -9,6 +10,7 @@ import com.topjohnwu.magisk.arch.AsyncLoadViewModel
 import com.topjohnwu.magisk.core.Const
 import com.topjohnwu.magisk.core.Info
 import com.topjohnwu.magisk.core.R as CoreR
+import com.topjohnwu.magisk.core.di.ServiceLocator
 import com.topjohnwu.magisk.core.download.Subject
 import com.topjohnwu.magisk.core.model.module.LocalModule
 import com.topjohnwu.magisk.core.model.module.OnlineModule
@@ -17,6 +19,7 @@ import com.topjohnwu.magisk.core.utils.asText
 import com.topjohnwu.magisk.ui.flash.FlashUtils
 import com.topjohnwu.magisk.ui.navigation.Route
 import com.topjohnwu.magisk.view.Notifications
+import com.topjohnwu.magisk.webui.WebUIActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -120,7 +123,15 @@ class ModuleViewModel : AsyncLoadViewModel() {
     }
 
     fun runWebUI(id: String, name: String) {
-        navigateTo(Route.WebUI(id, name))
+        // 启动独立的 WebUIActivity（移植自 KsuWebUIStandalone），
+        // 不再走 Compose 导航，避免 WebView 在 Compose 导航栈中生命周期异常。
+        val ctx = ServiceLocator.deContext
+        ctx.startActivity(
+            Intent(ctx, WebUIActivity::class.java)
+                .putExtra("id", id)
+                .putExtra("name", name)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
     }
 
     fun toggleEnabled(item: ModuleItem) {

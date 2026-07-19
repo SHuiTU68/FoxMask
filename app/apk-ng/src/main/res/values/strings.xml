@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- WebUI（移植自 KsuWebUIStandalone） -->
+    <string name="please_grant_root">Please grant root</string>
+    <string name="start_downloading">Start downloading</string>
+    <string name="download_failed">Download failed: %s</string>
+</resources>

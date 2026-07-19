@@ -36,6 +36,21 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <!-- WebUIActivity 移植自 KsuWebUIStandalone：独立 Activity 承载 WebView，
+             不走 Compose 导航栈，避免 WebView 生命周期异常导致黑屏。
+             documentLaunchMode=intoExisting 让同一模块的 WebUI 复用同一任务。
+             autoRemoveFromRecents 让任务从最近任务列表中自动消失。
+             configChanges 列表防止旋转/字体变化等重建 WebView。
+             networkSecurityConfig 允许 mui.kernelsu.org 与 127.0.0.1/0.0.0.0/::1 cleartext。 -->
+        <activity
+            android:name=".webui.WebUIActivity"
+            android:autoRemoveFromRecents="true"
+            android:configChanges="density|orientation|screenSize|screenLayout|smallestScreenSize|uiMode|locale|layoutDirection|fontScale|keyboard|keyboardHidden"
+            android:documentLaunchMode="intoExisting"
+            android:exported="false"
+            android:networkSecurityConfig="@xml/webui_network_security_config"
+            android:theme="@style/Theme.FoxMask.WebUI" />
     </application>
 
 </manifest>

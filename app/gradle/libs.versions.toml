@@ -18,6 +18,8 @@ wire = "6.2.0"
 materialKolor = "4.1.1"
 miuix = "0.9.3"
 hiddenapibypass = "6.1"
+webkit = "1.15.0"
+parcelablelist = "2.0.1"
 
 [libraries]
 bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version = "1.84" }
@@ -94,6 +96,12 @@ miuix-blur = { module = "top.yukonga.miuix.kmp:miuix-blur-android", version.ref 
 # HiddenApiBypass: 预测性返回手势开关需反射调用 ApplicationInfo.setEnableOnBackInvokedCallback
 # (hidden API, API 34+)，用此库解除 hidden API 访问限制。移植自 KernelSU。
 hiddenapibypass = { module = "org.lsposed.hiddenapibypass:hiddenapibypass", version.ref = "hiddenapibypass" }
+
+# WebUI（移植自 KsuWebUIStandalone）依赖
+# androidx.webkit: 提供 WebViewAssetLoader，把 mui.kernelsu.org 域映射到 rootfs webroot
+androidx-webkit = { module = "androidx.webkit:webkit", version.ref = "webkit" }
+# rikka.parcelablelist: AIDL 跨用户传 PackageInfo 列表（getPackages）
+rikka-parcelablelist = { module = "dev.rikka.rikkax.parcelablelist:parcelablelist", version.ref = "parcelablelist" }
 
 # For build-logic
 android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "android" }

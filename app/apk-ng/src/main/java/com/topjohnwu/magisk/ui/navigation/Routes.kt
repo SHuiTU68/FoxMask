@@ -38,12 +38,5 @@ sealed interface Route : NavKey, Parcelable {
 
     @Parcelize
     @Serializable
-    data class WebUI(
-        val moduleId: String,
-        val moduleName: String,
-    ) : Route
-
-    @Parcelize
-    @Serializable
     data object KPModule : Route
 }

@@ -51,8 +51,6 @@ import com.topjohnwu.magisk.ui.kpatch.KpmScreen
 import com.topjohnwu.magisk.ui.kpatch.KpmViewModel
 import com.topjohnwu.magisk.ui.module.ActionScreen
 import com.topjohnwu.magisk.ui.module.ActionViewModel
-import com.topjohnwu.magisk.ui.webui.WebUIScreen
-import com.topjohnwu.magisk.ui.webui.WebUIViewModel
 import com.topjohnwu.magisk.ui.navigation.LocalNavigator
 import com.topjohnwu.magisk.ui.navigation.Navigator
 import com.topjohnwu.magisk.ui.navigation.Route
@@ -171,15 +169,6 @@ class MainActivity : ComponentActivity(), SplashScreenHost {
                                         }
                                     }
                                     ActionScreen(vm, actionName = key.name, onBack = { navigator.pop() })
-                                }
-                                entry<Route.WebUI> { key ->
-                                    val vm: WebUIViewModel = viewModel(factory = VMFactory)
-                                    WebUIScreen(
-                                        vm,
-                                        moduleId = key.moduleId,
-                                        moduleName = key.moduleName,
-                                        onBack = { navigator.pop() },
-                                    )
                                 }
                                 entry<Route.KPModule> {
                                     val vm: KpmViewModel = viewModel(factory = VMFactory)

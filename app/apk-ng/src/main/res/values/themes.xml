@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="Main">
         <item name="postSplashScreenTheme">@android:style/Theme.DeviceDefault.NoActionBar</item>
@@ -9,6 +9,14 @@
         <item name="android:windowIsFloating">true</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+    <!-- WebUI 主题（移植自 KsuWebUIStandalone）：必须继承 Theme.Material3 才能让
+         MonetColorsProvider 读取到 colorOnPrimary / colorPrimaryContainer 等 M3 属性，
+         并让 MaterialAlertDialogBuilder / CircularProgressIndicator 正常着色。
+         DayNight + DynamicColors 跟随系统深色与动态取色。 -->
+    <style name="Theme.FoxMask.WebUI" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">shortEdges</item>
     </style>
 
 </resources>

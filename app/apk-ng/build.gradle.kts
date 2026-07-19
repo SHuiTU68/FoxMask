@@ -9,6 +9,10 @@ setupMainApk()
 android {
     buildFeatures {
         compose = true
+        // WebUI 移植自 KsuWebUIStandalone：
+        // aidl 用于 IKsuWebuiStandaloneInterface（跨用户取已安装包列表）。
+        // BuildConfig.DEBUG 仍走 core 模块的 BuildConfig（与 apk-ng 既有用法一致）。
+        aidl = true
     }
 
     compileOptions {
@@ -70,4 +74,17 @@ dependencies {
     implementation(libs.navigationevent.compose)
     implementation(libs.lifecycle.viewmodel.navigation3)
     implementation(libs.navigation3.ui)
+
+    // WebUI（移植自 KsuWebUIStandalone）
+    implementation(libs.androidx.webkit)
+    implementation(libs.rikka.parcelablelist)
+    // Material Components (View 体系): WebUI 的 MaterialAlertDialogBuilder /
+    // CircularProgressIndicator 与 Theme.Material3 主题需要此库。
+    // FoxMask 主界面走 Compose Material3，不依赖此库；仅 WebUIActivity 需要。
+    implementation(libs.material)
+    // appcompat: WebViewHelper 用到 androidx.appcompat.R.dimen.abc_dialog_padding_material
+    //（material 库会传递依赖 appcompat，这里显式声明以保证编译期可见）。
+    implementation(libs.appcompat)
+    // core-ktx: ViewCompat / WindowInsetsCompat / PackageInfoCompat / toUri 等扩展。
+    implementation(libs.core.ktx)
 }

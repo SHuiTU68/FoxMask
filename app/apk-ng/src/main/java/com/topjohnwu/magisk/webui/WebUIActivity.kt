@@ -1,0 +1,182 @@
+package com.topjohnwu.magisk.webui
+
+import android.annotation.SuppressLint
+import android.app.ActivityManager
+import android.content.Intent
+import android.content.res.Configuration
+import android.net.Uri
+import android.os.Build
+import android.os.Bundle
+import android.view.Gravity
+import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.FrameLayout
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.ViewCompat
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.progressindicator.CircularProgressIndicator
+import com.topjohnwu.magisk.R
+import com.topjohnwu.magisk.core.utils.RootUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+@SuppressLint("SetJavaScriptEnabled")
+class WebUIActivity : ComponentActivity() {
+
+    private val webUIState = WebUIState()
+    internal lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
+    private lateinit var saveFileLauncher: ActivityResultLauncher<Intent>
+    private var pendingSaveData: ByteArray? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        MonetColorsProvider.updateCss(this)
+
+        val progressLayout = FrameLayout(this).apply {
+            addView(CircularProgressIndicator(this@WebUIActivity).apply {
+                layoutParams = FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    Gravity.CENTER
+                )
+            })
+        }
+        setContentView(progressLayout)
+
+        fileChooserLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            val uris: Array<Uri>? = when (result.resultCode) {
+                RESULT_OK -> result.data?.let { data ->
+                    when {
+                        data.clipData != null -> {
+                            Array(data.clipData!!.itemCount) { i ->
+                                data.clipData!!.getItemAt(i).uri // Multiple files
+                            }
+                        }
+                        data.data != null -> { arrayOf(data.data!!) } // Single file
+                        else -> null
+                    }
+                }
+                else -> null
+            }
+            webUIState.filePathCallback?.onReceiveValue(uris)
+            webUIState.filePathCallback = null
+        }
+
+        saveFileLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            val uri = if (result.resultCode == RESULT_OK) result.data?.data else null
+            val data = pendingSaveData
+            if (uri != null && data != null) {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    try {
+                        contentResolver.openOutputStream(uri)?.use { it.write(data) }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    } finally {
+                        pendingSaveData = null
+                    }
+                }
+            } else {
+                pendingSaveData = null
+            }
+        }
+
+        webUIState.onSaveFileRequest = { data, fileName, mimeType ->
+            pendingSaveData = data
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = mimeType
+                putExtra(Intent.EXTRA_TITLE, fileName)
+            }
+            try {
+                saveFileLauncher.launch(intent)
+            } catch (e: Exception) {
+                pendingSaveData = null
+                e.printStackTrace()
+            }
+        }
+
+        // 复用 FoxMask 已有的 RootUtils.fs（FileSystemManager root 服务），
+        // 不再使用 KsuWebUIStandalone 自带的 FileSystemService。RootUtils.fs getter
+        // 会阻塞等待 root 服务连接，所以必须在 IO 线程调用。
+        lifecycleScope.launch(Dispatchers.IO) {
+            if (AppList.getApplist().isEmpty()) {
+                AppList.getApps(this@WebUIActivity)
+            }
+            val fs = try {
+                RootUtils.fs
+            } catch (e: Throwable) {
+                withContext(Dispatchers.Main) { onLaunchFailed() }
+                return@launch
+            }
+            withContext(Dispatchers.Main) {
+                if (prepareWebView(webUIState)) {
+                    val container = FrameLayout(this@WebUIActivity)
+                    setupWebUIScreen(webUIState, container)
+                    initWebView(fs, webUIState)
+                    updateTaskDescription()
+                }
+            }
+        }
+    }
+
+    private fun updateTaskDescription() {
+        val name = webUIState.moduleName
+        if (name.isNotEmpty()) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                @Suppress("DEPRECATION")
+                setTaskDescription(ActivityManager.TaskDescription(name))
+            } else {
+                val taskDescription = ActivityManager.TaskDescription.Builder().setLabel(name).build()
+                setTaskDescription(taskDescription)
+            }
+        }
+    }
+
+    private fun onLaunchFailed() {
+        Toast.makeText(this, R.string.please_grant_root, Toast.LENGTH_SHORT).show()
+        finish()
+    }
+
+    fun enableEdgeToEdge(enable: Boolean = true) {
+        runOnUiThread {
+            if (enable) {
+                (this as ComponentActivity).enableEdgeToEdge()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    window.isNavigationBarContrastEnforced = false
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+                }
+            }
+            webUIState.isEdgeToEdgeEnabled = enable
+            val container = webUIState.webView?.parent as? android.view.View
+            container?.let { ViewCompat.requestApplyInsets(it) }
+
+            if (enable) {
+                webUIState.webView?.evaluateJavascript(webUIState.insets.js, null)
+            }
+        }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        webUIState.webView?.settings?.textZoom = (newConfig.fontScale * 100).toInt()
+        MonetColorsProvider.updateCss(this)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        webUIState.webviewInterface?.destroy()
+        webUIState.webView?.destroy()
+    }
+}
