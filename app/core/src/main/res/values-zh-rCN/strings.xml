@@ -149,6 +149,8 @@
     <string name="settings_sulist_summary">仅白名单应用可获得 root，其余静默拒绝并隐藏 su</string>
     <string name="settings_sulist_config_title">配置 SuList</string>
     <string name="settings_sulist_config_summary">选择加入 SuList 白名单的应用</string>
+    <string name="settings_sulist_not_excluded_title">不排除应用</string>
+    <string name="settings_sulist_not_excluded_summary">自定义哪些应用不被排除 root 权限（即 SuList 白名单）。除此之外的所有应用均被默认排除。</string>
     <string name="settings_denylist_title">遵守排除列表</string>
     <string name="settings_denylist_summary">Magisk 不会修改列表中的进程</string>
     <string name="settings_denylist_config_title">配置排除列表</string>

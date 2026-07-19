@@ -477,28 +477,41 @@ private fun MagiskSection(viewModel: SettingsViewModel) {
                 onCheckedChange = { viewModel.toggleSuList(it) }
             )
 
-            // SuList Config
+            // SuList Config —— 在 SuList 已启用时充当「不排除列表」，
+            // 即只有此处白名单内的应用能获得 root，其余全部被排除。
             SettingsArrow(
-                title = stringResource(CoreR.string.settings_sulist_config_title),
-                summary = stringResource(CoreR.string.settings_sulist_config_summary),
+                title = stringResource(
+                    if (Info.isSuListEnabled)
+                        CoreR.string.settings_sulist_not_excluded_title
+                    else
+                        CoreR.string.settings_sulist_config_title
+                ),
+                summary = stringResource(
+                    if (Info.isSuListEnabled)
+                        CoreR.string.settings_sulist_not_excluded_summary
+                    else
+                        CoreR.string.settings_sulist_config_summary
+                ),
                 onClick = { viewModel.navigateToSuList() }
             )
 
-            // DenyList
-            val denyListEnabled by viewModel.denyListEnabled.collectAsState()
-            SettingsSwitch(
-                title = stringResource(CoreR.string.settings_denylist_title),
-                summary = stringResource(CoreR.string.settings_denylist_summary),
-                checked = denyListEnabled,
-                onCheckedChange = { viewModel.toggleDenyList(it) }
-            )
+            // DenyList —— SuList 已启用时不再展示，因为所有非白名单应用已被排除，
+            // 再额外配置「排除列表」没有意义。
+            if (!Info.isSuListEnabled) {
+                val denyListEnabled by viewModel.denyListEnabled.collectAsState()
+                SettingsSwitch(
+                    title = stringResource(CoreR.string.settings_denylist_title),
+                    summary = stringResource(CoreR.string.settings_denylist_summary),
+                    checked = denyListEnabled,
+                    onCheckedChange = { viewModel.toggleDenyList(it) }
+                )
 
-            // DenyList Config
-            SettingsArrow(
-                title = stringResource(CoreR.string.settings_denylist_config_title),
-                summary = stringResource(CoreR.string.settings_denylist_config_summary),
-                onClick = { viewModel.navigateToDenyList() }
-            )
+                SettingsArrow(
+                    title = stringResource(CoreR.string.settings_denylist_config_title),
+                    summary = stringResource(CoreR.string.settings_denylist_config_summary),
+                    onClick = { viewModel.navigateToDenyList() }
+                )
+            }
         }
     }
 }
