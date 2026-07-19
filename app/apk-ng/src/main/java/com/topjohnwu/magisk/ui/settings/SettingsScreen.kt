@@ -512,6 +512,18 @@ private fun MagiskSection(viewModel: SettingsViewModel) {
                     onClick = { viewModel.navigateToDenyList() }
                 )
             }
+
+            // AuditPatch —— FoxMask 独立功能，不依赖 ZygiskNext。
+            // 通过 ptrace 远程 dlopen libmagiskaudit.so 到 logd，
+            // PLT-hook vasprintf 重写 SELinux audit 日志中的 root context。
+            // 热切换：原生侧 enable 时重启 logd 并注入；disable 仅清 DB 标志。
+            val auditPatchEnabled by viewModel.auditPatchEnabled.collectAsState()
+            SettingsSwitch(
+                title = stringResource(CoreR.string.settings_auditpatch_title),
+                summary = stringResource(CoreR.string.settings_auditpatch_summary),
+                checked = auditPatchEnabled,
+                onCheckedChange = { viewModel.toggleAuditPatch(it) }
+            )
         }
     }
 }

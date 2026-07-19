@@ -1,6 +1,6 @@
 use crate::consts::{APPLET_NAMES, MAGISK_VER_CODE, MAGISK_VERSION, POST_FS_DATA_WAIT_TIME};
 use crate::daemon::connect_daemon;
-use crate::ffi::{RequestCode, denylist_cli, get_magisk_tmp, install_module, sulist_cli, unlock_blocks};
+use crate::ffi::{RequestCode, auditpatch_cli, denylist_cli, get_magisk_tmp, install_module, sulist_cli, unlock_blocks};
 use crate::mount::find_preinit_device;
 use crate::selinux::restorecon;
 use crate::socket::{Decodable, Encodable};
@@ -39,6 +39,7 @@ Advanced Options (Internal APIs):
    --path                    print Magisk tmpfs mount path
    --denylist ARGS           denylist config CLI
    --sulist ARGS             sulist whitelist config CLI (KitsuneMask-style)
+   --auditpatch ARGS         audit patch CLI (hide root from kernel audit logs)
    --preinit-device          resolve a device to store preinit files
 
 Available applets:
@@ -77,6 +78,7 @@ enum MagiskAction {
     Path(PathCmd),
     DenyList(DenyList),
     SuList(SuListCmd),
+    AuditPatch(AuditPatchCmd),
     PreInitDevice(PreInitDevice),
 }
 
@@ -186,6 +188,13 @@ struct SuListCmd {
 }
 
 #[derive(FromArgs)]
+#[argh(subcommand, name = "--auditpatch")]
+struct AuditPatchCmd {
+    #[argh(positional, greedy)]
+    args: Vec<String>,
+}
+
+#[derive(FromArgs)]
 #[argh(subcommand, name = "--preinit-device")]
 struct PreInitDevice {}
 
@@ -283,6 +292,9 @@ impl MagiskAction {
             }
             SuList(self::SuListCmd { mut args }) => {
                 return Ok(sulist_cli(&mut args));
+            }
+            AuditPatch(self::AuditPatchCmd { mut args }) => {
+                return Ok(auditpatch_cli(&mut args));
             }
             PreInitDevice(_) => {
                 let name = find_preinit_device();

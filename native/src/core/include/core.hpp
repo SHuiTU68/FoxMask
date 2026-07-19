@@ -90,6 +90,15 @@ void scan_sulist_apps();
 bool is_sulist_target(int uid, std::string_view process);
 bool is_sulist_uid(int uid);
 
+// AuditPatch (FoxMask independent, no ZygiskNext)
+// 通过 ptrace 远程 dlopen libmagiskaudit.so 到 logd，PLT-hook vasprintf
+// 重写 SELinux audit 日志中的 tcontext=u:r:{su,magisk}:s0
+extern std::atomic<bool> auditpatch_enforced;
+int auditpatch_cli(rust::Vec<rust::String> &args);
+void auditpatch_handler(int client);
+void initialize_auditpatch();
+bool auditpatch_enabled();
+
 // MagiskSU
 void exec_root_shell(int client, int pid, SuRequest &req, MntNsMode mode);
 

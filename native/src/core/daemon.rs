@@ -5,8 +5,8 @@ use crate::consts::{
 };
 use crate::db::Sqlite3;
 use crate::ffi::{
-    ModuleInfo, RequestCode, RespondCode, denylist_handler, get_magisk_tmp, scan_deny_apps,
-    scan_sulist_apps, sulist_handler,
+    ModuleInfo, RequestCode, RespondCode, auditpatch_handler, denylist_handler, get_magisk_tmp,
+    scan_deny_apps, scan_sulist_apps, sulist_handler,
 };
 use crate::logging::{android_logging, magisk_logging, setup_logfile, start_log_daemon};
 use crate::module::remove_modules;
@@ -127,6 +127,9 @@ impl MagiskD {
             RequestCode::SULIST => {
                 sulist_handler(client.into_raw_fd());
             }
+            RequestCode::AUDITPATCH => {
+                auditpatch_handler(client.into_raw_fd());
+            }
             RequestCode::SUPERUSER => {
                 self.su_daemon_handler(client, cred);
             }
@@ -233,6 +236,7 @@ impl MagiskD {
             | RequestCode::SQLITE_CMD
             | RequestCode::DENYLIST
             | RequestCode::SULIST
+            | RequestCode::AUDITPATCH
             | RequestCode::STOP_DAEMON => {
                 if !is_root {
                     client.write_pod(&RespondCode::ROOT_REQUIRED.repr).log_ok();

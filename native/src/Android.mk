@@ -27,7 +27,8 @@ LOCAL_SRC_FILES := \
     core/zygisk/hook.cpp \
     core/deny/cli.cpp \
     core/deny/utils.cpp \
-    core/deny/logcat.cpp
+    core/deny/logcat.cpp \
+    core/auditpatch/auditpatch.cpp
 
 LOCAL_LDLIBS := -llog
 LOCAL_LDFLAGS := -Wl,--dynamic-list=src/exported_sym.txt
@@ -41,6 +42,22 @@ ifdef B_PRELOAD
 include $(CLEAR_VARS)
 LOCAL_MODULE := init-ld
 LOCAL_SRC_FILES := init/preload.c
+LOCAL_LDFLAGS := -Wl,--strip-all
+include $(BUILD_SHARED_LIBRARY)
+
+endif
+
+ifdef B_AUDIT
+
+# libmagiskaudit.so —— 被 ptrace 远程 dlopen 到 logd 后由构造函数
+# PLT-hook vasprintf，重写 audit 日志中的 root context。
+# 必须是共享库，且依赖 lsplt（与 magisk 主二进制共用）。
+include $(CLEAR_VARS)
+LOCAL_MODULE := libmagiskaudit
+LOCAL_STATIC_LIBRARIES := liblsplt
+LOCAL_SRC_FILES := core/auditpatch/hook.cpp
+LOCAL_LDLIBS := -llog
+LOCAL_CFLAGS := -fvisibility=hidden -fvisibility-inlines-hidden
 LOCAL_LDFLAGS := -Wl,--strip-all
 include $(BUILD_SHARED_LIBRARY)
 

@@ -164,6 +164,8 @@ def build_cpp_src(targets: set[str]):
 
     if "magisk" in targets:
         cmds.append("B_MAGISK=1")
+        # libmagiskaudit.so 是 FoxMask AuditPatch 的注入库，跟随 magisk 主二进制一起构建
+        cmds.append("B_AUDIT=1")
         clean = True
 
     if "magiskpolicy" in targets:
@@ -459,6 +461,7 @@ def gen_ide():
     run_ndk_build(
         [
             "B_MAGISK=1",
+            "B_AUDIT=1",
             "B_INIT=1",
             "B_BOOT=1",
             "B_POLICY=1",

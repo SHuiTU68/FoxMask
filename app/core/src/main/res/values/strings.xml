@@ -180,6 +180,10 @@
     <string name="settings_sulist_config_summary">Select the apps to be included in the SuList whitelist</string>
     <string name="settings_sulist_not_excluded_title">Not Excluded Apps</string>
     <string name="settings_sulist_not_excluded_summary">Configure which apps are not excluded from root access (the SuList whitelist). All other apps are excluded by default.</string>
+
+    <!--AuditPatch (FoxMask independent, no ZygiskNext)-->
+    <string name="settings_auditpatch_title">Audit Patch</string>
+    <string name="settings_auditpatch_summary">Hide root traces from kernel SELinux audit logs by hooking logd to rewrite tcontext=u:r:{su,magisk}:s0 → u:r:priv_app:s0:c512,c768. Independent of ZygiskNext.</string>
     <string name="home_sulist">SuList Mode</string>
     <string name="settings_denylist_title">Enforce DenyList</string>
     <string name="settings_denylist_summary">Processes on the denylist will have all FoxMask modifications reverted</string>

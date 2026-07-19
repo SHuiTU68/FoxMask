@@ -25,6 +25,9 @@ class SettingsViewModel : BaseViewModel() {
     private val _suListEnabled = MutableStateFlow(Config.suList)
     val suListEnabled: StateFlow<Boolean> = _suListEnabled.asStateFlow()
 
+    private val _auditPatchEnabled = MutableStateFlow(Config.auditPatch)
+    val auditPatchEnabled: StateFlow<Boolean> = _auditPatchEnabled.asStateFlow()
+
     val zygiskMismatch get() = Config.zygisk != Info.isZygiskEnabled
     val suListMismatch get() = Config.suList != Info.isSuListEnabled
 
@@ -79,6 +82,25 @@ class SettingsViewModel : BaseViewModel() {
                 Config.suList = enabled
             } else {
                 _suListEnabled.value = !enabled
+            }
+        }
+    }
+
+    /**
+     * 热切换 AuditPatch。原生侧支持运行时启停：
+     * enable 会持久化 DB 标志、应用 sepolicy deny 规则、
+     * 重启 logd 并 ptrace 注入 libmagiskaudit.so 到 logd，
+     * 由其 PLT-hook vasprintf 重写 SELinux audit 日志中的 root context。
+     * 失败时回滚 UI 状态。
+     */
+    fun toggleAuditPatch(enabled: Boolean) {
+        _auditPatchEnabled.value = enabled
+        val cmd = if (enabled) "enable" else "disable"
+        Shell.cmd("magisk --auditpatch $cmd").submit { result ->
+            if (result.isSuccess) {
+                Config.auditPatch = enabled
+            } else {
+                _auditPatchEnabled.value = !enabled
             }
         }
     }

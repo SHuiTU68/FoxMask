@@ -63,6 +63,7 @@ pub mod ffi {
         SQLITE_CMD,
         REMOVE_MODULES,
         ZYGISK,
+        AUDITPATCH,
 
         _STAGE_BARRIER_,
 
@@ -91,6 +92,7 @@ pub mod ffi {
         BootloopCount,
         SuManager,
         SuListConfig,
+        AuditPatchConfig,
     }
 
     #[repr(i32)]
@@ -179,6 +181,14 @@ pub mod ffi {
         fn scan_sulist_apps();
         fn is_sulist_uid(uid: i32) -> bool;
         fn initialize_sulist();
+
+        // AuditPatch (FoxMask independent, no ZygiskNext)
+        // 通过 ptrace 远程 dlopen libmagiskaudit.so 到 logd，
+        // PLT-hook vasprintf 重写 SELinux audit 日志中的 root context
+        fn auditpatch_cli(args: &mut Vec<String>) -> i32;
+        fn auditpatch_handler(client: i32);
+        fn initialize_auditpatch();
+        fn auditpatch_enabled() -> bool;
 
         include!("include/sqlite.hpp");
 

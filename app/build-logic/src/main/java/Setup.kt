@@ -127,7 +127,7 @@ fun Project.setupCoreLib() {
                 for (abi in abiList) {
                     into(abi) {
                         from(rootFile("native/out/$abi")) {
-                            include("magiskboot", "magiskinit", "magiskpolicy", "magisk", "libinit-ld.so")
+                            include("magiskboot", "magiskinit", "magiskpolicy", "magisk", "libinit-ld.so", "libmagiskaudit.so")
                             rename { if (it.endsWith(".so")) it else "lib$it.so" }
                         }
                     }
@@ -135,7 +135,8 @@ fun Project.setupCoreLib() {
                 from(zipTree(downloadFile(BUSYBOX_DOWNLOAD_URL, BUSYBOX_ZIP_CHECKSUM)))
                 include(abiList.map { "$it/libbusybox.so" })
                 onlyIf {
-                    if (inputs.sourceFiles.files.size != abiList.size * 6)
+                    // 6 个 magisk 系原生文件 + 1 个 libmagiskaudit.so（FoxMask AuditPatch 注入库）
+                    if (inputs.sourceFiles.files.size != abiList.size * 7)
                         throw StopExecutionException("Please build binaries first! (./build.py binary)")
                     true
                 }
