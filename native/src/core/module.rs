@@ -473,7 +473,7 @@ fn get_path_env() -> String {
         .unwrap_or_default()
 }
 
-fn inject_magisk_bins(system: &mut FsNode, is_emulator: bool, skip_su: bool) {
+fn inject_magisk_bins(system: &mut FsNode, is_emulator: bool) {
     fn inject(children: &mut FsNodeMap) {
         let mut path = cstr::buf::default().join_path(get_magisk_tmp());
 
@@ -498,33 +498,9 @@ fn inject_magisk_bins(system: &mut FsNode, is_emulator: bool, skip_su: bool) {
         );
 
         // Inject applet symlinks
-        // 注意：su 不在这里注入。su 单独注入到 /product/bin/su（见 inject_magisk_bins 末尾），
-        // 避免出现在 /system/bin 等常规 PATH 目录被 root 检测扫到。
+        children.insert("su".to_string(), FsNode::MagiskLink);
         children.insert("resetprop".to_string(), FsNode::MagiskLink);
         children.insert("supolicy".to_string(), FsNode::MagiskLink);
-    }
-
-    // 把 su 注入到 /product/bin/su。
-    // SuList 模式（skip_su=true）下不注入，su 仅存在于 ${MAGISKTMP}/su。
-    // /product 是 SECONDARY_READ_ONLY_PARTITIONS 之一，apply_modules 后续会把
-    // system tree 里的 product 子树提取为独立 /product 挂载点，所以这里创建的
-    // product/bin/su 节点会出现在 /product/bin/su。
-    fn inject_su_to_product(system: &mut FsNode) {
-        let Some(children) = system.children() else {
-            return;
-        };
-        let product = children
-            .entry("product".to_string())
-            .or_insert_with(FsNode::new_dir);
-        let FsNode::Directory { children } = product else {
-            return;
-        };
-        let bin = children
-            .entry("bin".to_string())
-            .or_insert_with(FsNode::new_dir);
-        if let FsNode::Directory { children } = bin {
-            children.insert("su".to_string(), FsNode::MagiskLink);
-        }
     }
 
     // Strip /system prefix to insert correct node
@@ -533,12 +509,6 @@ fn inject_magisk_bins(system: &mut FsNode, is_emulator: bool, skip_su: bool) {
             Some(rest) => format!("/{rest}"),
             None => orig_item.to_string(),
         }
-    }
-
-    // su 单独注入到 /product/bin/su（非 SuList 模式）。
-    // 放在最前面执行，避免后面 path_loop 命中候选目录后 return 跳过。
-    if !skip_su {
-        inject_su_to_product(system);
     }
 
     let path_env = get_path_env();
@@ -986,7 +956,7 @@ impl MagiskD {
         // step, treating Magisk just like a special "module".
 
         if get_magisk_tmp() != "/sbin" || get_path_env().split(":").all(|s| s != "/sbin") {
-            inject_magisk_bins(&mut system, self.is_emulator, self.sulist_enabled.load(Ordering::Acquire));
+            inject_magisk_bins(&mut system, self.is_emulator);
         }
 
         // Handle zygisk
