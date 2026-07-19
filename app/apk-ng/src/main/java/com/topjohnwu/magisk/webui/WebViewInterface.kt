@@ -22,11 +22,10 @@ import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.topjohnwu.magisk.R
+import com.topjohnwu.magisk.core.utils.RootUtils
 import com.topjohnwu.superuser.CallbackList
 import com.topjohnwu.superuser.ShellUtils
 import com.topjohnwu.superuser.internal.UiThreadHandler
-import com.topjohnwu.superuser.io.SuFile
-import com.topjohnwu.superuser.io.SuFileOutputStream
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedOutputStream
@@ -336,8 +335,11 @@ class FileOutputStreamInterface {
     @JavascriptInterface
     fun open(path: String, append: Boolean): String {
         return try {
-            val file = SuFile(path)
-            val fos = SuFileOutputStream.open(file, append)
+            // libsu 6.0 移除了 SuFile / SuFileOutputStream，统一用 FileSystemManager。
+            // 这里复用 FoxMask 的 RootUtils.fs（root 进程 FileSystemManager 远端代理）。
+            // RootUtils.fs getter 内部 Connection.await() 会阻塞，JS 调用都是异步的，
+            // 这里不在主线程，安全。
+            val fos = RootUtils.fs.getFile(path).newOutputStream(append)
             val bos = BufferedOutputStream(fos, 64 * 1024)
             val id = UUID.randomUUID().toString()
             openStreams[id] = bos
