@@ -20,11 +20,8 @@ from scripts.env import *
 # Common constants
 support_abis = {
     "arm64-v8a": "aarch64-linux-android",
-    "armeabi-v7a": "thumbv7neon-linux-androideabi",
 }
 abi_alias = {
-    "arm": "armeabi-v7a",
-    "arm32": "armeabi-v7a",
     "arm64": "arm64-v8a",
 }
 default_abis = support_abis.keys()

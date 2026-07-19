@@ -127,12 +127,7 @@ fun Project.setupCoreLib() {
                 for (abi in abiList) {
                     into(abi) {
                         from(rootFile("native/out/$abi")) {
-                            // libmagiskaudit.so 仅 aarch64 编译（32 位无 ptrace 注入）
-                            if (abi == "arm64-v8a") {
-                                include("magiskboot", "magiskinit", "magiskpolicy", "magisk", "libinit-ld.so", "libmagiskaudit.so")
-                            } else {
-                                include("magiskboot", "magiskinit", "magiskpolicy", "magisk", "libinit-ld.so")
-                            }
+                            include("magiskboot", "magiskinit", "magiskpolicy", "magisk", "libinit-ld.so", "libmagiskaudit.so")
                             rename { if (it.endsWith(".so")) it else "lib$it.so" }
                         }
                     }
@@ -140,10 +135,8 @@ fun Project.setupCoreLib() {
                 from(zipTree(downloadFile(BUSYBOX_DOWNLOAD_URL, BUSYBOX_ZIP_CHECKSUM)))
                 include(abiList.map { "$it/libbusybox.so" })
                 onlyIf {
-                    // 每个 ABI：5 个 magisk 系原生文件 + 1 个 libinit-ld.so + busybox
-                    // arm64-v8a 额外有 libmagiskaudit.so（FoxMask AuditPatch 注入库）
-                    val expected = abiList.sumOf { if (it == "arm64-v8a") 7 else 6 }
-                    if (inputs.sourceFiles.files.size != expected)
+                    // 6 个 magisk 系原生文件 + 1 个 libmagiskaudit.so（FoxMask AuditPatch 注入库）
+                    if (inputs.sourceFiles.files.size != abiList.size * 7)
                         throw StopExecutionException("Please build binaries first! (./build.py binary)")
                     true
                 }
@@ -291,7 +284,7 @@ fun Project.setupMainApk() {
             versionName = "${Config.version}-FoxMask"
             versionCode = Config.versionCode
             ndk {
-                abiFilters += listOf("armeabi-v7a", "arm64-v8a")
+                abiFilters += listOf("arm64-v8a")
                 debugSymbolLevel = "FULL"
             }
         }
