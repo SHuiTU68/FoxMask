@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstdarg>
 #include <string_view>
+#include <vector>
 #include <link.h>
 #include <sys/auxv.h>
 #include <dlfcn.h>
@@ -82,8 +83,9 @@ static int my_vasprintf(char **strp, const char *fmt, va_list ap) {
 static void *find_logd_base() {
     void *base = nullptr;
     dl_iterate_phdr([](struct dl_phdr_info *info, size_t, void *data) -> int {
+        // dlpi_addr 是 Elf64_Addr（unsigned long long），用 static_cast 转 uintptr_t
         auto linker_base = static_cast<uintptr_t>(getauxval(AT_BASE));
-        if (linker_base == reinterpret_cast<uintptr_t>(info->dlpi_addr))
+        if (linker_base == static_cast<uintptr_t>(info->dlpi_addr))
             return 0;
         *static_cast<void **>(data) = reinterpret_cast<void *>(info->dlpi_addr);
         return 1;
