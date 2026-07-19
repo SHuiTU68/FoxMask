@@ -59,11 +59,11 @@ import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import com.topjohnwu.magisk.core.R as CoreR
 
 enum class Tab(val titleRes: Int, val iconRes: Int) {
-    MODULES(CoreR.string.modules, R.drawable.ic_module),
-    SETTINGS(CoreR.string.settings, R.drawable.ic_settings),
     HOME(CoreR.string.section_home, R.drawable.ic_home),
+    SUPERUSER(CoreR.string.superuser, CoreR.drawable.ic_superuser),
     LOG(CoreR.string.logs, R.drawable.ic_bug),
-    SUPERUSER(CoreR.string.superuser, CoreR.drawable.ic_superuser);
+    MODULES(CoreR.string.modules, R.drawable.ic_module),
+    SETTINGS(CoreR.string.settings, R.drawable.ic_settings);
 }
 
 @Composable
