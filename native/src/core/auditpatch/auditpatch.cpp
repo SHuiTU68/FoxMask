@@ -74,57 +74,34 @@ static inline void *_reg_pc(RegSet &r) { return reinterpret_cast<void *>(r.pc); 
 static inline void _set_reg_pc(RegSet &r, void *p) { r.pc = reinterpret_cast<uintptr_t>(p); }
 static inline void *_reg_sp(RegSet &r) { return reinterpret_cast<void *>(r.sp); }
 static inline void _set_reg_sp(RegSet &r, void *p) { r.sp = reinterpret_cast<uintptr_t>(p); }
-static inline long &_reg_ret(RegSet &r) { return r.regs[0]; }
-static inline long &_reg_arg0(RegSet &r) { return r.regs[0]; }
-static inline long &_reg_arg1(RegSet &r) { return r.regs[1]; }
-static inline long &_reg_arg2(RegSet &r) { return r.regs[2]; }
-static inline long &_reg_arg3(RegSet &r) { return r.regs[3]; }
-static inline long &_reg_arg4(RegSet &r) { return r.regs[4]; }
-static inline long &_reg_arg5(RegSet &r) { return r.regs[5]; }
-static inline long &_reg_lr(RegSet &r) { return r.regs[30]; }
+// user_pt_regs.regs[] 是 __u64，访问器必须返回 uint64_t& 才能正确绑定
+static inline uint64_t &_reg_ret(RegSet &r) { return r.regs[0]; }
+static inline uint64_t &_reg_arg0(RegSet &r) { return r.regs[0]; }
+static inline uint64_t &_reg_arg1(RegSet &r) { return r.regs[1]; }
+static inline uint64_t &_reg_arg2(RegSet &r) { return r.regs[2]; }
+static inline uint64_t &_reg_arg3(RegSet &r) { return r.regs[3]; }
+static inline uint64_t &_reg_arg4(RegSet &r) { return r.regs[4]; }
+static inline uint64_t &_reg_arg5(RegSet &r) { return r.regs[5]; }
+static inline uint64_t &_reg_lr(RegSet &r) { return r.regs[30]; }
 
-#elif defined(__x86_64__)
-using RegSet = struct user_regs_struct;
-constexpr int kRegSetOp = PTRACE_GETREGS;
-
-static inline void *_reg_pc(RegSet &r) { return reinterpret_cast<void *>(r.rip); }
-static inline void _set_reg_pc(RegSet &r, void *p) { r.rip = reinterpret_cast<uintptr_t>(p); }
-static inline void *_reg_sp(RegSet &r) { return reinterpret_cast<void *>(r.rsp); }
-static inline void _set_reg_sp(RegSet &r, void *p) { r.rsp = reinterpret_cast<uintptr_t>(p); }
-static inline long long &_reg_ret(RegSet &r) { return r.rax; }
-static inline long long &_reg_arg0(RegSet &r) { return r.rdi; }
-static inline long long &_reg_arg1(RegSet &r) { return r.rsi; }
-static inline long long &_reg_arg2(RegSet &r) { return r.rdx; }
-static inline long long &_reg_arg3(RegSet &r) { return r.r10; }  // syscall 用 r10，C 调用用 rcx
-static inline long long &_reg_arg4(RegSet &r) { return r.r8; }
-static inline long long &_reg_arg5(RegSet &r) { return r.r9; }
-static inline long long &_reg_lr(RegSet &r) { return r.rip; }
 #else
-#  error "auditpatch: unsupported architecture"
+#  error "auditpatch: unsupported architecture (only aarch64 is supported)"
 #endif
 
 static bool ptrace_get_regs(int pid, RegSet *regs) {
-#if defined(__aarch64__)
     struct iovec iov { regs, sizeof(*regs) };
     return ptrace(kRegSetOp, pid, reinterpret_cast<void *>(kRegSetType), &iov) == 0;
-#else
-    return ptrace(kRegSetOp, pid, nullptr, regs) == 0;
-#endif
 }
 
 static bool ptrace_set_regs(int pid, RegSet *regs) {
-#if defined(__aarch64__)
     struct iovec iov { regs, sizeof(*regs) };
     return ptrace(PTRACE_SETREGSET, pid, reinterpret_cast<void *>(kRegSetType), &iov) == 0;
-#else
-    return ptrace(PTRACE_SETREGS, pid, nullptr, regs) == 0;
-#endif
 }
 
 // 读取 /proc/<pid>/maps，找到第一行 path == "/system/lib64/libc.so"（或 32 位变体）的 start 地址
 static void *find_remote_lib_base(int pid, const char *lib_name) {
     char path[64];
-    snprintf(path, sizeof(path), "/proc/%d/maps", pid);
+    ssprintf(path, sizeof(path), "/proc/%d/maps", pid);
     ifstream f(path);
     if (!f)
         return nullptr;
@@ -194,33 +171,24 @@ static void *resolve_remote_func(int pid, const char *lib_name, const char *func
 // 注意：arm64 与 x86_64 都支持「返回到 0 地址触发 SIGSEGV」。
 //
 // 返回 true 表示调用完成且未崩溃；调用结果写入 *out_ret。
+// 支持最多 6 个参数（aarch64 ABI: x0-x5），覆盖 mmap/dlopen 等常用 libc 函数。
 static bool remote_call(int pid, RegSet *regs, void *func,
-                        long arg0, long arg1, long arg2,
-                        long *out_ret) {
+                        uint64_t arg0, uint64_t arg1, uint64_t arg2,
+                        uint64_t arg3, uint64_t arg4, uint64_t arg5,
+                        uint64_t *out_ret) {
     RegSet saved = *regs;
 
     // 设置参数寄存器
     _reg_arg0(*regs) = arg0;
     _reg_arg1(*regs) = arg1;
     _reg_arg2(*regs) = arg2;
+    _reg_arg3(*regs) = arg3;
+    _reg_arg4(*regs) = arg4;
+    _reg_arg5(*regs) = arg5;
 #if defined(__aarch64__)
     _reg_lr(*regs) = 0;             // 返回到 0 触发 SIGSEGV
     _set_reg_pc(*regs, func);
     // SP 不变（复用目标栈）
-#elif defined(__x86_64__)
-    // x86_64: call 指令会 push 返回地址，再 ret 到那里。
-    // 我们直接把 RIP 设为 func，RSP 减 8 写入 0 作为返回地址。
-    _reg_arg3(*regs) = 0;
-    _reg_arg4(*regs) = 0;
-    _reg_arg5(*regs) = 0;
-    uint64_t zero = 0;
-    uintptr_t new_sp = reinterpret_cast<uintptr_t>(_reg_sp(*regs)) - sizeof(uint64_t);
-    // 写 0 到 new_sp
-    if (ptrace(PTRACE_POKEDATA, pid, reinterpret_cast<void *>(new_sp),
-               reinterpret_cast<void *>(zero)) != 0)
-        return false;
-    _set_reg_sp(*regs, reinterpret_cast<void *>(new_sp));
-    _set_reg_pc(*regs, func);
 #endif
 
     if (!ptrace_set_regs(pid, regs))
@@ -240,7 +208,7 @@ static bool remote_call(int pid, RegSet *regs, void *func,
     if (!ptrace_get_regs(pid, &after))
         return false;
     if (out_ret)
-        *out_ret = static_cast<long>(_reg_ret(after));
+        *out_ret = _reg_ret(after);
 
     // 恢复现场
     *regs = saved;
@@ -287,7 +255,7 @@ static int find_logd_pid() {
         if (pid <= 0)
             continue;
         char path[64];
-        snprintf(path, sizeof(path), "/proc/%d/cmdline", pid);
+        ssprintf(path, sizeof(path), "/proc/%d/cmdline", pid);
         int fd = open(path, O_RDONLY | O_CLOEXEC);
         if (fd < 0)
             continue;
@@ -350,20 +318,21 @@ int auditpatch_inject_into_logd() {
     }
 
     // 1) 远程 mmap 取一块可写内存
-    long map_ret = 0;
-    long mmap_arg2 = PROT_READ | PROT_WRITE;
-    long mmap_arg3 = MAP_PRIVATE | MAP_ANONYMOUS;
+    uint64_t map_ret = 0;
     if (!remote_call(pid, &regs, remote_mmap,
-                     0,                          // addr=NULL
-                     4096,                       // len
-                     mmap_arg2,
+                     0,                                  // addr=NULL
+                     4096,                               // len
+                     PROT_READ | PROT_WRITE,             // prot
+                     MAP_PRIVATE | MAP_ANONYMOUS,        // flags
+                     0,                                  // fd=-1 (MAP_ANONYMOUS 忽略)
+                     0,                                  // offset=0
                      &map_ret)) {
         LOGE("auditpatch: remote mmap call failed\n");
         ptrace(PTRACE_DETACH, pid, nullptr, nullptr);
         return AuditPatchResponse::INJECT_FAILED;
     }
-    if (map_ret == -1 || map_ret == 0) {
-        LOGE("auditpatch: remote mmap returned %lx\n", map_ret);
+    if (map_ret == static_cast<uint64_t>(-1) || map_ret == 0) {
+        LOGE("auditpatch: remote mmap returned %llx\n", (unsigned long long)map_ret);
         ptrace(PTRACE_DETACH, pid, nullptr, nullptr);
         return AuditPatchResponse::INJECT_FAILED;
     }
@@ -379,11 +348,11 @@ int auditpatch_inject_into_logd() {
     }
 
     // 3) 远程 dlopen(path, RTLD_NOW)
-    long dlopen_ret = 0;
+    uint64_t dlopen_ret = 0;
     if (!remote_call(pid, &regs, remote_dlopen,
-                     static_cast<long>(map_ret),  // arg0 = path
-                     RTLD_NOW,                    // arg1 = mode
-                     0,                           // arg2 unused
+                     map_ret,                            // arg0 = path
+                     RTLD_NOW,                           // arg1 = mode
+                     0, 0, 0, 0,                         // arg2-5 unused
                      &dlopen_ret)) {
         LOGE("auditpatch: remote dlopen call failed\n");
         ptrace(PTRACE_DETACH, pid, nullptr, nullptr);
@@ -447,7 +416,7 @@ static void restart_logd() {
     int pid = fork();
     if (pid == 0) {
         execl("/system/bin/setprop", "setprop", "ctl.restart", "logd",
-              reinterpret_cast<char *>(nullptr));
+              (char *)NULL);
         _exit(127);
     } else if (pid > 0) {
         int st;
