@@ -52,6 +52,8 @@ ifdef B_AUDIT
 # libmagiskaudit.so —— 被 ptrace 远程 dlopen 到 logd 后由构造函数
 # PLT-hook vasprintf，重写 audit 日志中的 root context。
 # 必须是共享库，且依赖 lsplt（与 magisk 主二进制共用）。
+# 仅 aarch64 编译：32 位架构不支持 ptrace 注入，不需要此 .so。
+ifeq ($(TARGET_ARCH),arm64)
 include $(CLEAR_VARS)
 LOCAL_MODULE := libmagiskaudit
 LOCAL_STATIC_LIBRARIES := liblsplt
@@ -60,6 +62,7 @@ LOCAL_LDLIBS := -llog
 LOCAL_CFLAGS := -fvisibility=hidden -fvisibility-inlines-hidden
 LOCAL_LDFLAGS := -Wl,--strip-all
 include $(BUILD_SHARED_LIBRARY)
+endif  # arm64
 
 endif
 

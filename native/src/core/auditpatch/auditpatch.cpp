@@ -65,7 +65,13 @@ static const char *libmagiskaudit_path() {
 //
 // 支持 arm64 与 x86_64。
 
+// ============================================================================
+// 64 位 aarch64：完整 ptrace 注入实现
+// 32 位 arm：不支持 ptrace 注入，提供存根（logd audit 重写在现代 Android
+//           仅 64 位设备有意义，32 位设备无 SELinux audit 日志重写需求）
+// ============================================================================
 #if defined(__aarch64__)
+
 using RegSet = struct user_pt_regs;
 constexpr int kRegSetOp = PTRACE_GETREGSET;
 constexpr unsigned long kRegSetType = NT_PRSTATUS;
@@ -85,9 +91,9 @@ static inline __u64 &_reg_arg4(RegSet &r) { return r.regs[4]; }
 static inline __u64 &_reg_arg5(RegSet &r) { return r.regs[5]; }
 static inline __u64 &_reg_lr(RegSet &r) { return r.regs[30]; }
 
-#else
-#  error "auditpatch: unsupported architecture (only aarch64 is supported)"
-#endif
+#endif  // __aarch64__
+
+#if defined(__aarch64__)
 
 static bool ptrace_get_regs(int pid, RegSet *regs) {
     struct iovec iov { regs, sizeof(*regs) };
@@ -369,6 +375,18 @@ int auditpatch_inject_into_logd() {
     LOGI("auditpatch: injected libmagiskaudit.so into logd (pid=%d)\n", pid);
     return 0;
 }
+
+#else  // !__aarch64__
+
+// 32 位架构不支持 ptrace 注入，提供存根
+static int find_logd_pid() { return -1; }
+
+int auditpatch_inject_into_logd() {
+    LOGW("auditpatch: ptrace injection not supported on 32-bit arch\n");
+    return AuditPatchResponse::NOT_SUPPORTED;
+}
+
+#endif  // __aarch64__
 
 // ============================================================================
 // 启用 / 禁用 / 注入
