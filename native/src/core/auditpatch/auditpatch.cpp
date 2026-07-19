@@ -74,15 +74,16 @@ static inline void *_reg_pc(RegSet &r) { return reinterpret_cast<void *>(r.pc); 
 static inline void _set_reg_pc(RegSet &r, void *p) { r.pc = reinterpret_cast<uintptr_t>(p); }
 static inline void *_reg_sp(RegSet &r) { return reinterpret_cast<void *>(r.sp); }
 static inline void _set_reg_sp(RegSet &r, void *p) { r.sp = reinterpret_cast<uintptr_t>(p); }
-// user_pt_regs.regs[] 是 __u64，访问器必须返回 uint64_t& 才能正确绑定
-static inline uint64_t &_reg_ret(RegSet &r) { return r.regs[0]; }
-static inline uint64_t &_reg_arg0(RegSet &r) { return r.regs[0]; }
-static inline uint64_t &_reg_arg1(RegSet &r) { return r.regs[1]; }
-static inline uint64_t &_reg_arg2(RegSet &r) { return r.regs[2]; }
-static inline uint64_t &_reg_arg3(RegSet &r) { return r.regs[3]; }
-static inline uint64_t &_reg_arg4(RegSet &r) { return r.regs[4]; }
-static inline uint64_t &_reg_arg5(RegSet &r) { return r.regs[5]; }
-static inline uint64_t &_reg_lr(RegSet &r) { return r.regs[30]; }
+// user_pt_regs.regs[] 在 aarch64 NDK 是 __u64（unsigned long long），
+// 访问器必须返回 __u64& 才能直接绑定（uint64_t 是 unsigned long，类型不同）
+static inline __u64 &_reg_ret(RegSet &r) { return r.regs[0]; }
+static inline __u64 &_reg_arg0(RegSet &r) { return r.regs[0]; }
+static inline __u64 &_reg_arg1(RegSet &r) { return r.regs[1]; }
+static inline __u64 &_reg_arg2(RegSet &r) { return r.regs[2]; }
+static inline __u64 &_reg_arg3(RegSet &r) { return r.regs[3]; }
+static inline __u64 &_reg_arg4(RegSet &r) { return r.regs[4]; }
+static inline __u64 &_reg_arg5(RegSet &r) { return r.regs[5]; }
+static inline __u64 &_reg_lr(RegSet &r) { return r.regs[30]; }
 
 #else
 #  error "auditpatch: unsupported architecture (only aarch64 is supported)"
@@ -173,9 +174,9 @@ static void *resolve_remote_func(int pid, const char *lib_name, const char *func
 // 返回 true 表示调用完成且未崩溃；调用结果写入 *out_ret。
 // 支持最多 6 个参数（aarch64 ABI: x0-x5），覆盖 mmap/dlopen 等常用 libc 函数。
 static bool remote_call(int pid, RegSet *regs, void *func,
-                        uint64_t arg0, uint64_t arg1, uint64_t arg2,
-                        uint64_t arg3, uint64_t arg4, uint64_t arg5,
-                        uint64_t *out_ret) {
+                        __u64 arg0, __u64 arg1, __u64 arg2,
+                        __u64 arg3, __u64 arg4, __u64 arg5,
+                        __u64 *out_ret) {
     RegSet saved = *regs;
 
     // 设置参数寄存器
@@ -318,7 +319,7 @@ int auditpatch_inject_into_logd() {
     }
 
     // 1) 远程 mmap 取一块可写内存
-    uint64_t map_ret = 0;
+    __u64 map_ret = 0;
     if (!remote_call(pid, &regs, remote_mmap,
                      0,                                  // addr=NULL
                      4096,                               // len
@@ -331,7 +332,7 @@ int auditpatch_inject_into_logd() {
         ptrace(PTRACE_DETACH, pid, nullptr, nullptr);
         return AuditPatchResponse::INJECT_FAILED;
     }
-    if (map_ret == static_cast<uint64_t>(-1) || map_ret == 0) {
+    if (map_ret == static_cast<__u64>(-1) || map_ret == 0) {
         LOGE("auditpatch: remote mmap returned %llx\n", (unsigned long long)map_ret);
         ptrace(PTRACE_DETACH, pid, nullptr, nullptr);
         return AuditPatchResponse::INJECT_FAILED;
@@ -348,7 +349,7 @@ int auditpatch_inject_into_logd() {
     }
 
     // 3) 远程 dlopen(path, RTLD_NOW)
-    uint64_t dlopen_ret = 0;
+    __u64 dlopen_ret = 0;
     if (!remote_call(pid, &regs, remote_dlopen,
                      map_ret,                            // arg0 = path
                      RTLD_NOW,                           // arg1 = mode
