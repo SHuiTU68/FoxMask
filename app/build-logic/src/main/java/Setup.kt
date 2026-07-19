@@ -284,7 +284,7 @@ fun Project.setupMainApk() {
             versionName = "${Config.version}-FoxMask"
             versionCode = Config.versionCode
             ndk {
-                abiFilters += listOf("armeabi-v7a", "arm64-v8a", "riscv64")
+                abiFilters += listOf("armeabi-v7a", "arm64-v8a")
                 debugSymbolLevel = "FULL"
             }
         }
