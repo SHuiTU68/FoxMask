@@ -276,8 +276,4 @@ impl MagiskD {
     pub fn sulist_enabled(&self) -> bool {
         self.sulist_enabled.load(Ordering::Acquire)
     }
-
-    pub fn mount_modules_enabled(&self) -> bool {
-        self.mount_modules_enabled.load(Ordering::Acquire)
-    }
 }

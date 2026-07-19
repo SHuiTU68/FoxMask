@@ -635,10 +635,6 @@ private fun StatusCard() {
             status = stringResource(if (Info.ramdisk) CoreR.string.yes else CoreR.string.no)
         ),
         StatusInfo(
-            label = stringResource(CoreR.string.home_mount_modules),
-            status = stringResource(if (Config.mountModules) CoreR.string.enabled else CoreR.string.disabled)
-        ),
-        StatusInfo(
             label = stringResource(CoreR.string.home_sulist),
             status = stringResource(if (Info.isSuListEnabled) CoreR.string.enabled else CoreR.string.disabled)
         )

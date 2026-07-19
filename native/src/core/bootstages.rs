@@ -157,14 +157,6 @@ impl MagiskD {
             self.get_db_setting(DbEntryKey::SuListConfig) != 0,
             Ordering::Release,
         );
-        self.mount_modules_enabled.store(
-            self.get_db_setting(DbEntryKey::MountModules) != 0,
-            Ordering::Release,
-        );
-        // 始终执行 handle_modules：它会收集模块列表（供 zygisk/su 使用），
-        // 并调用 apply_modules 注入 Magisk 自身的 su/magisk/magiskpolicy/resetprop。
-        // 模块文件挂载由 apply_modules 内部根据 mount_modules_enabled 开关决定。
-        // 之前在关闭开关时跳过整个 handle_modules，会导致 su 丢失、root 不完整。
         self.handle_modules();
         initialize_denylist();
         initialize_sulist();

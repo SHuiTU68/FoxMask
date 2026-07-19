@@ -1,5 +1,8 @@
 package com.topjohnwu.magisk.ui.webui
 
+import android.annotation.SuppressLint
+import android.graphics.Color
+import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
@@ -19,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.topjohnwu.magisk.core.R as CoreR
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,6 +51,18 @@ fun WebUIScreen(
 
     LaunchedEffect(moduleId) {
         viewModel.init(moduleId, moduleName, context.cacheDir.absolutePath)
+    }
+
+    // 退出时销毁 WebView，避免泄漏与下次进入黑屏
+    DisposableEffect(webView) {
+        onDispose {
+            webView?.apply {
+                stopLoading()
+                removeAllViews()
+                destroy()
+            }
+            webView = null
+        }
     }
 
     BackHandler {
@@ -101,34 +116,11 @@ fun WebUIScreen(
                         .fillMaxSize()
                         .padding(if (fullScreen) PaddingValues(0.dp) else padding),
                     factory = { ctx ->
-                        WebView(ctx).apply {
-                            settings.javaScriptEnabled = true
-                            settings.domStorageEnabled = true
-                            settings.allowFileAccess = true
-                            settings.allowFileAccessFromFileURLs = true
-                            settings.allowUniversalAccessFromFileURLs = true
-
-                            // 注入 KernelSU 桥接，兼容 KSU 和 APatch 模块
-                            addJavascriptInterface(
-                                KsuBridge(ctx, moduleId) { enable ->
-                                    fullScreen = enable
-                                },
-                                "KernelSU"
-                            )
-
-                            webViewClient = object : WebViewClient() {
-                                override fun onPageFinished(view: WebView?, url: String?) {
-                                    // 注入 ksu 别名以兼容 APatch 模块
-                                    view?.evaluateJavascript(
-                                        "if(!window.ksu){window.ksu=window.KernelSU;}", null
-                                    )
-                                }
-                            }
-
-                            loadUrl(path)
-                        }
+                        createWebUI(ctx, moduleId, path) { enable ->
+                            fullScreen = enable
+                        }.also { webView = it }
                     },
-                    update = { wv -> webView = wv },
+                    update = { wv -> if (webView !== wv) webView = wv },
                 )
             }
             else -> {
@@ -143,4 +135,48 @@ fun WebUIScreen(
             }
         }
     }
+}
+
+@SuppressLint("SetJavaScriptEnabled")
+private fun createWebUI(
+    ctx: android.content.Context,
+    moduleId: String,
+    path: String,
+    onFullScreen: (Boolean) -> Unit,
+): WebView = WebView(ctx).apply {
+    setBackgroundColor(Color.TRANSPARENT)
+    settings.apply {
+        javaScriptEnabled = true
+        domStorageEnabled = true
+        databaseEnabled = true
+        allowFileAccess = true
+        allowFileAccessFromFileURLs = true
+        allowUniversalAccessFromFileURLs = true
+        allowContentAccess = true
+        mediaPlaybackRequiresUserGesture = false
+        mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        loadWithOverviewMode = true
+        useWideViewPort = true
+        cacheMode = android.webkit.WebSettings.LOAD_DEFAULT
+        setSupportZoom(false)
+    }
+
+    // 注入 KernelSU 桥接，兼容 KSU 和 APatch 模块
+    addJavascriptInterface(
+        KsuBridge(ctx, moduleId, onFullScreen),
+        "KernelSU"
+    )
+
+    webViewClient = object : WebViewClient() {
+        override fun onPageFinished(view: WebView?, url: String?) {
+            // 注入 ksu 别名以兼容 APatch 模块
+            view?.evaluateJavascript(
+                "if(!window.ksu){window.ksu=window.KernelSU;}", null
+            )
+        }
+    }
+    // 缺少 WebChromeClient 会导致 alert/confirm/prompt 不响应、部分 WebUI 黑屏
+    webChromeClient = WebChromeClient()
+
+    loadUrl(path)
 }

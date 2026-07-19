@@ -64,7 +64,6 @@ pub struct DbSettings {
     pub denylist: bool,
     pub zygisk: bool,
     pub sulist: bool,
-    pub mount_modules: bool,
 }
 
 #[repr(i32)]
@@ -103,7 +102,6 @@ impl DbEntryKey {
             DbEntryKey::BootloopCount => "bootloop",
             DbEntryKey::SuManager => "requester",
             DbEntryKey::SuListConfig => "sulist",
-            DbEntryKey::MountModules => "mount_modules",
             _ => "",
         }
     }
@@ -129,7 +127,6 @@ impl SqlTable for DbSettings {
             "denylist" => self.denylist = value != 0,
             "zygisk" => self.zygisk = value != 0,
             "sulist" => self.sulist = value != 0,
-            "mount_modules" => self.mount_modules = value != 0,
             "bootloop" => self.boot_count = value,
             _ => {}
         }
@@ -261,7 +258,6 @@ impl MagiskD {
             DbEntryKey::ZygiskConfig => self.is_emulator as i32,
             DbEntryKey::BootloopCount => 0,
             DbEntryKey::SuListConfig => 0,
-            DbEntryKey::MountModules => 1,
             _ => -1,
         };
         let mut func = |_: &[String], values: &DbValues| {
